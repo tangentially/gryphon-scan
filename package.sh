@@ -224,7 +224,7 @@ function downloadDependencies
 	downloadURL https://pypi.python.org/packages/source/s/six/six-1.9.0.tar.gz
 	downloadURL http://videocapture.sourceforge.net/VideoCapture-0.9-5.zip
 	mkdir -p pyglet; cd pyglet;
-	downloadURL http://pyglet.googlecode.com/files/pyglet-1.1.4.msi; cd ..
+	downloadURL https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/pyglet/pyglet-1.1.4.msi; cd ..
 
 	# For windows extract portable python to include it.
 	extract PortablePython_${WIN_PORTABLE_PY_VERSION}.exe \$_OUTDIR/App
