@@ -64,10 +64,10 @@ class Settings(collections.MutableMapping):
         self.cast_and_set(key, value)
 
     def set_min_value(self, key, value):
-        self.get_setting(key).__min_value = value
+        self.get_setting(key).min_value = value
 
     def set_max_value(self, key, value):
-        self.get_setting(key).__max_value = value
+        self.get_setting(key).max_value = value
 
     def cast_and_set(self, key, value):
         # if len(value) == 0:
@@ -377,10 +377,10 @@ class Settings(collections.MutableMapping):
             Setting('use_roi', _('Use ROI'), 'profile_settings', bool, False))
         self._add_setting(
             Setting('roi_diameter', _('Diameter (mm)'), 'profile_settings',
-                    int, 200, min_value=0, max_value=250))
+                    int, 300, min_value=0, max_value=350))
         self._add_setting(
             Setting('roi_height', _('Height (mm)'), 'profile_settings',
-                    int, 200, min_value=0, max_value=250))
+                    int, 400, min_value=0, max_value=350))
         self._add_setting(
             Setting('point_cloud_color', _('Choose point cloud color'), 'profile_settings',
                     unicode, u'AAAAAA'))

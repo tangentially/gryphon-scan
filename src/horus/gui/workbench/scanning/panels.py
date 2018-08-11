@@ -97,8 +97,8 @@ class PointCloudROI(ExpandablePanel):
                 point_cloud_roi.set_diameter(profile.settings['roi_diameter'])
                 point_cloud_roi.set_height(profile.settings['roi_height'])
             else:
-                point_cloud_roi.set_diameter(250)
-                point_cloud_roi.set_height(250)
+                point_cloud_roi.set_diameter(profile.settings['machine_diameter'])
+                point_cloud_roi.set_height(profile.settings['machine_height'])
             self.main.scene_view._view_roi = value
             self.main.scene_view.queue_refresh()
 
