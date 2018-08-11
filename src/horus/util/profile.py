@@ -528,6 +528,8 @@ class Settings(collections.MutableMapping):
             Setting('machine_shape', _('Machine shape'), 'machine_settings',
                     unicode, u'Circular', possible_values=(u'Circular', u'Rectangular')))
         self._add_setting(
+            Setting('machine_shape_z', 'Machine border visualization z offset', 'machine_settings', int, 0))
+        self._add_setting(
             Setting('machine_model_path', _('Machine model'), 'machine_settings',
                     unicode, unicode(resources.get_path_for_mesh('Gryphon_platform.stl')))) # ciclop_platform.stl
         self._add_setting(
@@ -539,6 +541,10 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('machine_model_offset_z', 'Machine model offset Z', 'machine_settings',
                     float, 0.00)) # 8.05 for Ciclop
+        self._add_setting(
+            Setting('platform_markers_diameter', 'Platform markers diameter', 'machine_settings', int, 276))
+        self._add_setting(
+            Setting('platform_markers_z', 'Platform markers z offset', 'machine_settings', int, 2))
         # self._add_setting(
         #     Setting('roi_width', _('Width (mm)'), 'machine_settings',
         #             int, 200, min_value=0, max_value=250))

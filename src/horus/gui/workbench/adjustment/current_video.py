@@ -11,6 +11,7 @@ import numpy as np
 
 from horus import Singleton
 from horus.gui.engine import image_capture, image_detection, laser_segmentation
+from horus.gui.util.augmented_view import AugmentedView
 
 
 @Singleton
@@ -21,6 +22,7 @@ class CurrentVideo(object):
         self.updating = False
         self.latest_image = None
         self.capturing = False
+        self.augmented_view = AugmentedView()
         self.calibration = False
         self.draw_line = True
 
@@ -76,7 +78,7 @@ class CurrentVideo(object):
                 image = np.maximum(images[0], images[1])
             else:
                 image = None
-
+        self.augmented_view.draw_platform(image)
         self.capturing = False
         return image
 
