@@ -18,6 +18,10 @@ class Pattern(object):
         self._columns = 0
         self._square_width = 0
         self.origin_distance = 0
+        self.border_l = 0
+        self.border_r = 0
+        self.border_t = 0
+        self.border_b = 0
 
     @property
     def rows(self):

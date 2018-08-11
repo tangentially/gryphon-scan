@@ -8,7 +8,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import cv2
 import numpy as np
 from horus.util import profile
-from horus.gui.engine import platform_extrinsics
+from horus.gui.engine import platform_extrinsics, image_detection, pattern
 
 
 class AugmentedView():
@@ -32,7 +32,7 @@ class AugmentedView():
         self.platform_border = np.float32(self.platform_border)
 
     # Platform visualization draw
-    def draw_platform(self, image, mask=False):
+    def draw_platform(self, image):
         if self.platform_points is None:
             self.init_platform_draw()
 
@@ -57,3 +57,85 @@ class AugmentedView():
             p = np.int32(p).reshape(-1,2)
             for pp in p:
                 cv2.circle(image, tuple(pp), 5, (0,0,255), -1)
+
+    # Platform remove mask
+    def platform_mask(self, image):
+        mask = np.ones(image.shape[0:2], dtype = "uint8")
+        if self.platform_points is None:
+            self.init_platform_draw()
+
+        if platform_extrinsics.calibration_data.platform_rotation is not None and \
+           platform_extrinsics.calibration_data.platform_translation is not None:
+            # platform border
+            p, jac = cv2.projectPoints(self.platform_border, \
+                platform_extrinsics.calibration_data.platform_rotation, \
+                platform_extrinsics.calibration_data.platform_translation, \
+                platform_extrinsics.calibration_data.camera_matrix, \
+                platform_extrinsics.calibration_data.distortion_vector)
+            p = np.int32([p])
+            cv2.fillPoly(mask, p, 0)
+        return mask
+
+    #pattern visualization
+    def draw_pattern(self, image, corners):
+        if corners is not None:
+            cv2.drawChessboardCorners(
+                image, (pattern.columns, pattern.rows), corners, True)
+
+            pose = image_detection.detect_pose_from_corners(corners)
+            l = -pattern.square_width
+            t = -pattern.square_width
+            r = pattern.square_width * pattern.columns
+            b = pattern.square_width * pattern.rows
+            wl = pattern.border_l
+            wr = pattern.border_r
+            wt = pattern.border_t
+            wb = pattern.border_b
+            points = np.float32( (
+                (l,t,0),(r,t,0),(r,b,0),(l,b,0),
+                (l-wl,t-wt,0),(r+wr,t-wt,0),(r+wr,b+wb,0),(l-wl,b+wb,0),
+                (l-wl,b-pattern.square_width+pattern.origin_distance,0),(r+wr,b-pattern.square_width+pattern.origin_distance,0)
+                ) )
+            p, jac = cv2.projectPoints(points, \
+                pose[0], \
+                pose[1].T[0], \
+                platform_extrinsics.calibration_data.camera_matrix, \
+                platform_extrinsics.calibration_data.distortion_vector)
+            p = np.int32(p).reshape(-1,2)
+            cv2.polylines(image, np.int32([p[0:4]]), True, (0,255,0), 2)
+            cv2.polylines(image, np.int32([p[4:8]]), True, (255,0,0), 2)
+            cv2.line(image, tuple(p[8]), tuple(p[9]), (255,0,0), 2)
+        return image
+
+    #pattern mask
+    def pattern_mask(self, image, corners):
+        mask = np.zeros(image.shape[0:2], dtype = "uint8")
+        if corners is not None:
+            pose = image_detection.detect_pose_from_corners(corners)
+            l = -pattern.square_width
+            t = -pattern.square_width
+            r = pattern.square_width * pattern.columns
+            b = pattern.square_width * pattern.rows
+            w = 5
+            points = np.float32( (
+                (l-w,t-w,0),(r+w,t-w,0),(r+w,b+w,0),(l-w,b+w,0),
+                ) )
+            p, jac = cv2.projectPoints(points, \
+                pose[0], \
+                pose[1].T[0], \
+                platform_extrinsics.calibration_data.camera_matrix, \
+                platform_extrinsics.calibration_data.distortion_vector)
+            p = np.int32(p).reshape(-1,2)
+
+            cv2.fillConvexPoly(mask, np.int32([p]), 255)
+        return mask
+
+
+    # Draw mask as color overlay
+    def overlay_mask(self, image, mask, color=(255,0,0)):
+        if image is not None and \
+           mask  is not None:
+            overlayImg = np.zeros(image.shape, image.dtype)
+            overlayImg[:,:] = color
+            overlayMask = cv2.bitwise_and(overlayImg, overlayImg, mask=mask)
+            cv2.addWeighted(overlayMask, 1, image, 1, 0, image)

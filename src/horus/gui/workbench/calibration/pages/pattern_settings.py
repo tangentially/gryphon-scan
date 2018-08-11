@@ -5,6 +5,9 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
+import cv2
+import numpy as np
+
 import wx._core
 
 from horus.util import resources
@@ -41,11 +44,14 @@ class PatternSettingsPages(wx.Panel):
         hbox.Add(self.info_panel, 1, wx.ALL | wx.EXPAND, 3)
         hbox.Add(self.video_view, 1, wx.ALL | wx.EXPAND, 3)
 
-	self.add_info(_("Pattern size is the number of inner \"cross\" points "
+	self.add_info(_("1) Pattern size is the number of inner \"cross\" points "
                              "of the pattern"), "pattern-size.jpg")
 
-	self.add_info(_("Pattern height is the distance from lower set of  \"cross\" points "
+	self.add_info(_("2) Origin distance is the distance from lower set of  \"cross\" points "
                              "to the platform"), "pattern-distance.jpg")
+
+	self.add_info(_("3) Pattern border is the clean white space around chessboard pattern."
+                             "\nThis white space is used for lasers calibration"), "")
 
         self.Layout()
 
@@ -73,6 +79,15 @@ class PatternSettingsPages(wx.Panel):
 
     def get_image(self):
         image = image_capture.capture_pattern()
-        image = image_detection.detect_pattern(image)
-        self.augmented_view.draw_platform(image)
+        corners = image_detection.detect_corners(image)
+
+#        self.augmented_view.draw_platform(image)
+        self.augmented_view.draw_pattern(image, corners)
+
+#        mask = self.augmented_view.pattern_mask(image, corners)
+#        mask = self.augmented_view.platform_mask(image)
+
+#        self.augmented_view.overlay_mask(image,mask)
+#        image = cv2.bitwise_and(image, image, mask=mask)
+
         return image

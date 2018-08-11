@@ -150,6 +150,10 @@ class CalibrationWorkbench(Workbench):
         pattern.columns = profile.settings['pattern_columns']
         pattern.square_width = profile.settings['pattern_square_width']
         pattern.origin_distance = profile.settings['pattern_origin_distance']
+        pattern.border_l = profile.settings['pattern_border_l']
+        pattern.border_r = profile.settings['pattern_border_r']
+        pattern.border_t = profile.settings['pattern_border_t']
+        pattern.border_b = profile.settings['pattern_border_b']
         width, height = driver.camera.get_resolution()
         calibration_data.set_resolution(width, height)
         calibration_data.camera_matrix = profile.settings['camera_matrix']

@@ -43,11 +43,14 @@ class ImageDetection(object):
     def detect_pose(self, image):
         corners = self._detect_chessboard(image)
         if corners is not None:
-            ret, rvecs, tvecs = cv2.solvePnP(
-                self.pattern.object_points, corners,
-                self.calibration_data.camera_matrix, self.calibration_data.distortion_vector)
-            if ret:
-                return (cv2.Rodrigues(rvecs)[0], tvecs, corners)
+            return self.detect_pose_from_corners(corners)
+
+    def detect_pose_from_corners(self, corners):
+        ret, rvecs, tvecs = cv2.solvePnP(
+            self.pattern.object_points, corners,
+            self.calibration_data.camera_matrix, self.calibration_data.distortion_vector)
+        if ret:
+            return (cv2.Rodrigues(rvecs)[0], tvecs, corners)
 
     def detect_pattern_plane(self, pose):
         if pose is not None:

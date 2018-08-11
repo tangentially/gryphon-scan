@@ -33,11 +33,24 @@ class PatternSettings(ExpandablePanel):
             _("Minimum distance between the origin of the pattern (bottom-left corner) "
               "and the pattern's base surface (mm)"))
 
+        self.add_control(
+            'pattern_border_l', FloatTextBox, _("Border width Left (mm)"))
+        self.add_control(
+            'pattern_border_r', FloatTextBox, _("Border width Right (mm)"))
+        self.add_control(
+            'pattern_border_t', FloatTextBox, _("Border width Top (mm)"))
+        self.add_control(
+            'pattern_border_b', FloatTextBox, _("Border width Bottom (mm)"))
+
     def update_callbacks(self):
         self.update_callback('pattern_rows', lambda v: self._update_rows(v))
         self.update_callback('pattern_columns', lambda v: self._update_columns(v))
         self.update_callback('pattern_square_width', lambda v: self._update_square_width(v))
         self.update_callback('pattern_origin_distance', lambda v: self._update_origin_distance(v))
+        self.update_callback('pattern_border_l', lambda v: self._update_border_l(v))
+        self.update_callback('pattern_border_r', lambda v: self._update_border_r(v))
+        self.update_callback('pattern_border_t', lambda v: self._update_border_t(v))
+        self.update_callback('pattern_border_b', lambda v: self._update_border_b(v))
 
     def _update_rows(self, value):
         pattern.rows = value
@@ -50,6 +63,18 @@ class PatternSettings(ExpandablePanel):
 
     def _update_origin_distance(self, value):
         pattern.origin_distance = value
+
+    def _update_border_l(self, value):
+        pattern.border_l = value
+
+    def _update_border_r(self, value):
+        pattern.border_r = value
+
+    def _update_border_t(self, value):
+        pattern.border_t = value
+
+    def _update_border_b(self, value):
+        pattern.border_b = value
 
 
 class ScannerAutocheck(ExpandablePanel):
