@@ -18,6 +18,7 @@ from horus.gui.workbench.calibration.pages.camera_intrinsics import CameraIntrin
 from horus.gui.workbench.calibration.pages.scanner_autocheck import ScannerAutocheckPages
 from horus.gui.workbench.calibration.pages.laser_triangulation import LaserTriangulationPages
 from horus.gui.workbench.calibration.pages.platform_extrinsics import PlatformExtrinsicsPages
+from horus.gui.workbench.calibration.pages.pattern_settings import PatternSettingsPages
 
 
 class CalibrationWorkbench(Workbench):
@@ -58,16 +59,19 @@ class CalibrationWorkbench(Workbench):
             self, start_callback=self.disable_panels, exit_callback=self.update_panels))
         self.add_page('platform_extrinsics_pages', PlatformExtrinsicsPages(
             self, start_callback=self.disable_panels, exit_callback=self.update_panels))
+        self.add_page('pattern_settings_pages', PatternSettingsPages(self))
 
         self.pages_collection['camera_intrinsics_pages'].Hide()
         self.pages_collection['scanner_autocheck_pages'].Hide()
         self.pages_collection['laser_triangulation_pages'].Hide()
         self.pages_collection['platform_extrinsics_pages'].Hide()
+        self.pages_collection['pattern_settings_pages'].Hide()
 
         self.pages_collection['camera_intrinsics_pages'].Disable()
         self.pages_collection['scanner_autocheck_pages'].Disable()
         self.pages_collection['laser_triangulation_pages'].Disable()
         self.pages_collection['platform_extrinsics_pages'].Disable()
+        self.pages_collection['pattern_settings_pages'].Disable()
 
         if not profile.settings['view_mode_advanced']:
             self.panels_collection.expandable_panels['video_settings'].Hide()
@@ -90,6 +94,7 @@ class CalibrationWorkbench(Workbench):
             self.pages_collection['scanner_autocheck_pages'].Enable()
             self.pages_collection['laser_triangulation_pages'].Enable()
             self.pages_collection['platform_extrinsics_pages'].Enable()
+            self.pages_collection['pattern_settings_pages'].Enable()
         else:
             for page in self.pages_collection:
                 self.pages_collection[page].stop()
@@ -97,6 +102,7 @@ class CalibrationWorkbench(Workbench):
             self.pages_collection['scanner_autocheck_pages'].Disable()
             self.pages_collection['laser_triangulation_pages'].Disable()
             self.pages_collection['platform_extrinsics_pages'].Disable()
+            self.pages_collection['pattern_settings_pages'].Disable()
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_calibration']].on_title_clicked(None)
 
@@ -160,7 +166,7 @@ class CalibrationWorkbench(Workbench):
 
     def on_pattern_settings_selected(self):
         profile.settings['current_panel_calibration'] = 'pattern_settings'
-        self._on_panel_selected(self.pages_collection['video_view'])
+        self._on_panel_selected(self.pages_collection['pattern_settings_pages'])
 
     def on_rotating_platform_settings_selected(self):
         profile.settings['current_panel_calibration'] = 'rotating_platform_settings'

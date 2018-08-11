@@ -11,47 +11,43 @@ from horus.util import resources
 
 from horus.gui.engine import image_capture, image_detection, scanner_autocheck, laser_triangulation, \
     platform_extrinsics
-from horus.gui.workbench.calibration.pages.page import Page
 from horus.gui.util.image_view import ImageView
 from horus.gui.util.video_view import VideoView
 from horus.gui.util.augmented_view import AugmentedView
 
+class PatternSettingsPages(wx.Panel):
 
-class VideoPage(Page):
-
-    def __init__(self, parent, title='Video page', start_callback=None, cancel_callback=None):
-        Page.__init__(self, parent,
-                      title="",
-                      desc="",
-                      left=_("Cancel"),
-                      right=_("Start"),
-                      button_left_callback=cancel_callback,
-                      button_right_callback=start_callback,
-                      view_progress=True)
+    def __init__(self, parent, start_callback=None, exit_callback=None):
+        wx.Panel.__init__(self, parent)
 
         # Elements
-        self.video_view = VideoView(self.panel, self.get_image)
+        self.video_view = VideoView(self, self.get_image)
         self.augmented_view = AugmentedView()
 
         self.info_panel = wx.Panel(self)
-        title_text = wx.StaticText(self.info_panel, label=title)
+        title_text = wx.StaticText(self.info_panel, label="Pattern settings")
         title_font = title_text.GetFont()
         title_font.SetWeight(wx.BOLD)
         title_text.SetFont(title_font)
 
         # Layout
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.SetSizer(hbox)
+
         self.info_box = wx.BoxSizer(wx.VERTICAL)
         self.info_panel.SetSizer(self.info_box)
-        if title_text != "":
-            self.info_box.Add(title_text, 0, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 12)
+        self.info_box.Add(title_text, 0, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 12)
 
-        self.panel_box.Add(self.info_panel, 2, wx.ALL | wx.EXPAND, 3)
-        self.panel_box.Add(self.video_view, 2, wx.ALL | wx.EXPAND, 3)
+        hbox.Add(self.info_panel, 1, wx.ALL | wx.EXPAND, 3)
+        hbox.Add(self.video_view, 1, wx.ALL | wx.EXPAND, 3)
+
+	self.add_info(_("Pattern size is the number of inner \"cross\" points "
+                             "of the pattern"), "pattern-size.jpg")
+
+	self.add_info(_("Pattern height is the distance from lower set of  \"cross\" points "
+                             "to the platform"), "pattern-distance.jpg")
 
         self.Layout()
-
-#	self.add_info(_("Put the pattern on the platform as shown in the "
-#                             "picture and press \"Start\""), "pattern-position.png")
 
     def add_info(self, desc, picture):
         if desc != "":
@@ -63,11 +59,6 @@ class VideoPage(Page):
             image_view.set_image(wx.Image(resources.get_path_for_image(picture)))
             self.info_box.Add(image_view, 1, wx.ALL | wx.EXPAND, 3)
 
-        self.Layout()
-
-    def initialize(self):
-        self.gauge.SetValue(0)
-        self.right_button.Enable()
 
     def play(self):
         self.video_view.play()
@@ -75,22 +66,13 @@ class VideoPage(Page):
         self.Layout()
 
     def stop(self):
-        self.initialize()
         self.video_view.stop()
 
     def reset(self):
         self.video_view.reset()
 
     def get_image(self):
-        if scanner_autocheck.image is not None:
-            image = scanner_autocheck.image
-        elif laser_triangulation.image is not None:
-            image = laser_triangulation.image
-        elif platform_extrinsics.image is not None:
-            image = platform_extrinsics.image
-        else:
-            image = image_capture.capture_pattern()
-            image = image_detection.detect_pattern(image)
-
+        image = image_capture.capture_pattern()
+        image = image_detection.detect_pattern(image)
         self.augmented_view.draw_platform(image)
         return image

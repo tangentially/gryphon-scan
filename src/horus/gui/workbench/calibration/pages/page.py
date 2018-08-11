@@ -11,7 +11,7 @@ import wx._core
 class Page(wx.Panel):
 
     def __init__(self, parent, title="Title", desc="", left="Left", right="Right",
-                 button_left_callback=None, button_right_callback=None, view_progress=False):
+                 button_left_callback=None, button_right_callback=None, view_progress=False, layout=0):
         wx.Panel.__init__(self, parent)  # , style=wx.RAISED_BORDER)
 
         self.button_left_callback = button_left_callback
@@ -36,7 +36,8 @@ class Page(wx.Panel):
         vbox = wx.BoxSizer(wx.VERTICAL)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_box = wx.BoxSizer(wx.HORIZONTAL)
-        vbox.Add(title_text, 0, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 12)
+        if title != "":
+            vbox.Add(title_text, 0, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 12)
         if desc != "":
             vbox.Add(self.desc_text, 0, wx.ALL | wx.EXPAND, 14)
         vbox.Add(self.panel, 1, wx.ALL | wx.EXPAND, 8)
