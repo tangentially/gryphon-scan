@@ -22,7 +22,7 @@ class PlatformExtrinsicsError(Exception):
         Exception.__init__(self, "PlatformExtrinsicsError")
 
 
-estimated_t = [-5, 90, 320]
+#estimated_t = [-5, 90, 320]
 
 
 @Singleton
@@ -91,8 +91,8 @@ class PlatformExtrinsics(MovingCalibration):
             logger.info(" Rotation: " + str(self.R).replace('\n', ''))
             logger.info(" Normal: " + str(normal))
 
-        if self._is_calibrating and self.t is not None and \
-           np.linalg.norm(self.t - estimated_t) < 100:
+        if self._is_calibrating and self.t is not None: # and \
+#           np.linalg.norm(self.t - estimated_t) < 100:
             response = (True, (self.R, self.t, center, point, normal,
                         [self.x, self.y, self.z], circle))
 
