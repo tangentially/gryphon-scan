@@ -556,6 +556,8 @@ class Settings(collections.MutableMapping):
             Setting('board', _('Board'), 'preferences', unicode, u'BT ATmega328',
                     possible_values=(u'Arduino Uno', u'BT ATmega328')))
         self._add_setting(
+            Setting('firmware_string', 'Firmware version string', 'preferences', unicode, u"Horus 0.2 ['$' for help]"))
+        self._add_setting(
             Setting('invert_motor', _('Invert motor'), 'preferences', bool, False))
         self._add_setting(
             Setting('language', _('Language'), 'preferences', unicode, u'English',

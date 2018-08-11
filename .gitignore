@@ -29,3 +29,7 @@ horus.egg-info/
 horus.log
 version
 doc/readthedocs/_build
+python/
+horus.bat
+src/horus/settings.json
+src/horus/calibration.json
