@@ -75,6 +75,7 @@ class LaserTriangulation(MovingCalibration):
                                 (self._point_cloud[i], point_3d.T))
             else:
                 self.image = image
+                print("Skip calibration at "+str(alpha))
         else:
             self.image = image
 

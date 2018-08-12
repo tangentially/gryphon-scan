@@ -16,6 +16,8 @@ from horus.gui.util.image_view import ImageView
 from horus.gui.util.pattern_distance_window import PatternDistanceWindow
 from horus.gui.wizard.wizard_page import WizardPage
 
+from horus.gui.util.augmented_view import estimate_platform_angle_from_pattern
+
 
 class CalibrationPage(WizardPage):
 
@@ -88,14 +90,33 @@ class CalibrationPage(WizardPage):
         self.parent.on_exit(message=False)
 
     def on_calibration_button_clicked(self, event):
-        combo_calibration.set_callbacks(
-            lambda: wx.CallAfter(self.before_calibration),
-            lambda p: wx.CallAfter(self.progress_calibration, p),
-            lambda r: wx.CallAfter(self.after_calibration, r))
         if profile.settings['pattern_origin_distance'] == 0.0:
             PatternDistanceWindow(self)
         else:
-            combo_calibration.start()
+            combo_calibration.motor_step = profile.settings['motor_step_calibration']
+            combo_calibration.motor_speed = profile.settings['motor_speed_calibration']
+            combo_calibration.motor_acceleration = profile.settings['motor_acceleration_calibration']
+            combo_calibration.final_move = profile.settings['after_calibration_position']
+            combo_calibration.laser_calibration_angles = profile.settings['laser_calibration_angles']
+
+            image = image_capture.capture_pattern()
+            pose = image_detection.detect_pose(image)
+            if pose is not None:
+                combo_calibration.angle_offset = estimate_platform_angle_from_pattern(pose)
+                combo_calibration.set_callbacks(
+                    lambda: wx.CallAfter(self.before_calibration),
+                    lambda p: wx.CallAfter(self.progress_calibration, p),
+                    lambda r: wx.CallAfter(self.after_calibration, r))
+                combo_calibration.start()
+            else:
+                dlg = wx.MessageDialog(
+                    self, _("Please put calibration pattern on platform and make sure it is detected correctly.\n"
+                            "You can set pattern parameters in \"Pattern settings\" panel.\n"
+                            "Also you can set up the calibration's capture camera settings "
+                            "in the \"Adjustment workbench\"."),
+                    _("Pattern not detected"), wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
 
     def on_cancel_button_clicked(self, event):
         board_unplug_callback = driver.board.unplug_callback

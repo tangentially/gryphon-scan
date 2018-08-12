@@ -7,6 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import cv2
 import numpy as np
+import math
 from horus.util import profile
 from horus.gui.engine import platform_extrinsics, image_detection, pattern
 
@@ -145,3 +146,31 @@ def overlay_mask(image, mask, color=(255,0,0)):
         overlayImg[:,:] = color
         overlayMask = cv2.bitwise_and(overlayImg, overlayImg, mask=mask)
         cv2.addWeighted(overlayMask, 1, image, 1, 0, image)
+
+
+# estimate platform rotate angle to to make pattern on platform perpendicular to camera
+def estimate_platform_angle_from_pattern(pose):
+#	pose = image_detection.detect_pose_from_corners(corners)
+    if pose is not None:
+        if platform_extrinsics.calibration_data.platform_rotation is not None and \
+           platform_extrinsics.calibration_data.platform_translation is not None:
+            # Platform position known. Calculate angle in platform space
+
+            # pattern normal in camera space
+            pc = np.float32([(0,0,-1)]).dot(pose[0].T) 
+            # add camera-to-platform vector
+            vv = np.append(pc, [-platform_extrinsics.calibration_data.platform_translation / np.linalg.norm(platform_extrinsics.calibration_data.platform_translation)], axis=0)
+            # move all to platform space
+            pz = vv.dot(platform_extrinsics.calibration_data.platform_rotation)
+            # flattern to platform XY / normalize
+            pz[:,2] = 0
+            pz /= np.apply_along_axis(np.linalg.norm, 1, pz)[..., np.newaxis]
+            return math.copysign(np.rad2deg(math.acos(np.dot(pz[0], pz[1]))) , pz[0,1]-pz[1,1])
+
+        else:
+            # platform position unknown. trying to do the best
+            # expect pattern Y is close to platform normal and platform-to-camera about perpendicular to camera
+
+            # camera Z to pattern space
+            v = np.float32([(0,0,1)]).dot(pose[0]) # camera Z axis to pattern space
+            return math.copysign(np.rad2deg(math.acos(v[0,2]/np.linalg.norm( (v[0,0], v[0,2]) ))), v[0,0]) 

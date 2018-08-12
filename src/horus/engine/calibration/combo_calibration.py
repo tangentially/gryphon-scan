@@ -74,6 +74,7 @@ class ComboCalibration(MovingCalibration):
                                 (self._point_cloud[i], point_3d.T))
             else:
                 self.image = image
+                print("Skip laser calibration at "+str(alpha))
 
             # Platform extrinsics
             origin = corners[self.pattern.columns * (self.pattern.rows - 1)][0]

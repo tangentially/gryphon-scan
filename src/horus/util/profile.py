@@ -462,6 +462,10 @@ class Settings(collections.MutableMapping):
                                                                           [-90.0, 90.0]]))))
 
         self._add_setting(
+            Setting('after_calibration_position', _('Platform position after calibration'), 'calibration_settings',
+                    unicode, u'Return', possible_values=(u'Keep', u'Return', u'Perpendicular')))
+
+        self._add_setting(
             Setting('adjust_laser', _('Adjust laser'), 'calibration_settings', bool, True))
 
         self._add_setting(

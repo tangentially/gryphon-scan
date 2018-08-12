@@ -8,11 +8,11 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import wx._core
 
 from horus.gui.engine import driver, pattern, calibration_data, laser_triangulation, \
-    platform_extrinsics
+    platform_extrinsics, combo_calibration
 from horus.util import system as sys
 from horus.gui.util.custom_panels import ExpandablePanel, Slider, CheckBox, \
     FloatTextBox, FloatTextBoxArray, FloatLabel, FloatLabelArray, Button, \
-    IntLabel, IntTextBox
+    IntLabel, IntTextBox, ComboBox
 
 
 class PatternSettings(ExpandablePanel):
@@ -34,13 +34,13 @@ class PatternSettings(ExpandablePanel):
               "and the pattern's base surface (mm)"))
 
         self.add_control(
-            'pattern_border_l', FloatTextBox, _("Border width Left (mm)"))
+            'pattern_border_l', FloatTextBox, _("Border Left (mm)"))
         self.add_control(
-            'pattern_border_r', FloatTextBox, _("Border width Right (mm)"))
+            'pattern_border_r', FloatTextBox, _("Border Right (mm)"))
         self.add_control(
-            'pattern_border_t', FloatTextBox, _("Border width Top (mm)"))
+            'pattern_border_t', FloatTextBox, _("Border Top (mm)"))
         self.add_control(
-            'pattern_border_b', FloatTextBox, _("Border width Bottom (mm)"))
+            'pattern_border_b', FloatTextBox, _("Border Bottom (mm)"))
 
     def update_callbacks(self):
         self.update_callback('pattern_rows', lambda v: self._update_rows(v))
@@ -100,23 +100,34 @@ class RotatingPlatform(ExpandablePanel):
         self.add_control('motor_acceleration_calibration', FloatTextBox,
                          _("Acceleration for laser and platform calibration"))
 
+        self.add_control('after_calibration_position', ComboBox,
+                         _("Platform position on finish"))
+
     def update_callbacks(self):
         self.update_callback('motor_step_calibration', self._set_step)
         self.update_callback('motor_speed_calibration', self._set_speed)
         self.update_callback('motor_acceleration_calibration', self._set_acceleration)
+        self.update_callback('after_calibration_position', lambda v: self._set_after_calibration_position(v))
 
     def _set_step(self, value):
         laser_triangulation.motor_step = value
         platform_extrinsics.motor_step = value
+        combo_calibration.motor_step = value
 
     def _set_speed(self, value):
         laser_triangulation.motor_speed = value
         platform_extrinsics.motor_speed = value
+        combo_calibration.motor_speed = value
 
     def _set_acceleration(self, value):
         laser_triangulation.motor_acceleration = value
         platform_extrinsics.motor_acceleration = value
+        combo_calibration.motor_acceleration = value
 
+    def _set_after_calibration_position(self, value):
+        laser_triangulation.final_move = value
+        platform_extrinsics.final_move = value
+        combo_calibration.final_move = value
 
 class LaserTriangulation(ExpandablePanel):
 

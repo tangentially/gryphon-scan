@@ -10,7 +10,7 @@ import numpy as np
 
 from horus.util import profile
 
-from horus.gui.engine import calibration_data, laser_triangulation
+from horus.gui.engine import calibration_data, laser_triangulation, image_capture, image_detection
 from horus.engine.calibration.laser_triangulation import LaserTriangulationError
 
 from mpl_toolkits.mplot3d import Axes3D
@@ -20,6 +20,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 from horus.gui.workbench.calibration.pages.page import Page
 from horus.gui.workbench.calibration.pages.video_page import VideoPage
 
+from horus.gui.util.augmented_view import estimate_platform_angle_from_pattern
 
 class LaserTriangulationPages(wx.Panel):
 
@@ -87,10 +88,23 @@ class LaserTriangulationPages(wx.Panel):
             del self.wait_cursor
 
     def on_start(self):
-        laser_triangulation.set_callbacks(lambda: wx.CallAfter(self.before_calibration),
-                                          lambda p: wx.CallAfter(self.progress_calibration, p),
-                                          lambda r: wx.CallAfter(self.after_calibration, r))
-        laser_triangulation.start()
+        image = image_capture.capture_pattern()
+        pose = image_detection.detect_pose(image)
+        if pose is not None:
+            laser_triangulation.angle_offset = estimate_platform_angle_from_pattern(pose)
+            laser_triangulation.set_callbacks(lambda: wx.CallAfter(self.before_calibration),
+                                              lambda p: wx.CallAfter(self.progress_calibration, p),
+                                              lambda r: wx.CallAfter(self.after_calibration, r))
+            laser_triangulation.start()
+        else:
+            dlg = wx.MessageDialog(
+                self, _("Please put calibration pattern on platform and make sure it is detected correctly.\n"
+                        "You can set pattern parameters in \"Pattern settings\" panel.\n"
+                        "Also you can set up the calibration's capture camera settings "
+                        "in the \"Adjustment workbench\"."),
+                _("Pattern not detected"), wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
 
     def on_exit(self):
         laser_triangulation.cancel()

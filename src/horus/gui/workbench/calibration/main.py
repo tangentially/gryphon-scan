@@ -161,13 +161,16 @@ class CalibrationWorkbench(Workbench):
         laser_triangulation.motor_step = profile.settings['motor_step_calibration']
         laser_triangulation.motor_speed = profile.settings['motor_speed_calibration']
         laser_triangulation.motor_acceleration = profile.settings['motor_acceleration_calibration']
+        laser_triangulation.final_move = profile.settings['after_calibration_position']
         laser_triangulation.laser_calibration_angles = profile.settings['laser_calibration_angles']
         platform_extrinsics.motor_step = profile.settings['motor_step_calibration']
         platform_extrinsics.motor_speed = profile.settings['motor_speed_calibration']
         platform_extrinsics.motor_acceleration = profile.settings['motor_acceleration_calibration']
+        platform_extrinsics.final_move = profile.settings['after_calibration_position']
         combo_calibration.motor_step = profile.settings['motor_step_calibration']
         combo_calibration.motor_speed = profile.settings['motor_speed_calibration']
         combo_calibration.motor_acceleration = profile.settings['motor_acceleration_calibration']
+        combo_calibration.final_move = profile.settings['after_calibration_position']
         combo_calibration.laser_calibration_angles = profile.settings['laser_calibration_angles']
 
     def on_pattern_settings_selected(self):
