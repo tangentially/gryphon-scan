@@ -36,6 +36,7 @@ class LaserTriangulation(MovingCalibration):
     def __init__(self):
         self.image = None
         self.has_image = False
+        self.laser_calibration_angles = np.float32( [ (-90,90), (-90,90) ])
         MovingCalibration.__init__(self)
 
     def _initialize(self):
@@ -51,11 +52,16 @@ class LaserTriangulation(MovingCalibration):
         if plane is not None:
             distance, normal, corners = plane
             # Angle between the pattern and the camera
-            alpha = np.rad2deg(math.acos(normal[2]/np.linalg.norm( (normal[0], normal[2]) ))) * math.copysign(1, normal[0])
-            if abs(alpha) < 30:
+            # measure angle within camera XZ plane. 
+            # Negative angle for pattern face turned to the left from camera
+            alpha = -np.rad2deg(math.acos(normal[2]/np.linalg.norm( (normal[0], normal[2]) ))) * math.copysign(1, normal[0])
+            lasers = np.where(np.logical_and(
+                self.laser_calibration_angles[:,0]<alpha,
+                self.laser_calibration_angles[:,1]>alpha ))[0]
+            if lasers.size > 0:
                 self.image_capture.flush_laser(14)
-                for i in xrange(2):
-                    if (i == 0 and alpha < 10) or (i == 1 and alpha > -10):
+                for i in lasers:
+#                    if (i == 0 and alpha < 10) or (i == 1 and alpha > -10):
                         image = self.image_capture.capture_laser(i)
                         image = self.image_detection.pattern_mask(image, corners)
                         self.image = image

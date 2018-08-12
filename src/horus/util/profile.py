@@ -457,6 +457,11 @@ class Settings(collections.MutableMapping):
                     'calibration_settings', float, 200.0, min_value=1.0, max_value=1000.0))
 
         self._add_setting(
+            Setting('laser_calibration_angles', _('Laser on pattern visibility angle ranges'), 'calibration_settings',
+                    np.ndarray, np.ndarray(shape=(2, 2), buffer=np.array([[-90.0, 90.0],
+                                                                          [-90.0, 90.0]]))))
+
+        self._add_setting(
             Setting('adjust_laser', _('Adjust laser'), 'calibration_settings', bool, True))
 
         self._add_setting(
