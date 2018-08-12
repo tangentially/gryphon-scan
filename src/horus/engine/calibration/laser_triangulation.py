@@ -50,9 +50,8 @@ class LaserTriangulation(MovingCalibration):
         plane = self.image_detection.detect_pattern_plane(pose)
         if plane is not None:
             distance, normal, corners = plane
-
             # Angle between the pattern and the camera
-            alpha = np.rad2deg(math.acos(normal[2])) * math.copysign(1, normal[0])
+            alpha = np.rad2deg(math.acos(normal[2]/np.linalg.norm( (normal[0], normal[2]) ))) * math.copysign(1, normal[0])
             if abs(alpha) < 30:
                 self.image_capture.flush_laser(14)
                 for i in xrange(2):
