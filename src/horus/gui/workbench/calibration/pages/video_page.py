@@ -14,7 +14,7 @@ from horus.gui.engine import image_capture, image_detection, scanner_autocheck, 
 from horus.gui.workbench.calibration.pages.page import Page
 from horus.gui.util.image_view import ImageView
 from horus.gui.util.video_view import VideoView
-from horus.gui.util.augmented_view import AugmentedView
+from horus.gui.util.augmented_view import augmented_draw_platform
 
 
 class VideoPage(Page):
@@ -31,7 +31,6 @@ class VideoPage(Page):
 
         # Elements
         self.video_view = VideoView(self.panel, self.get_image)
-        self.augmented_view = AugmentedView()
 
         self.info_panel = wx.Panel(self)
         title_text = wx.StaticText(self.info_panel, label=title)
@@ -92,5 +91,5 @@ class VideoPage(Page):
             image = image_capture.capture_pattern()
             image = image_detection.detect_pattern(image)
 
-        self.augmented_view.draw_platform(image)
+        augmented_draw_platform(image)
         return image

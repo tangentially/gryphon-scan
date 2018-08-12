@@ -16,7 +16,7 @@ from horus.gui.engine import image_capture, image_detection, scanner_autocheck, 
     platform_extrinsics
 from horus.gui.util.image_view import ImageView
 from horus.gui.util.video_view import VideoView
-from horus.gui.util.augmented_view import AugmentedView
+from horus.gui.util.augmented_view import augmented_draw_pattern
 
 class PatternSettingsPages(wx.Panel):
 
@@ -25,7 +25,6 @@ class PatternSettingsPages(wx.Panel):
 
         # Elements
         self.video_view = VideoView(self, self.get_image)
-        self.augmented_view = AugmentedView()
 
         self.info_panel = wx.Panel(self)
         title_text = wx.StaticText(self.info_panel, label="Pattern settings")
@@ -81,13 +80,6 @@ class PatternSettingsPages(wx.Panel):
         image = image_capture.capture_pattern()
         corners = image_detection.detect_corners(image)
 
-#        self.augmented_view.draw_platform(image)
-        self.augmented_view.draw_pattern(image, corners)
-
-#        mask = self.augmented_view.pattern_mask(image, corners)
-#        mask = self.augmented_view.platform_mask(image)
-
-#        self.augmented_view.overlay_mask(image,mask)
-#        image = cv2.bitwise_and(image, image, mask=mask)
+        augmented_draw_pattern(image, corners)
 
         return image
