@@ -80,14 +80,17 @@ class PointCloudROI(object):
                                (rho >= -self._radious) &
                                (rho <= self._radious))[0]
             else:
+                # valid points should be above platform and in front of camera for all scanning cylinder area
+                # fast approximation of camera distance is platform Z offset
+                print(self.calibration_data.platform_translation)
                 idx = np.where((z >= 0) &
-                               (rho >= -125) &
-                               (rho <= 125))[0]
+                               (rho >= -self.calibration_data.platform_translation[2]) &
+                               (rho <=  self.calibration_data.platform_translation[2]))[0]
 
             return point_cloud[:, idx], texture[:, idx]
 
     def draw_cross(self, image):
-        if self._center_v != 0 and self._center_u != 0 and self._show_center:
+        if image is not None and self._center_v != 0 and self._center_u != 0 and self._show_center:
             thickness = 2
             v_max, u_max, _ = image.shape
             cv2.line(image, (0, self._center_v), (u_max, self._center_v), (200, 0, 0), thickness)

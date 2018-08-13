@@ -31,5 +31,4 @@ version
 doc/readthedocs/_build
 python/
 horus.bat
-src/horus/settings.json
-src/horus/calibration.json
+src/horus/*.json

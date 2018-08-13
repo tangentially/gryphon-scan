@@ -80,6 +80,12 @@ class PointCloudROI(ExpandablePanel):
               "This cylindrical region is the one being scanned. "
               "All information outside won't be taken into account "
               "during the scanning process"))
+
+        if profile.settings.get_max_value('roi_diameter') < profile.settings['machine_diameter']:
+            profile.settings.set_max_value('roi_diameter', profile.settings['machine_diameter']+50)
+        if profile.settings.get_max_value('roi_height') < profile.settings['machine_height']:
+            profile.settings.set_max_value('roi_height', profile.settings['machine_height']+50)
+
         self.add_control('roi_diameter', Slider)
         self.add_control('roi_height', Slider)
         # self.add_control('roi_depth', Slider)

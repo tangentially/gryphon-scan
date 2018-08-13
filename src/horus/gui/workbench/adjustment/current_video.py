@@ -86,9 +86,12 @@ class CurrentVideo(object):
     def _draw_line(self, image, u, v):
         v = v.astype(int)
         u = np.around(u).astype(int)
-        image[v, u - 1] = (255, 0, 0)
         image[v, u] = (255, 0, 0)
-        image[v, u + 1] = (255, 0, 0)
+        try:
+            image[v, u - 1] = (255, 0, 0)
+            image[v, u + 1] = (255, 0, 0)
+        except IndexError:
+            pass
 
     def sync(self):
         # Wait until latest capture is completed

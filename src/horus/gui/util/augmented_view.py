@@ -9,8 +9,8 @@ import cv2
 import numpy as np
 import math
 from horus.util import profile
-from horus.gui.engine import platform_extrinsics, image_detection, pattern
-
+#from horus.gui.engine import platform_extrinsics, image_detection, pattern
+import horus.gui.engine
 
 platform_points = None
 platform_border = None
@@ -40,24 +40,24 @@ def augmented_draw_platform(image):
     if platform_points is None:
         init_platform_augmented_draw()
 
-    if platform_extrinsics.calibration_data.platform_rotation is not None and \
-       platform_extrinsics.calibration_data.platform_translation is not None:
+    if horus.gui.engine.platform_extrinsics.calibration_data.platform_rotation is not None and \
+       horus.gui.engine.platform_extrinsics.calibration_data.platform_translation is not None:
         #cv2.circle(image, (50,50), 5, (0,0,255), -1)
         # platform border
         p, jac = cv2.projectPoints(platform_border, \
-            platform_extrinsics.calibration_data.platform_rotation, \
-            platform_extrinsics.calibration_data.platform_translation, \
-            platform_extrinsics.calibration_data.camera_matrix, \
-            platform_extrinsics.calibration_data.distortion_vector)
+            horus.gui.engine.platform_extrinsics.calibration_data.platform_rotation, \
+            horus.gui.engine.platform_extrinsics.calibration_data.platform_translation, \
+            horus.gui.engine.platform_extrinsics.calibration_data.camera_matrix, \
+            horus.gui.engine.platform_extrinsics.calibration_data.distortion_vector)
         p = np.int32([p])
         cv2.polylines(image, p, True, (0,255,0), 2)
 
         # marker positions
         p, jac = cv2.projectPoints(platform_points, \
-            platform_extrinsics.calibration_data.platform_rotation, \
-            platform_extrinsics.calibration_data.platform_translation, \
-            platform_extrinsics.calibration_data.camera_matrix, \
-            platform_extrinsics.calibration_data.distortion_vector)
+            horus.gui.engine.platform_extrinsics.calibration_data.platform_rotation, \
+            horus.gui.engine.platform_extrinsics.calibration_data.platform_translation, \
+            horus.gui.engine.platform_extrinsics.calibration_data.camera_matrix, \
+            horus.gui.engine.platform_extrinsics.calibration_data.distortion_vector)
         p = np.int32(p).reshape(-1,2)
         for pp in p:
             cv2.circle(image, tuple(pp), 5, (0,0,255), -1)
@@ -71,14 +71,14 @@ def augmented_platform_mask(image):
     if platform_points is None:
         init_platform_augmented_draw()
 
-    if platform_extrinsics.calibration_data.platform_rotation is not None and \
-       platform_extrinsics.calibration_data.platform_translation is not None:
+    if horus.gui.engine.platform_extrinsics.calibration_data.platform_rotation is not None and \
+       horus.gui.engine.platform_extrinsics.calibration_data.platform_translation is not None:
         # platform border
         p, jac = cv2.projectPoints(platform_border, \
-            platform_extrinsics.calibration_data.platform_rotation, \
-            platform_extrinsics.calibration_data.platform_translation, \
-            platform_extrinsics.calibration_data.camera_matrix, \
-            platform_extrinsics.calibration_data.distortion_vector)
+            horus.gui.engine.platform_extrinsics.calibration_data.platform_rotation, \
+            horus.gui.engine.platform_extrinsics.calibration_data.platform_translation, \
+            horus.gui.engine.platform_extrinsics.calibration_data.camera_matrix, \
+            horus.gui.engine.platform_extrinsics.calibration_data.distortion_vector)
         p = np.int32([p])
         cv2.fillPoly(mask, p, 0)
     return mask
@@ -87,27 +87,27 @@ def augmented_platform_mask(image):
 def augmented_draw_pattern(image, corners):
     if corners is not None:
         cv2.drawChessboardCorners(
-            image, (pattern.columns, pattern.rows), corners, True)
+            image, (horus.gui.engine.pattern.columns, horus.gui.engine.pattern.rows), corners, True)
 
-        pose = image_detection.detect_pose_from_corners(corners)
-        l = -pattern.square_width
-        t = -pattern.square_width
-        r = pattern.square_width * pattern.columns
-        b = pattern.square_width * pattern.rows
-        wl = pattern.border_l
-        wr = pattern.border_r
-        wt = pattern.border_t
-        wb = pattern.border_b
+        pose = horus.gui.engine.image_detection.detect_pose_from_corners(corners)
+        l = -horus.gui.engine.pattern.square_width
+        t = -horus.gui.engine.pattern.square_width
+        r = horus.gui.engine.pattern.square_width * horus.gui.engine.pattern.columns
+        b = horus.gui.engine.pattern.square_width * horus.gui.engine.pattern.rows
+        wl = horus.gui.engine.pattern.border_l
+        wr = horus.gui.engine.pattern.border_r
+        wt = horus.gui.engine.pattern.border_t
+        wb = horus.gui.engine.pattern.border_b
         points = np.float32( (
             (l,t,0),(r,t,0),(r,b,0),(l,b,0),
             (l-wl,t-wt,0),(r+wr,t-wt,0),(r+wr,b+wb,0),(l-wl,b+wb,0),
-            (l-wl,b-pattern.square_width+pattern.origin_distance,0),(r+wr,b-pattern.square_width+pattern.origin_distance,0)
+            (l-wl,b-horus.gui.engine.pattern.square_width+horus.gui.engine.pattern.origin_distance,0),(r+wr,b-horus.gui.engine.pattern.square_width+horus.gui.engine.pattern.origin_distance,0)
             ) )
         p, jac = cv2.projectPoints(points, \
             pose[0], \
             pose[1].T[0], \
-            platform_extrinsics.calibration_data.camera_matrix, \
-            platform_extrinsics.calibration_data.distortion_vector)
+            horus.gui.engine.platform_extrinsics.calibration_data.camera_matrix, \
+            horus.gui.engine.platform_extrinsics.calibration_data.distortion_vector)
         p = np.int32(p).reshape(-1,2)
         cv2.polylines(image, np.int32([p[0:4]]), True, (0,255,0), 2)
         cv2.polylines(image, np.int32([p[4:8]]), True, (255,0,0), 2)
@@ -118,11 +118,11 @@ def augmented_draw_pattern(image, corners):
 def augmented_pattern_mask(image, corners):
     mask = np.zeros(image.shape[0:2], dtype = "uint8")
     if corners is not None:
-        pose = image_detection.detect_pose_from_corners(corners)
-        l = -pattern.square_width
-        t = -pattern.square_width
-        r = pattern.square_width * pattern.columns
-        b = pattern.square_width * pattern.rows
+        pose = horus.gui.engine.image_detection.detect_pose_from_corners(corners)
+        l = -horus.gui.engine.pattern.square_width
+        t = -horus.gui.engine.pattern.square_width
+        r = horus.gui.engine.pattern.square_width * horus.gui.engine.pattern.columns
+        b = horus.gui.engine.pattern.square_width * horus.gui.engine.pattern.rows
         w = 5
         points = np.float32( (
             (l-w,t-w,0),(r+w,t-w,0),(r+w,b+w,0),(l-w,b+w,0),
@@ -130,12 +130,20 @@ def augmented_pattern_mask(image, corners):
         p, jac = cv2.projectPoints(points, \
             pose[0], \
             pose[1].T[0], \
-            platform_extrinsics.calibration_data.camera_matrix, \
-            platform_extrinsics.calibration_data.distortion_vector)
+            horus.gui.engine.platform_extrinsics.calibration_data.camera_matrix, \
+            horus.gui.engine.platform_extrinsics.calibration_data.distortion_vector)
         p = np.int32(p).reshape(-1,2)
 
         cv2.fillConvexPoly(mask, np.int32([p]), 255)
     return mask
+
+
+# Apply mask to image
+def apply_mask(image, mask):
+    if image is not None and \
+       mask  is not None:
+        image = cv2.bitwise_and(image, image, mask=mask)
+        return image
 
 
 # Draw mask as color overlay
@@ -150,18 +158,18 @@ def overlay_mask(image, mask, color=(255,0,0)):
 
 # estimate platform rotate angle to to make pattern on platform perpendicular to camera
 def estimate_platform_angle_from_pattern(pose):
-#	pose = image_detection.detect_pose_from_corners(corners)
+#	pose = horus.gui.engine.image_detection.detect_pose_from_corners(corners)
     if pose is not None:
-        if platform_extrinsics.calibration_data.platform_rotation is not None and \
-           platform_extrinsics.calibration_data.platform_translation is not None:
+        if horus.gui.engine.platform_extrinsics.calibration_data.platform_rotation is not None and \
+           horus.gui.engine.platform_extrinsics.calibration_data.platform_translation is not None:
             # Platform position known. Calculate angle in platform space
 
             # pattern normal in camera space
             pc = np.float32([(0,0,-1)]).dot(pose[0].T) 
             # add camera-to-platform vector
-            vv = np.append(pc, [-platform_extrinsics.calibration_data.platform_translation / np.linalg.norm(platform_extrinsics.calibration_data.platform_translation)], axis=0)
+            vv = np.append(pc, [-horus.gui.engine.platform_extrinsics.calibration_data.platform_translation / np.linalg.norm(horus.gui.engine.platform_extrinsics.calibration_data.platform_translation)], axis=0)
             # move all to platform space
-            pz = vv.dot(platform_extrinsics.calibration_data.platform_rotation)
+            pz = vv.dot(horus.gui.engine.platform_extrinsics.calibration_data.platform_rotation)
             # flattern to platform XY / normalize
             pz[:,2] = 0
             pz /= np.apply_along_axis(np.linalg.norm, 1, pz)[..., np.newaxis]

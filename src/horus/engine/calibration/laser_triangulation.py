@@ -13,6 +13,8 @@ from horus import Singleton
 from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
 
+from horus.gui.util.augmented_view import apply_mask, augmented_pattern_mask
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -63,7 +65,9 @@ class LaserTriangulation(MovingCalibration):
                 for i in lasers:
 #                    if (i == 0 and alpha < 10) or (i == 1 and alpha > -10):
                         image = self.image_capture.capture_laser(i)
-                        image = self.image_detection.pattern_mask(image, corners)
+#                        image = self.image_detection.pattern_mask(image, corners)
+                        image = apply_mask(image, augmented_pattern_mask(image, corners))
+
                         self.image = image
                         points_2d, image = self.laser_segmentation.compute_2d_points(image)
                         point_3d = self.point_cloud_generation.compute_camera_point_cloud(
