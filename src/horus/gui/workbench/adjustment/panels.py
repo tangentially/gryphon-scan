@@ -40,6 +40,15 @@ class ScanCapturePanel(ExpandablePanel):
             _("Amount of light per unit area. It is controlled by the time the camera "
               "sensor is exposed during a frame capture. "
               "High values are recommended for poorly lit places"))
+
+        self.add_control(
+            'light1_texture_scanning', Slider,
+            _("Photo lamp 1 brightness"))
+        self.add_control(
+            'light2_texture_scanning', Slider,
+            _("Photo lamp 2 brightness"))
+
+
         self.add_control(
             'brightness_laser_scanning', Slider,
             _("Image luminosity. Low values are better for environments with high ambient "
@@ -58,6 +67,14 @@ class ScanCapturePanel(ExpandablePanel):
             _("Amount of light per unit area. It is controlled by the time the camera "
               "sensor is exposed during a frame capture. "
               "High values are recommended for poorly lit places"))
+
+        self.add_control(
+            'light1_laser_scanning', Slider,
+            _("Photo lamp 1 brightness"))
+        self.add_control(
+            'light2_laser_scanning', Slider,
+            _("Photo lamp 2 brightness"))
+
         self.add_control(
             'remove_background_scanning', CheckBox,
             _("Capture an extra image without laser to remove "
@@ -74,33 +91,46 @@ class ScanCapturePanel(ExpandablePanel):
         self.update_callback('contrast_texture_scanning', mode.set_contrast)
         self.update_callback('saturation_texture_scanning', mode.set_saturation)
         self.update_callback('exposure_texture_scanning', mode.set_exposure)
+        self.update_callback('light1_texture_scanning', lambda v: mode.set_light(1,v) )
+        self.update_callback('light2_texture_scanning', lambda v: mode.set_light(2,v) )
 
         mode = image_capture.laser_mode
         self.update_callback('brightness_laser_scanning', mode.set_brightness)
         self.update_callback('contrast_laser_scanning', mode.set_contrast)
         self.update_callback('saturation_laser_scanning', mode.set_saturation)
         self.update_callback('exposure_laser_scanning', mode.set_exposure)
+        self.update_callback('light1_laser_scanning', lambda v: mode.set_light(1,v) )
+        self.update_callback('light2_laser_scanning', lambda v: mode.set_light(2,v) )
         self.update_callback('remove_background_scanning', image_capture.set_remove_background)
 
     def on_selected(self):
         current_video.updating = True
         current_video.sync()
+
         # Update mode settings
         current_video.calibration = False
         current_video.mode = profile.settings['capture_mode_scanning']
+
         texture_mode = image_capture.texture_mode
         texture_mode.set_brightness(profile.settings['brightness_texture_scanning'])
         texture_mode.set_contrast(profile.settings['contrast_texture_scanning'])
         texture_mode.set_saturation(profile.settings['saturation_texture_scanning'])
         texture_mode.set_exposure(profile.settings['exposure_texture_scanning'])
+        texture_mode.set_light(1,profile.settings['light1_texture_scanning'])
+        texture_mode.set_light(2,profile.settings['light2_texture_scanning'])
+
         laser_mode = image_capture.laser_mode
         laser_mode.set_brightness(profile.settings['brightness_laser_scanning'])
         laser_mode.set_contrast(profile.settings['contrast_laser_scanning'])
         laser_mode.set_saturation(profile.settings['saturation_laser_scanning'])
         laser_mode.set_exposure(profile.settings['exposure_laser_scanning'])
+        laser_mode.set_light(1,profile.settings['light1_laser_scanning'])
+        laser_mode.set_light(2,profile.settings['light2_laser_scanning'])
         image_capture.set_remove_background(profile.settings['remove_background_scanning'])
+
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         profile.settings['current_panel_adjustment'] = 'scan_capture'
+
         current_video.flush()
         current_video.updating = False
 
@@ -120,20 +150,31 @@ class ScanCapturePanel(ExpandablePanel):
             self.get_control('contrast_texture_scanning').Hide()
             self.get_control('saturation_texture_scanning').Hide()
             self.get_control('exposure_texture_scanning').Hide()
+            self.get_control('light1_texture_scanning').Hide()
+            self.get_control('light2_texture_scanning').Hide()
+
             self.get_control('brightness_laser_scanning').Show()
             self.get_control('contrast_laser_scanning').Show()
             self.get_control('saturation_laser_scanning').Show()
             self.get_control('exposure_laser_scanning').Show()
+            self.get_control('light1_laser_scanning').Show()
+            self.get_control('light2_laser_scanning').Show()
             self.get_control('remove_background_scanning').Show()
+
         elif mode == 'Texture':
             self.get_control('brightness_texture_scanning').Show()
             self.get_control('contrast_texture_scanning').Show()
             self.get_control('saturation_texture_scanning').Show()
             self.get_control('exposure_texture_scanning').Show()
+            self.get_control('light1_texture_scanning').Show()
+            self.get_control('light2_texture_scanning').Show()
+
             self.get_control('brightness_laser_scanning').Hide()
             self.get_control('contrast_laser_scanning').Hide()
             self.get_control('saturation_laser_scanning').Hide()
             self.get_control('exposure_laser_scanning').Hide()
+            self.get_control('light1_laser_scanning').Hide()
+            self.get_control('light2_laser_scanning').Hide()
             self.get_control('remove_background_scanning').Hide()
 
         if sys.is_wx30():
@@ -235,6 +276,15 @@ class CalibrationCapturePanel(ExpandablePanel):
             _("Amount of light per unit area. It is controlled by the time the camera "
               "sensor is exposed during a frame capture. "
               "High values are recommended for poorly lit places"))
+
+        self.add_control(
+            'light1_pattern_calibration', Slider,
+            _("Photo lamp 1 brightness"))
+        self.add_control(
+            'light2_pattern_calibration', Slider,
+            _("Photo lamp 2 brightness"))
+
+
         self.add_control(
             'brightness_laser_calibration', Slider,
             _("Image luminosity. Low values are better for environments with high ambient "
@@ -253,6 +303,14 @@ class CalibrationCapturePanel(ExpandablePanel):
             _("Amount of light per unit area. It is controlled by the time the camera "
               "sensor is exposed during a frame capture. "
               "High values are recommended for poorly lit places"))
+
+        self.add_control(
+            'light1_laser_calibration', Slider,
+            _("Photo lamp 1 brightness"))
+        self.add_control(
+            'light2_laser_calibration', Slider,
+            _("Photo lamp 2 brightness"))
+
         self.add_control(
             'remove_background_calibration', CheckBox,
             _("Capture an extra image without laser to remove "
@@ -269,33 +327,46 @@ class CalibrationCapturePanel(ExpandablePanel):
         self.update_callback('contrast_pattern_calibration', mode.set_contrast)
         self.update_callback('saturation_pattern_calibration', mode.set_saturation)
         self.update_callback('exposure_pattern_calibration', mode.set_exposure)
+        self.update_callback('light1_pattern_calibration', lambda v: mode.set_light(1,v) )
+        self.update_callback('light2_pattern_calibration', lambda v: mode.set_light(2,v) )
 
         mode = image_capture.laser_mode
         self.update_callback('brightness_laser_calibration', mode.set_brightness)
         self.update_callback('contrast_laser_calibration', mode.set_contrast)
         self.update_callback('saturation_laser_calibration', mode.set_saturation)
         self.update_callback('exposure_laser_calibration', mode.set_exposure)
+        self.update_callback('light1_laser_calibration', lambda v: mode.set_light(1,v) )
+        self.update_callback('light2_laser_calibration', lambda v: mode.set_light(2,v) )
         self.update_callback('remove_background_calibration', image_capture.set_remove_background)
 
     def on_selected(self):
         current_video.updating = True
         current_video.sync()
+
         # Update mode settings
         current_video.calibration = True
         current_video.mode = profile.settings['capture_mode_calibration']
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         profile.settings['current_panel_adjustment'] = 'calibration_capture'
+
         image_capture.set_remove_background(profile.settings['remove_background_calibration'])
+
         pattern_mode = image_capture.pattern_mode
         pattern_mode.set_brightness(profile.settings['brightness_pattern_calibration'])
         pattern_mode.set_contrast(profile.settings['contrast_pattern_calibration'])
         pattern_mode.set_saturation(profile.settings['saturation_pattern_calibration'])
         pattern_mode.set_exposure(profile.settings['exposure_pattern_calibration'])
+        pattern_mode.set_light(1,profile.settings['light1_pattern_calibration'])
+        pattern_mode.set_light(2,profile.settings['light2_pattern_calibration'])
+
         laser_mode = image_capture.laser_mode
         laser_mode.set_brightness(profile.settings['brightness_laser_calibration'])
         laser_mode.set_contrast(profile.settings['contrast_laser_calibration'])
         laser_mode.set_saturation(profile.settings['saturation_laser_calibration'])
         laser_mode.set_exposure(profile.settings['exposure_laser_calibration'])
+        laser_mode.set_light(1,profile.settings['light1_laser_calibration'])
+        laser_mode.set_light(2,profile.settings['light2_laser_calibration'])
+
         current_video.flush()
         current_video.updating = False
 
@@ -315,20 +386,31 @@ class CalibrationCapturePanel(ExpandablePanel):
             self.get_control('contrast_pattern_calibration').Hide()
             self.get_control('saturation_pattern_calibration').Hide()
             self.get_control('exposure_pattern_calibration').Hide()
+            self.get_control('light1_pattern_calibration').Hide()
+            self.get_control('light2_pattern_calibration').Hide()
+
             self.get_control('brightness_laser_calibration').Show()
             self.get_control('contrast_laser_calibration').Show()
             self.get_control('saturation_laser_calibration').Show()
             self.get_control('exposure_laser_calibration').Show()
+            self.get_control('light1_laser_calibration').Show()
+            self.get_control('light2_laser_calibration').Show()
             self.get_control('remove_background_calibration').Show()
+
         elif mode == 'Pattern':
             self.get_control('brightness_pattern_calibration').Show()
             self.get_control('contrast_pattern_calibration').Show()
             self.get_control('saturation_pattern_calibration').Show()
             self.get_control('exposure_pattern_calibration').Show()
+            self.get_control('light1_pattern_calibration').Show()
+            self.get_control('light2_pattern_calibration').Show()
+
             self.get_control('brightness_laser_calibration').Hide()
             self.get_control('contrast_laser_calibration').Hide()
             self.get_control('saturation_laser_calibration').Hide()
             self.get_control('exposure_laser_calibration').Hide()
+            self.get_control('light1_laser_calibration').Hide()
+            self.get_control('light2_laser_calibration').Hide()
             self.get_control('remove_background_calibration').Hide()
 
         if sys.is_wx30():

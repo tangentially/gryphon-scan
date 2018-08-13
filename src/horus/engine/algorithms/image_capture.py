@@ -22,6 +22,7 @@ class CameraSettings(object):
         self.contrast = 0
         self.saturation = 0
         self.exposure = 0
+        self.light = [0,0]
 
     def set_brightness(self, value):
         self.brightness = value
@@ -43,11 +44,21 @@ class CameraSettings(object):
         if self.selected:
             self.driver.camera.set_exposure(value)
 
+    def set_light(self, idx, value):
+        try:
+            self.light[idx] = value
+            if self.selected:
+                self.driver.camera.set_light(idx,value)
+        except IndexError:
+            pass
+
     def send_all_settings(self):
         self.driver.camera.set_brightness(self.brightness)
         self.driver.camera.set_contrast(self.contrast)
         self.driver.camera.set_saturation(self.saturation)
         self.driver.camera.set_exposure(self.exposure)
+        for idx,br in enumerate(self.light):
+            self.driver.camera.set_light(idx,br)
 
 
 @Singleton

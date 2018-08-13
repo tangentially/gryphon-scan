@@ -191,6 +191,35 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('exposure_control', _('Exposure'), 'profile_settings',
                     int, 16, min_value=1, max_value=64))
+
+        self._add_setting(
+            Setting('light1_texture_scanning', _('Lamp 1 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('light2_texture_scanning', _('Lamp 2 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+
+        self._add_setting(
+            Setting('light1_laser_scanning', _('Lamp 1 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('light2_laser_scanning', _('Lamp 2 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+
+        self._add_setting(
+            Setting('light1_pattern_calibration', _('Lamp 1 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('light2_pattern_calibration', _('Lamp 2 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+
+        self._add_setting(
+            Setting('light1_laser_calibration', _('Lamp 1 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('light2_laser_calibration', _('Lamp 2 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+
         self._add_setting(
             Setting('frame_rate', _('Frame rate'), 'profile_settings',
                     int, 30, possible_values=(30, 25, 20, 15, 10, 5)))
@@ -229,6 +258,9 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('exposure_texture_scanning', _('Exposure'), 'profile_settings',
                     int, 16, min_value=1, max_value=64))
+#        self._add_setting(
+#            Setting('light_texture_scanning', _('Lamps'), 'profile_settings',
+#                    np.ndarray, np.ndarray(shape=(2), buffer=np.array([0, 0])) ))
 
         self._add_setting(
             Setting('brightness_laser_scanning', _('Brightness'), 'profile_settings',
@@ -242,10 +274,13 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('exposure_laser_scanning', _('Exposure'), 'profile_settings',
                     int, 8, min_value=1, max_value=64))
+#        self._add_setting(
+#            Setting('light_laser_scanning', _('Lamps'), 'profile_settings',
+#                    np.ndarray, np.ndarray(shape=(2), buffer=np.array([0, 0])) ))
+
         self._add_setting(
             Setting('remove_background_scanning', _('Remove background'),
                     'profile_settings', bool, True))
-
         self._add_setting(
             Setting('draw_line_scanning', _('Draw line'), 'profile_settings', bool, True))
         self._add_setting(
@@ -296,6 +331,9 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('exposure_pattern_calibration', _('Exposure'), 'profile_settings',
                     int, 16, min_value=1, max_value=64))
+#        self._add_setting(
+#            Setting('light_pattern_calibration', _('Lamps'), 'profile_settings',
+#                    np.ndarray, np.ndarray(shape=(2), buffer=np.array([0, 0])) ))
 
         self._add_setting(
             Setting('brightness_laser_calibration', _('Brightness'), 'profile_settings',
@@ -309,6 +347,10 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('exposure_laser_calibration', _('Exposure'), 'profile_settings',
                     int, 8, min_value=1, max_value=64))
+#        self._add_setting(
+#            Setting('light_laser_calibration', _('Lamps'), 'profile_settings',
+#                    np.ndarray, np.ndarray(shape=(2), buffer=np.array([0, 0])) ))
+
         self._add_setting(
             Setting('remove_background_calibration', _('Remove background'),
                     'profile_settings', bool, True))

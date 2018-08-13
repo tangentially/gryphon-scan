@@ -1,3 +1,27 @@
+# Gryphon Scan
+## This is highly customizible version of Horus 3D Scan software with some advanced features support
+
+This project was created to support custom built Ciclop-style 3D scanners with different hardware configurations and some more features like:
+- photo lights control
+- saving photos for photogrammetry
+- etc?...
+
+Also to enhance the existing functions and to fix bugs.
+
+###### At the moment:
+- customizible camera height/angle/distance
+- customizible scan area (turntable) size
+- photo lights control support at laser pins 3 and 4 (be aware that board hardware pins current is limited and you need extra hardware for powerful lights)
+- fixed turntable firmware 2.0 support (also custom grbl based firmwares now can be used if same G-codes are supported)
+- enhanced augmented visualization allow visually check calibration quality
+- better pattern usage in laser calibration
+- more informative calibration pages
+- some builtin constant values moved to settings or estimated automatically
+- some bugs fixed
+
+
+
+------------------------------------------
 # Horus
 
 [![R&D](https://img.shields.io/badge/-R%26D-brightgreen.svg)](https://github.com/bqlabs/horus)
