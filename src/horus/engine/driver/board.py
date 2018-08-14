@@ -70,6 +70,8 @@ class Board(object):
         self._laser_enabled = self._laser_number * [False]
         self._tries = 0  # Check if command fails
 
+        self._light = [0,0]
+
     def connect(self):
         """Open serial port and perform handshake"""
         logger.info("Connecting board {0} {1}".format(self.serial_name, self.baud_rate))
@@ -80,7 +82,7 @@ class Board(object):
                 self._reset()  # Force Reset and flush
                 version = ""
                 tic     = time.time()
-                while ( ((time.time() - tic) < 1) and ("Horus" not in version) ):
+                while ( ((time.time() - tic) < 1) and (profile.settings['firmware_string'] not in version) ):
                     tic     = time.time()
                     version = self._serial_port.readline()
                 if profile.settings['firmware_string'] in version:
@@ -273,3 +275,18 @@ class Board(object):
                            '/dev/cu.*', '/dev/rfcomm*']:
                 baselist = baselist + glob.glob(device)
         return baselist
+
+
+    def set_light(self, idx, brightness):
+        if self._is_connected and \
+           idx < len(self._light) and idx >= 0:
+            self._light[idx] = brightness
+            if self._light[idx] > 255:
+                self._light[idx] = 255
+
+            if self._light[idx] > 0:
+                self.parent.board._send_command("M71T"+str(idx+3)+"F" + str(self._light[idx])) # Laser on with brightness
+            else:
+                self._light[idx] = 0
+                self.parent.board._send_command("M70T"+str(idx+3)) # Laser off
+

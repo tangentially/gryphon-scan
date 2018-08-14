@@ -68,7 +68,6 @@ class Camera(object):
         self._video_list = None
         self._tries = 0  # Check if command fails
         self._luminosity = 1.0
-        self._light = [0,0]
 
         self.initialize()
 
@@ -101,7 +100,6 @@ class Camera(object):
         self._rotate = True
         self._hflip = True
         self._vflip = False
-        self._light = [0,0]
 
     def connect(self):
         logger.info("Connecting camera {0}".format(self.camera_id))
@@ -330,16 +328,8 @@ class Camera(object):
     def set_light(self, idx, brightness):
         if self.parent is not None and \
            not self.parent.unplugged and \
-           idx < 2 and idx >= 0:
-            self._light[idx] = brightness
-            if self._light[idx] > 255:
-                self._light[idx] = 255
-
-            if self._light[idx] > 0:
-                self.parent.board._send_command("M71T"+str(idx+3)+"F" + str(self._light[idx])) # Laser on with brightness
-            else:
-                self._light[idx] = 0
-                self.parent.board._send_command("M70T"+str(idx+3)) # Laser off
+           self.parent.board is not None:
+            self.parent.board.set_light(idx,brightness)
 
     def _set_width(self, value):
         self._capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, value)
