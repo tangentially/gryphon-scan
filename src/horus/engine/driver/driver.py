@@ -9,7 +9,7 @@ import threading
 
 from horus import Singleton
 from horus.engine.driver.board import Board
-from horus.engine.driver.camera import Camera
+from horus.engine.driver.camera_usb import Camera_usb
 
 
 @Singleton
@@ -19,7 +19,7 @@ class Driver(object):
 
     def __init__(self):
         self.board = Board(self)
-        self.camera = Camera(self)
+        self.camera = Camera_usb(self)
         self.is_connected = False
         self.unplugged = False
 
