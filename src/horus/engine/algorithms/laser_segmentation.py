@@ -14,6 +14,7 @@ from horus import Singleton
 from horus.engine.calibration.calibration_data import CalibrationData
 from horus.engine.algorithms.point_cloud_roi import PointCloudROI
 
+from horus.util import profile
 
 @Singleton
 class LaserSegmentation(object):
@@ -30,6 +31,16 @@ class LaserSegmentation(object):
         self.window_enable = False
         self.window_value = 0
         self.refinement_method = 'SGF'
+
+    def read_profile(self, mode):
+        self.red_channel = profile.settings['red_channel_'+mode]
+        self.threshold_enable = profile.settings['threshold_enable_'+mode]
+        self.threshold_value = profile.settings['threshold_value_'+mode]
+        self.blur_enable = profile.settings['blur_enable_'+mode]
+        self.set_blur_value(profile.settings['blur_value_'+mode])
+        self.window_enable = profile.settings['window_enable_'+mode]
+        self.window_value = profile.settings['window_value_'+mode]
+        self.refinement_method = profile.settings['refinement_'+mode]
 
     def set_red_channel(self, value):
         self.red_channel = value
@@ -91,6 +102,25 @@ class LaserSegmentation(object):
             image = self._threshold_image(image)
             image = self._window_mask(image)
             return image
+
+    def compute_line_segmentation_bg(self, image):
+        mask = image.copy()
+        mask = self._obtain_red_channel(mask)
+        mask = self._threshold_image(mask)
+        mask = self._window_mask(mask)
+
+#        (u, v), _ = self.compute_2d_points(mask)
+        ret, mask = cv2.threshold(mask, 0, 255, cv2.THRESH_BINARY)
+#        mask = np.zeros(mask.shape[0:2], dtype = "uint8")
+#        v = v.astype(int)
+#        u = np.around(u).astype(int)
+#        mask[v, u] = (255, 0, 0)
+        mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB)#change mask to a 3 channel image 
+        image = cv2.subtract(image, mask)
+#        image = cv2.bitwise_and(image, image, mask=mask)
+        image = image - self.threshold_value
+
+        return image
 
     def _obtain_red_channel(self, image):
         ret = None

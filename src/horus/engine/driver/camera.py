@@ -5,6 +5,7 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
+from horus.util import profile
 
 import logging
 logger = logging.getLogger(__name__)
@@ -63,6 +64,15 @@ class Camera(object):
         self._rotate = True
         self._hflip = True
         self._vflip = False
+
+    def read_profile(self):
+        self.set_frame_rate(int(profile.settings['frame_rate']))
+        self.set_resolution(
+            profile.settings['camera_width'], profile.settings['camera_height'])
+        self.set_rotate(profile.settings['camera_rotate'])
+        self.set_hflip(profile.settings['camera_hflip'])
+        self.set_vflip(profile.settings['camera_vflip'])
+        self.set_luminosity(profile.settings['luminosity'])
 
     def connect(self):
         raise NotImplementedError

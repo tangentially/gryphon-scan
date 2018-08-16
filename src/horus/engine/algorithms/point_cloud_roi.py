@@ -11,6 +11,7 @@ import numpy as np
 from horus import Singleton
 from horus.engine.calibration.calibration_data import CalibrationData
 
+from horus.util import profile
 
 @Singleton
 class PointCloudROI(object):
@@ -44,6 +45,12 @@ class PointCloudROI(object):
                                        [np.sin(i * 2 * np.pi / self._circle_resolution)
                                         for i in xrange(self._circle_resolution)],
                                        np.zeros(self._circle_resolution)])
+
+    def read_profile(self):
+        self.set_show_center(profile.settings['show_center'])
+        self.set_use_roi(profile.settings['use_roi'])
+        self.set_diameter(profile.settings['roi_diameter'])
+        self.set_height(profile.settings['roi_height'])
 
     def set_diameter(self, value):
         self._radious = value / 2.0

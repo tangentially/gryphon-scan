@@ -12,6 +12,7 @@ from horus import Singleton
 from horus.engine.calibration.pattern import Pattern
 from horus.engine.calibration.calibration_data import CalibrationData
 
+from horus.gui.util.augmented_view import augmented_pattern_mask
 
 @Singleton
 class ImageDetection(object):
@@ -65,6 +66,7 @@ class ImageDetection(object):
         if image is not None:
             h, w, d = image.shape
             if corners is not None:
+                """
                 corners = corners.astype(np.int)
                 p1 = corners[0][0]
                 p2 = corners[self.pattern.columns - 1][0]
@@ -73,6 +75,8 @@ class ImageDetection(object):
                 mask = np.zeros((h, w), np.uint8)
                 points = np.array([p1, p2, p4, p3])
                 cv2.fillConvexPoly(mask, points, 255)
+                """
+                mask = augmented_pattern_mask(image, corners)
                 image = cv2.bitwise_and(image, image, mask=mask)
                 if self.chessboard_mask is not None:
                     image = cv2.bitwise_and(image, image, mask=self.chessboard_mask)

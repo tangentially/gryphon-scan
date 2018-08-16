@@ -8,6 +8,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import time
 from horus.engine.calibration.calibration import Calibration
 
+from horus.util import profile
 
 class MovingCalibration(Calibration):
 
@@ -28,6 +29,12 @@ class MovingCalibration(Calibration):
 
     def _initialize(self):
         raise NotImplementedError
+
+    def read_profile(self):
+        self.motor_step = profile.settings['motor_step_calibration']
+        self.motor_speed = profile.settings['motor_speed_calibration']
+        self.motor_acceleration = profile.settings['motor_acceleration_calibration']
+        self.final_move = profile.settings['after_calibration_position']
 
     def _capture(self, angle):
         raise NotImplementedError

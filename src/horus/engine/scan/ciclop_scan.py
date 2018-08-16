@@ -16,6 +16,8 @@ from horus.engine.scan.scan_capture import ScanCapture
 from horus.engine.scan.current_video import CurrentVideo
 from horus.engine.calibration.calibration_data import CalibrationData
 
+from horus.util import profile
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -56,6 +58,18 @@ class CiclopScan(Scan):
         self._scan_sleep = 0.05
         self._captures_queue = Queue.Queue(10)
         self.point_cloud_callback = None
+
+    def read_profile(self):
+        self.capture_texture = profile.settings['capture_texture']
+        use_laser = profile.settings['use_laser']
+        self.set_use_left_laser(use_laser == 'Left' or use_laser == 'Both')
+        self.set_use_right_laser(use_laser == 'Right' or use_laser == 'Both')
+        self.motor_step = profile.settings['motor_step_scanning']
+        self.motor_speed = profile.settings['motor_speed_scanning']
+        self.motor_acceleration = profile.settings['motor_acceleration_scanning']
+        self.color = struct.unpack(
+            'BBB', profile.settings['point_cloud_color'].decode('hex'))
+        self.set_scan_sleep(profile.settings['scan_sleep'])
 
     def set_capture_texture(self, value):
         self.capture_texture = value

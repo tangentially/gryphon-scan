@@ -15,6 +15,8 @@ from horus.engine.calibration.moving_calibration import MovingCalibration
 
 from horus.gui.util.augmented_view import apply_mask, augmented_pattern_mask
 
+from horus.util import profile
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -47,6 +49,10 @@ class LaserTriangulation(MovingCalibration):
         self.image_capture.stream = False
         self._point_cloud = [None, None]
 
+    def read_profile(self):
+        MovingCalibration.read_profile(self)
+        self.laser_calibration_angles = profile.settings['laser_calibration_angles']
+        
     def _capture(self, angle):
         image = self.image_capture.capture_pattern()
         pose = self.image_detection.detect_pose(image)
@@ -65,8 +71,8 @@ class LaserTriangulation(MovingCalibration):
                 for i in lasers:
 #                    if (i == 0 and alpha < 10) or (i == 1 and alpha > -10):
                         image = self.image_capture.capture_laser(i)
-#                        image = self.image_detection.pattern_mask(image, corners)
-                        image = apply_mask(image, augmented_pattern_mask(image, corners))
+                        image = self.image_detection.pattern_mask(image, corners)
+#                        image = apply_mask(image, augmented_pattern_mask(image, corners))
 
                         self.image = image
                         points_2d, image = self.laser_segmentation.compute_2d_points(image)

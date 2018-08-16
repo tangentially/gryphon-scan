@@ -12,6 +12,7 @@ import numpy as np
 
 from horus import Singleton
 
+from horus.util import profile
 
 class LaserPlane(object):
 
@@ -38,6 +39,16 @@ class CalibrationData(object):
         self.laser_planes = [LaserPlane(), LaserPlane()]
         self.platform_rotation = None
         self.platform_translation = None
+
+    def read_profile(self):
+        self.camera_matrix = profile.settings['camera_matrix']
+        self.distortion_vector = profile.settings['distortion_vector']
+        self.laser_planes[0].distance = profile.settings['distance_left']
+        self.laser_planes[0].normal = profile.settings['normal_left']
+        self.laser_planes[1].distance = profile.settings['distance_right']
+        self.laser_planes[1].normal = profile.settings['normal_right']
+        self.platform_rotation = profile.settings['rotation_matrix']
+        self.platform_translation = profile.settings['translation_vector']
 
     def set_resolution(self, width, height):
         if self.width != width or self.height != height:

@@ -13,6 +13,8 @@ from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
 from horus.engine.calibration import laser_triangulation, platform_extrinsics
 
+from horus.util import profile
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -43,6 +45,10 @@ class ComboCalibration(MovingCalibration):
         self.y = []
         self.z = []
 
+    def read_profile(self):
+        MovingCalibration.read_profile(self)
+        self.laser_calibration_angles = profile.settings['laser_calibration_angles']
+        
     def _capture(self, angle):
         image = self.image_capture.capture_pattern()
         pose = self.image_detection.detect_pose(image)

@@ -572,7 +572,7 @@ class Settings(collections.MutableMapping):
                     possible_values=(u'pattern_settings', u'camera_intrinsics',
                                      u'scanner_autocheck', u'rotating_platform_settings',
                                      u'laser_triangulation', u'platform_extrinsics',
-                                     u'video_settings')))
+                                     u'video_settings', u'laser_bg')))
 
         # -- Machine Settings
 

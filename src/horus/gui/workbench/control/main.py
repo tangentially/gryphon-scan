@@ -51,6 +51,7 @@ class ControlWorkbench(Workbench):
         self.pages_collection['video_view'].reset()
 
     def setup_engine(self):
+
         driver.camera.set_frame_rate(int(profile.settings['frame_rate']))
         driver.camera.set_resolution(
             profile.settings['camera_width'], profile.settings['camera_height'])
@@ -58,15 +59,20 @@ class ControlWorkbench(Workbench):
         driver.camera.set_hflip(profile.settings['camera_hflip'])
         driver.camera.set_vflip(profile.settings['camera_vflip'])
         driver.camera.set_luminosity(profile.settings['luminosity'])
-        image_capture.set_mode_texture()
+
         image_capture.texture_mode.set_brightness(profile.settings['brightness_control'])
         image_capture.texture_mode.set_contrast(profile.settings['contrast_control'])
         image_capture.texture_mode.set_saturation(profile.settings['saturation_control'])
         image_capture.texture_mode.set_exposure(profile.settings['exposure_control'])
+
         image_capture.set_use_distortion(profile.settings['use_distortion'])
+
         width, height = driver.camera.get_resolution()
         calibration_data.set_resolution(width, height)
         calibration_data.camera_matrix = profile.settings['camera_matrix']
         calibration_data.distortion_vector = profile.settings['distortion_vector']
+
         driver.board.motor_speed(profile.settings['motor_speed_control'])
         driver.board.motor_acceleration(profile.settings['motor_acceleration_control'])
+
+        image_capture.set_mode_texture()

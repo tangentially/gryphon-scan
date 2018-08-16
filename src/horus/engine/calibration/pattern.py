@@ -9,6 +9,7 @@ import numpy as np
 
 from horus import Singleton
 
+from horus.util import profile
 
 @Singleton
 class Pattern(object):
@@ -22,6 +23,16 @@ class Pattern(object):
         self.border_r = 0
         self.border_t = 0
         self.border_b = 0
+
+    def read_profile(self):
+        self.rows = profile.settings['pattern_rows']
+        self.columns = profile.settings['pattern_columns']
+        self.square_width = profile.settings['pattern_square_width']
+        self.origin_distance = profile.settings['pattern_origin_distance']
+        self.border_l = profile.settings['pattern_border_l']
+        self.border_r = profile.settings['pattern_border_r']
+        self.border_t = profile.settings['pattern_border_t']
+        self.border_b = profile.settings['pattern_border_b']
 
     @property
     def rows(self):

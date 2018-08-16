@@ -8,7 +8,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import wx._core
 
 from horus.gui.engine import driver, pattern, calibration_data, laser_triangulation, \
-    platform_extrinsics, combo_calibration
+    platform_extrinsics, combo_calibration, image_capture
 from horus.util import system as sys
 from horus.gui.util.custom_panels import ExpandablePanel, Slider, CheckBox, \
     FloatTextBox, FloatTextBoxArray, FloatLabel, FloatLabelArray, Button, \
@@ -233,3 +233,55 @@ class CameraIntrinsics(ExpandablePanel):
 
     def _update_distortion_vector(self, value):
         calibration_data.distortion_vector = value
+
+class LasersBgPanel(ExpandablePanel):
+
+    def __init__(self, parent, on_selected_callback):
+        ExpandablePanel.__init__(self, parent, _("Laser Background"),
+                                 selected_callback=on_selected_callback)
+
+#        self.content -self  .vbox - sizer
+#        control = _type(self.content, _name, tooltip)
+        enable_box = wx.Panel(self.content)
+        enable_box.SetToolTip(wx.ToolTip("Enable laser background filter"))
+        # Elements
+        label = wx.StaticText(enable_box, label=_("Enable filter"), size=(130, -1))
+        enable_box.control = wx.CheckBox(enable_box, size=(150, -1))
+        enable_box.control.SetValue(image_capture.laser_bg_enable)
+
+        # Layout
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+        hbox.AddStretchSpacer()
+        hbox.Add(enable_box.control, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        enable_box.SetSizer(hbox)
+        enable_box.Layout()
+
+        # Events
+        enable_box.control.Bind(wx.EVT_CHECKBOX, self._update_laser_bg_enable)
+
+
+        self.content.vbox.Add(enable_box, 0, wx.BOTTOM | wx.EXPAND, 5)
+        self.content.vbox.Layout()
+        if sys.is_wx30():
+            self.content.SetSizerAndFit(self.content.vbox)
+
+
+    def add_controls(self):
+        pass
+#        self.add_control('laser_bg_enable', CheckBox, _("Rotate image"))
+#        self.add_control(
+#            'pattern_rows', Slider, _("Number of corner rows in the pattern"))
+#        self.add_control(
+#            'pattern_border_l', FloatTextBox, _("Border Left (mm)"))
+
+    def update_callbacks(self):
+        pass
+#        self.update_callback('pattern_rows', lambda v: self._update_rows(v))
+
+    def _update_laser_bg_enable(self, value):
+        image_capture.laser_bg_enable = value
+
+#    def _update_border_l(self, value):
+#        pattern.border_l = value
+
