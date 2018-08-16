@@ -89,7 +89,6 @@ class PointCloudROI(object):
             else:
                 # valid points should be above platform and in front of camera for all scanning cylinder area
                 # fast approximation of camera distance is platform Z offset
-                print(self.calibration_data.platform_translation)
                 idx = np.where((z >= 0) &
                                (rho >= -self.calibration_data.platform_translation[2]) &
                                (rho <=  self.calibration_data.platform_translation[2]))[0]

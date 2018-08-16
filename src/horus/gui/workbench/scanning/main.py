@@ -95,37 +95,15 @@ class ScanningWorkbench(Workbench):
         self._enable_tool_scan(self.pause_tool, False)
 
 
-        driver.camera.set_frame_rate(int(profile.settings['frame_rate']))
-        driver.camera.set_resolution(
-            profile.settings['camera_width'], profile.settings['camera_height'])
-        driver.camera.set_rotate(profile.settings['camera_rotate'])
-        driver.camera.set_hflip(profile.settings['camera_hflip'])
-        driver.camera.set_vflip(profile.settings['camera_vflip'])
-        driver.camera.set_luminosity(profile.settings['luminosity'])
+        driver.camera.read_profile()
 
-        texture_mode = image_capture.texture_mode
-        texture_mode.set_brightness(profile.settings['brightness_texture_scanning'])
-        texture_mode.set_contrast(profile.settings['contrast_texture_scanning'])
-        texture_mode.set_saturation(profile.settings['saturation_texture_scanning'])
-        texture_mode.set_exposure(profile.settings['exposure_texture_scanning'])
-
-        laser_mode = image_capture.laser_mode
-        laser_mode.brightness = profile.settings['brightness_laser_scanning']
-        laser_mode.contrast = profile.settings['contrast_laser_scanning']
-        laser_mode.saturation = profile.settings['saturation_laser_scanning']
-        laser_mode.exposure = profile.settings['exposure_laser_scanning']
-
+        image_capture.texture_mode.read_profile('texture_scanning')
+        image_capture.laser_mode.read_profile('laser_scanning')
         image_capture.set_use_distortion(profile.settings['use_distortion'])
         image_capture.set_remove_background(profile.settings['remove_background_scanning'])
+        image_capture.set_mode_texture()
 
-        laser_segmentation.red_channel = profile.settings['red_channel_scanning']
-        laser_segmentation.threshold_enable = profile.settings['threshold_enable_scanning']
-        laser_segmentation.threshold_value = profile.settings['threshold_value_scanning']
-        laser_segmentation.blur_enable = profile.settings['blur_enable_scanning']
-        laser_segmentation.set_blur_value(profile.settings['blur_value_scanning'])
-        laser_segmentation.window_enable = profile.settings['window_enable_scanning']
-        laser_segmentation.window_value = profile.settings['window_value_scanning']
-        laser_segmentation.refinement_method = profile.settings['refinement_scanning']
+        laser_segmentation.read_profile('scanning')
 
         width, height = driver.camera.get_resolution()
         calibration_data.set_resolution(width, height)
@@ -138,23 +116,9 @@ class ScanningWorkbench(Workbench):
         calibration_data.platform_rotation = profile.settings['rotation_matrix']
         calibration_data.platform_translation = profile.settings['translation_vector']
 
-        ciclop_scan.capture_texture = profile.settings['capture_texture']
-        use_laser = profile.settings['use_laser']
-        ciclop_scan.set_use_left_laser(use_laser == 'Left' or use_laser == 'Both')
-        ciclop_scan.set_use_right_laser(use_laser == 'Right' or use_laser == 'Both')
-        ciclop_scan.motor_step = profile.settings['motor_step_scanning']
-        ciclop_scan.motor_speed = profile.settings['motor_speed_scanning']
-        ciclop_scan.motor_acceleration = profile.settings['motor_acceleration_scanning']
-        ciclop_scan.color = struct.unpack(
-            'BBB', profile.settings['point_cloud_color'].decode('hex'))
-        ciclop_scan.set_scan_sleep(profile.settings['scan_sleep'])
+        ciclop_scan.read_profile()
+        point_cloud_roi.read_profile()
 
-        point_cloud_roi.set_show_center(profile.settings['show_center'])
-        point_cloud_roi.set_use_roi(profile.settings['use_roi'])
-        point_cloud_roi.set_diameter(profile.settings['roi_diameter'])
-        point_cloud_roi.set_height(profile.settings['roi_height'])
-
-        image_capture.set_mode_texture()
 
     def get_image(self):
         if self.scanning:

@@ -9,6 +9,7 @@ import time
 import Queue
 import numpy as np
 import datetime
+import struct
 
 from horus import Singleton
 from horus.engine.scan.scan import Scan

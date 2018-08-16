@@ -111,21 +111,8 @@ class ScanCapturePanel(ExpandablePanel):
         current_video.calibration = False
         current_video.mode = profile.settings['capture_mode_scanning']
 
-        texture_mode = image_capture.texture_mode
-        texture_mode.set_brightness(profile.settings['brightness_texture_scanning'])
-        texture_mode.set_contrast(profile.settings['contrast_texture_scanning'])
-        texture_mode.set_saturation(profile.settings['saturation_texture_scanning'])
-        texture_mode.set_exposure(profile.settings['exposure_texture_scanning'])
-        texture_mode.set_light(1,profile.settings['light1_texture_scanning'])
-        texture_mode.set_light(2,profile.settings['light2_texture_scanning'])
-
-        laser_mode = image_capture.laser_mode
-        laser_mode.set_brightness(profile.settings['brightness_laser_scanning'])
-        laser_mode.set_contrast(profile.settings['contrast_laser_scanning'])
-        laser_mode.set_saturation(profile.settings['saturation_laser_scanning'])
-        laser_mode.set_exposure(profile.settings['exposure_laser_scanning'])
-        laser_mode.set_light(1,profile.settings['light1_laser_scanning'])
-        laser_mode.set_light(2,profile.settings['light2_laser_scanning'])
+        image_capture.texture_mode.read_profile('texture_scanning')
+        image_capture.laser_mode.read_profile('laser_scanning')
         image_capture.set_remove_background(profile.settings['remove_background_scanning'])
 
         profile.settings['current_video_mode_adjustment'] = current_video.mode
@@ -227,24 +214,17 @@ class ScanSegmentationPanel(ExpandablePanel):
     def on_selected(self):
         current_video.updating = True
         current_video.sync()
+
         # Update mode settings
         current_video.calibration = False
         current_video.mode = 'Gray'
-        laser_mode = image_capture.laser_mode
-        laser_mode.set_brightness(profile.settings['brightness_laser_scanning'])
-        laser_mode.set_contrast(profile.settings['contrast_laser_scanning'])
-        laser_mode.set_saturation(profile.settings['saturation_laser_scanning'])
-        laser_mode.set_exposure(profile.settings['exposure_laser_scanning'])
-        image_capture.set_remove_background(profile.settings['remove_background_scanning'])
         current_video.set_draw_line(profile.settings['draw_line_scanning'])
-        laser_segmentation.set_red_channel(profile.settings['red_channel_scanning'])
-        laser_segmentation.set_threshold_value(profile.settings['threshold_value_scanning'])
-        laser_segmentation.set_threshold_enable(profile.settings['threshold_enable_scanning'])
-        laser_segmentation.set_blur_value(profile.settings['blur_value_scanning'])
-        laser_segmentation.set_blur_enable(profile.settings['blur_enable_scanning'])
-        laser_segmentation.set_window_value(profile.settings['window_value_scanning'])
-        laser_segmentation.set_window_enable(profile.settings['window_enable_scanning'])
-        laser_segmentation.set_refinement_method(profile.settings['refinement_scanning'])
+
+        image_capture.laser_mode.read_profile('laser_scanning')
+        image_capture.set_remove_background(profile.settings['remove_background_scanning'])
+
+        laser_segmentation.read_profile('scanning')
+
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         profile.settings['current_panel_adjustment'] = 'scan_segmentation'
         current_video.flush()
@@ -346,27 +326,13 @@ class CalibrationCapturePanel(ExpandablePanel):
         # Update mode settings
         current_video.calibration = True
         current_video.mode = profile.settings['capture_mode_calibration']
-        profile.settings['current_video_mode_adjustment'] = current_video.mode
-        profile.settings['current_panel_adjustment'] = 'calibration_capture'
 
+        image_capture.pattern_mode.read_profile('pattern_calibration')
+        image_capture.laser_mode.read_profile('laser_calibration')
         image_capture.set_remove_background(profile.settings['remove_background_calibration'])
 
-        pattern_mode = image_capture.pattern_mode
-        pattern_mode.set_brightness(profile.settings['brightness_pattern_calibration'])
-        pattern_mode.set_contrast(profile.settings['contrast_pattern_calibration'])
-        pattern_mode.set_saturation(profile.settings['saturation_pattern_calibration'])
-        pattern_mode.set_exposure(profile.settings['exposure_pattern_calibration'])
-        pattern_mode.set_light(1,profile.settings['light1_pattern_calibration'])
-        pattern_mode.set_light(2,profile.settings['light2_pattern_calibration'])
-
-        laser_mode = image_capture.laser_mode
-        laser_mode.set_brightness(profile.settings['brightness_laser_calibration'])
-        laser_mode.set_contrast(profile.settings['contrast_laser_calibration'])
-        laser_mode.set_saturation(profile.settings['saturation_laser_calibration'])
-        laser_mode.set_exposure(profile.settings['exposure_laser_calibration'])
-        laser_mode.set_light(1,profile.settings['light1_laser_calibration'])
-        laser_mode.set_light(2,profile.settings['light2_laser_calibration'])
-
+        profile.settings['current_video_mode_adjustment'] = current_video.mode
+        profile.settings['current_panel_adjustment'] = 'calibration_capture'
         current_video.flush()
         current_video.updating = False
 
@@ -462,24 +428,17 @@ class CalibrationSegmentationPanel(ExpandablePanel):
     def on_selected(self):
         current_video.updating = True
         current_video.sync()
+
         # Update mode settings
         current_video.calibration = True
         current_video.mode = 'Gray'
+
+        image_capture.laser_mode.read_profile('laser_calibration')
+        image_capture.set_remove_background(profile.settings['remove_background_calibration'])
+
+        laser_segmentation.read_profile('calibration')
+
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         profile.settings['current_panel_adjustment'] = 'calibration_segmentation'
-        laser_mode = image_capture.laser_mode
-        laser_mode.set_brightness(profile.settings['brightness_laser_calibration'])
-        laser_mode.set_contrast(profile.settings['contrast_laser_calibration'])
-        laser_mode.set_saturation(profile.settings['saturation_laser_calibration'])
-        laser_mode.set_exposure(profile.settings['exposure_laser_calibration'])
-        image_capture.set_remove_background(profile.settings['remove_background_calibration'])
-        laser_segmentation.set_red_channel(profile.settings['red_channel_calibration'])
-        laser_segmentation.set_threshold_value(profile.settings['threshold_value_calibration'])
-        laser_segmentation.set_threshold_enable(profile.settings['threshold_enable_calibration'])
-        laser_segmentation.set_blur_value(profile.settings['blur_value_calibration'])
-        laser_segmentation.set_blur_enable(profile.settings['blur_enable_calibration'])
-        laser_segmentation.set_window_value(profile.settings['window_value_calibration'])
-        laser_segmentation.set_window_enable(profile.settings['window_enable_calibration'])
-        laser_segmentation.set_refinement_method(profile.settings['refinement_calibration'])
         current_video.flush()
         current_video.updating = False

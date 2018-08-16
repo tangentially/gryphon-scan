@@ -51,26 +51,18 @@ class AdjustmentWorkbench(Workbench):
         self.pages_collection['video_view'].reset()
 
     def setup_engine(self):
-        driver.camera.set_frame_rate(int(profile.settings['frame_rate']))
-        driver.camera.set_resolution(
-            profile.settings['camera_width'], profile.settings['camera_height'])
-        driver.camera.set_rotate(profile.settings['camera_rotate'])
-        driver.camera.set_hflip(profile.settings['camera_hflip'])
-        driver.camera.set_vflip(profile.settings['camera_vflip'])
-        driver.camera.set_luminosity(profile.settings['luminosity'])
+        driver.camera.read_profile()
+
         self.current_video.mode = profile.settings['current_video_mode_adjustment']
-        pattern.rows = profile.settings['pattern_rows']
-        pattern.columns = profile.settings['pattern_columns']
-        pattern.square_width = profile.settings['pattern_square_width']
-        pattern.distance = profile.settings['pattern_origin_distance']
-        pattern.border_l = profile.settings['pattern_border_l']
-        pattern.border_r = profile.settings['pattern_border_r']
-        pattern.border_t = profile.settings['pattern_border_t']
-        pattern.border_b = profile.settings['pattern_border_b']
+
+        pattern.read_profile()
+
         image_capture.set_use_distortion(profile.settings['use_distortion'])
+
         width, height = driver.camera.get_resolution()
         calibration_data.set_resolution(width, height)
         calibration_data.camera_matrix = profile.settings['camera_matrix']
         calibration_data.distortion_vector = profile.settings['distortion_vector']
+
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_adjustment']].on_title_clicked(None)

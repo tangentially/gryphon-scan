@@ -191,6 +191,13 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('exposure_control', _('Exposure'), 'profile_settings',
                     int, 16, min_value=1, max_value=64))
+        self._add_setting(
+            Setting('light1_control', _('Lamp 1 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('light2_control', _('Lamp 2 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+
 
         self._add_setting(
             Setting('light1_texture_scanning', _('Lamp 1 brightness'), 'profile_settings',
