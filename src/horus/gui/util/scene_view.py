@@ -604,7 +604,8 @@ class SceneView(opengl_gui.glGuiPanel):
 
     def _draw_machine(self):
         glEnable(GL_BLEND)
-        machine_model_path = profile.settings['machine_model_path']
+        from __main__ import appdir
+        machine_model_path = appdir+'\\'+profile.settings['machine_model_path']
         glEnable(GL_CULL_FACE)
 
         # Draw Platform
@@ -619,11 +620,22 @@ class SceneView(opengl_gui.glGuiPanel):
             self._platform_mesh[machine_model_path] = mesh
         else:
             self._platform_mesh[machine_model_path] = None
+
+        machine_scale = 1
+        try:
+             if profile.settings['machine_model_diameter'] > 0:
+                 machine_scale = profile.settings['machine_model_diameter'] / profile.settings['machine_diameter']
+             elif profile.settings['machine_model_diameter'] == 0:
+                 machine_scale = mesh.get_size()[0] / profile.settings['machine_diameter']
+        except:
+            pass
+
+        mesh._matrix /= machine_scale
         self._platform_mesh[machine_model_path]._draw_offset = numpy.array(
             [profile.settings[ 'machine_model_offset_x'],
             profile.settings[ 'machine_model_offset_y'],
             profile.settings[ 'machine_model_offset_z'] 
-            ], numpy.float32)
+            ], numpy.float32) / machine_scale
         glColor4f(0.6, 0.6, 0.6, 0.5)
         self._object_shader.bind()
         self._render_object(self._platform_mesh[machine_model_path])

@@ -603,6 +603,8 @@ class Settings(collections.MutableMapping):
             Setting('machine_model_path', _('Machine model'), 'machine_settings',
                     unicode, unicode(resources.get_path_for_mesh('Gryphon_platform.stl')))) # ciclop_platform.stl
         self._add_setting(
+            Setting('machine_model_diameter', _('Machine model diameter (-1 dont scale; 0 auto scale)'), 'machine_settings', int, 304))
+        self._add_setting(
             Setting('machine_model_offset_x', 'Machine model offset X', 'machine_settings',
                     float, 0.00))
         self._add_setting(
