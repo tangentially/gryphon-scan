@@ -89,15 +89,17 @@ class ScanCapturePanel(ExpandablePanel):
         control = wx.Panel(self.content)
         control.SetToolTip(wx.ToolTip("Laser background filter"))
 
-        label = wx.StaticText(control, label=_("Laser background filter"), style=wx.ALIGN_CENTER) #, size=(130, -1))
+        label = wx.StaticText(control, label=_("Laser background filter"), style=wx.ALIGN_CENTER)
+        enable_box = wx.CheckBox(control, label="Enable filter")
         buttons_box = wx.Panel(control)
         buttons_box.left_button = wx.Button(buttons_box, -1, "Reset")
         buttons_box.right_button = wx.Button(buttons_box, -1, "Capture")
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(label, 0, wx.TOP | wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, border=5)
-        vbox.Add(buttons_box, 0, wx.BOTTOM | wx.EXPAND, border=5)
+        vbox.Add(label, 0, wx.TOP | wx.EXPAND, border=5)
+        vbox.Add(enable_box, 0, wx.TOP | wx.EXPAND, border=5)
+        vbox.Add(buttons_box, 0, wx.TOP | wx.EXPAND, border=5)
         control.SetSizer(vbox)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -111,7 +113,9 @@ class ScanCapturePanel(ExpandablePanel):
         # Events
         buttons_box.left_button.Bind(wx.EVT_BUTTON, lambda v: self.laser_reset() )
         buttons_box.right_button.Bind(wx.EVT_BUTTON, lambda v: self.laser_capture() )
+        enable_box.Bind(wx.EVT_CHECKBOX, lambda v: self.laser_bg_enable(v) )
 
+        enable_box.SetValue(profile.laser_bg_scanning_enable)
 
         self.content.vbox.Add(control, 0, wx.BOTTOM | wx.EXPAND, 5)
         self.content.vbox.Layout()
@@ -237,6 +241,16 @@ class ScanCapturePanel(ExpandablePanel):
 
         image_capture.laser_mode.laser_bg = images
         profile.laser_bg_scanning = images
+
+        current_video.updating = False
+
+
+    def laser_bg_enable(self, value):
+        current_video.updating = True
+        current_video.sync()
+
+        profile.laser_bg_scanning_enable = value
+        image_capture.laser_mode.laser_bg_enable = profile.laser_bg_scanning_enable
 
         current_video.updating = False
 
@@ -372,15 +386,17 @@ class CalibrationCapturePanel(ExpandablePanel):
         control = wx.Panel(self.content)
         control.SetToolTip(wx.ToolTip("Laser background filter"))
 
-        label = wx.StaticText(control, label=_("Laser background filter"), style=wx.ALIGN_CENTER) #, size=(130, -1))
+        label = wx.StaticText(control, label=_("Laser background filter"), style=wx.ALIGN_CENTER)
+        enable_box = wx.CheckBox(control, label="Enable filter")
         buttons_box = wx.Panel(control)
         buttons_box.left_button = wx.Button(buttons_box, -1, "Reset")
         buttons_box.right_button = wx.Button(buttons_box, -1, "Capture")
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(label, 0, wx.TOP | wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, border=5)
-        vbox.Add(buttons_box, 0, wx.BOTTOM | wx.EXPAND, border=5)
+        vbox.Add(label, 0, wx.TOP | wx.EXPAND, border=5)
+        vbox.Add(enable_box, 0, wx.TOP | wx.EXPAND, border=5)
+        vbox.Add(buttons_box, 0, wx.TOP | wx.EXPAND, border=5)
         control.SetSizer(vbox)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -394,7 +410,9 @@ class CalibrationCapturePanel(ExpandablePanel):
         # Events
         buttons_box.left_button.Bind(wx.EVT_BUTTON, lambda v: self.laser_reset() )
         buttons_box.right_button.Bind(wx.EVT_BUTTON, lambda v: self.laser_capture() )
+        enable_box.Bind(wx.EVT_CHECKBOX, lambda v: self.laser_bg_enable(v) )
 
+        enable_box.SetValue(profile.laser_bg_calibration_enable)
 
         self.content.vbox.Add(control, 0, wx.BOTTOM | wx.EXPAND, 5)
         self.content.vbox.Layout()
@@ -519,6 +537,16 @@ class CalibrationCapturePanel(ExpandablePanel):
 
         image_capture.laser_mode.laser_bg = images
         profile.laser_bg_calibration = images
+
+        current_video.updating = False
+
+
+    def laser_bg_enable(self, value):
+        current_video.updating = True
+        current_video.sync()
+
+        profile.laser_bg_calibration_enable = value
+        image_capture.laser_mode.laser_bg_enable = profile.laser_bg_calibration_enable
 
         current_video.updating = False
 

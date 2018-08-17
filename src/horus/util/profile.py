@@ -941,5 +941,8 @@ def get_size_polygons(size, machine_shape):
     return ret
 
 laser_bg_scanning = [None, None]
+laser_bg_scanning_enable = False
+
 laser_bg_calibration = [None, None]
+laser_bg_calibration_enable = False
 
