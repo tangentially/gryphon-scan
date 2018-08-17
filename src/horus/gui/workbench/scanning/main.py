@@ -105,16 +105,8 @@ class ScanningWorkbench(Workbench):
 
         laser_segmentation.read_profile('scanning')
 
-        width, height = driver.camera.get_resolution()
-        calibration_data.set_resolution(width, height)
-        calibration_data.camera_matrix = profile.settings['camera_matrix']
-        calibration_data.distortion_vector = profile.settings['distortion_vector']
-        calibration_data.laser_planes[0].distance = profile.settings['distance_left']
-        calibration_data.laser_planes[0].normal = profile.settings['normal_left']
-        calibration_data.laser_planes[1].distance = profile.settings['distance_right']
-        calibration_data.laser_planes[1].normal = profile.settings['normal_right']
-        calibration_data.platform_rotation = profile.settings['rotation_matrix']
-        calibration_data.platform_translation = profile.settings['translation_vector']
+        calibration_data.read_profile_camera()
+        calibration_data.read_profile_calibration()
 
         ciclop_scan.read_profile()
         point_cloud_roi.read_profile()

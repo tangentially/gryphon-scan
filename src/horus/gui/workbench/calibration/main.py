@@ -144,10 +144,7 @@ class CalibrationWorkbench(Workbench):
         laser_segmentation.read_profile('calibration')
         pattern.read_profile()
 
-        width, height = driver.camera.get_resolution()
-        calibration_data.set_resolution(width, height)
-        calibration_data.camera_matrix = profile.settings['camera_matrix']
-        calibration_data.distortion_vector = profile.settings['distortion_vector']
+        calibration_data.read_profile_camera()
 
         laser_triangulation.read_profile()
         platform_extrinsics.read_profile()

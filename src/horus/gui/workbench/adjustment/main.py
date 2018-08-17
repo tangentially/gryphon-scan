@@ -59,10 +59,7 @@ class AdjustmentWorkbench(Workbench):
 
         image_capture.set_use_distortion(profile.settings['use_distortion'])
 
-        width, height = driver.camera.get_resolution()
-        calibration_data.set_resolution(width, height)
-        calibration_data.camera_matrix = profile.settings['camera_matrix']
-        calibration_data.distortion_vector = profile.settings['distortion_vector']
+        calibration_data.read_profile_camera()
 
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_adjustment']].on_title_clicked(None)

@@ -13,6 +13,7 @@ import numpy as np
 from horus import Singleton
 
 from horus.util import profile
+from horus.engine.driver.driver import Driver
 
 class LaserPlane(object):
 
@@ -40,9 +41,15 @@ class CalibrationData(object):
         self.platform_rotation = None
         self.platform_translation = None
 
-    def read_profile(self):
+    def read_profile_camera(self):
+        driver = Driver() # load driver singleton
+        width, height = driver.camera.get_resolution()
+        print(driver.camera.get_resolution())
+        calibration_data.set_resolution(width, height)
         self.camera_matrix = profile.settings['camera_matrix']
         self.distortion_vector = profile.settings['distortion_vector']
+
+    def read_profile_calibration(self):
         self.laser_planes[0].distance = profile.settings['distance_left']
         self.laser_planes[0].normal = profile.settings['normal_left']
         self.laser_planes[1].distance = profile.settings['distance_right']
