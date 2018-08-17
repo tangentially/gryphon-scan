@@ -579,7 +579,7 @@ class Settings(collections.MutableMapping):
                     possible_values=(u'pattern_settings', u'camera_intrinsics',
                                      u'scanner_autocheck', u'rotating_platform_settings',
                                      u'laser_triangulation', u'platform_extrinsics',
-                                     u'video_settings', u'laser_bg')))
+                                     u'video_settings')))
 
         # -- Machine Settings
 
@@ -939,3 +939,7 @@ def get_size_polygons(size, machine_shape):
                          [size[0] / 2, size[1] / 2 - h]], np.float32))
 
     return ret
+
+laser_bg_scanning = [None, None]
+laser_bg_calibration = [None, None]
+

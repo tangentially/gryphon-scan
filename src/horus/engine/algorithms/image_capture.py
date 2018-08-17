@@ -25,6 +25,7 @@ class CameraSettings(object):
         self.saturation = 0
         self.exposure = 0
         self.light = [0,0]
+        self.laser_bg = [None, None]
 
     def set_brightness(self, value):
         self.brightness = value
@@ -69,6 +70,12 @@ class CameraSettings(object):
         self.set_exposure(profile.settings['exposure_'+mode])
         self.set_light(1,profile.settings['light1_'+mode])
         self.set_light(2,profile.settings['light2_'+mode])
+        if mode == 'laser_calibration':
+            self.laser_bg = profile.laser_bg_calibration
+        if mode == 'laser_scanning':
+            self.laser_bg = profile.laser_bg_scanning
+        else:
+            self.laser_bg = [None, None]
 
 @Singleton
 class ImageCapture(object):
@@ -87,8 +94,8 @@ class ImageCapture(object):
         self._remove_background = True
         self._updating = False
         self.use_distortion = False
-        self.laser_bg = [None, None]
-        self.laser_bg_enable = False
+#        self.laser_bg = [None, None]
+#        self.laser_bg_enable = False
 
     def initialize(self):
         self.texture_mode.initialize()
@@ -161,13 +168,12 @@ class ImageCapture(object):
         image = self.capture_image(flush=flush)
         self.driver.board.laser_off(index)
         # substract environment laser lines 
-        if self.laser_bg_enable:
-            try:
-                if self.laser_bg[index] is not None and \
-                   image is not None:
-                    image = cv2.subtract(image, self.laser_bg[index])
-            except:
-                pass
+        try:
+            if self._mode.laser_bg[index] is not None and \
+               image is not None:
+                image = cv2.subtract(image, self._mode.laser_bg[index])
+        except:
+            print('WARNING: Error applying laser BG @ image_capture._capture_laser')
         return image
 
     def capture_laser(self, index):
@@ -225,11 +231,13 @@ class ImageCapture(object):
             if image is not None and image_background is not None:
                 image = cv2.subtract(image, image_background)
         # substract environment laser lines
-        if self.laser_bg_enable:
+        try:
             if image is not None:
-                for bg in self.laser_bg:
+                for bg in self._mode.laser_bg:
                     if bg is not None:
                         image = cv2.subtract(image, bg)
+        except:
+            print('WARNING: Error applying laser BG @ image_capture.capture_all_lasers')
         return image
 
     def capture_pattern(self):

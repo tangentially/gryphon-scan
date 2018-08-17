@@ -5,6 +5,8 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
+import wx
+
 from horus.util import profile, system as sys
 
 from horus.gui.engine import image_capture, laser_segmentation
@@ -82,6 +84,40 @@ class ScanCapturePanel(ExpandablePanel):
 
         # Initial layout
         self._set_mode_layout(profile.settings['capture_mode_scanning'])
+
+        # capture bg buttons panel
+        control = wx.Panel(self.content)
+        control.SetToolTip(wx.ToolTip("Laser background filter"))
+
+        label = wx.StaticText(control, label=_("Laser background filter"), style=wx.ALIGN_CENTER) #, size=(130, -1))
+        buttons_box = wx.Panel(control)
+        buttons_box.left_button = wx.Button(buttons_box, -1, "Reset")
+        buttons_box.right_button = wx.Button(buttons_box, -1, "Capture")
+
+        # Layout
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(label, 0, wx.TOP | wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, border=5)
+        vbox.Add(buttons_box, 0, wx.BOTTOM | wx.EXPAND, border=5)
+        control.SetSizer(vbox)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(buttons_box.left_button, 0, wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        hbox.AddStretchSpacer()
+        hbox.Add(buttons_box.right_button, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        buttons_box.SetSizer(hbox)
+
+        control.Layout()
+
+        # Events
+        buttons_box.left_button.Bind(wx.EVT_BUTTON, lambda v: self.laser_reset() )
+        buttons_box.right_button.Bind(wx.EVT_BUTTON, lambda v: self.laser_capture() )
+
+
+        self.content.vbox.Add(control, 0, wx.BOTTOM | wx.EXPAND, 5)
+        self.content.vbox.Layout()
+        if sys.is_wx30():
+            self.content.SetSizerAndFit(self.content.vbox)
+
 
     def update_callbacks(self):
         self.update_callback('capture_mode_scanning', lambda v: self._set_camera_mode(v))
@@ -170,6 +206,39 @@ class ScanCapturePanel(ExpandablePanel):
             self.parent.Refresh()
         self.parent.Layout()
         self.Layout()
+
+
+    def laser_reset(self):
+        current_video.updating = True
+        current_video.sync()
+
+        profile.laser_bg_scanning = [None for _ in profile.laser_bg_scanning]
+        image_capture.laser_mode.laser_bg = profile.laser_bg_scanning
+
+        current_video.updating = False
+
+
+    def laser_capture(self):
+        if current_video.updating:
+            return
+        current_video.updating = True
+        current_video.sync()
+
+        dlg = wx.MessageDialog(
+            self,
+            _("Please remove everything from platform and press OK."),
+            _("Capture laser background"), wx.OK | wx.ICON_INFORMATION)
+        dlg.ShowModal()
+        dlg.Destroy()
+
+        images = image_capture.capture_lasers()
+        for i, image in enumerate(images):
+            image = laser_segmentation.compute_line_segmentation_bg(image)
+
+        image_capture.laser_mode.laser_bg = images
+        profile.laser_bg_scanning = images
+
+        current_video.updating = False
 
 
 class ScanSegmentationPanel(ExpandablePanel):
@@ -299,6 +368,40 @@ class CalibrationCapturePanel(ExpandablePanel):
         # Initial layout
         self._set_mode_layout(profile.settings['capture_mode_calibration'])
 
+        # capture bg buttons panel
+        control = wx.Panel(self.content)
+        control.SetToolTip(wx.ToolTip("Laser background filter"))
+
+        label = wx.StaticText(control, label=_("Laser background filter"), style=wx.ALIGN_CENTER) #, size=(130, -1))
+        buttons_box = wx.Panel(control)
+        buttons_box.left_button = wx.Button(buttons_box, -1, "Reset")
+        buttons_box.right_button = wx.Button(buttons_box, -1, "Capture")
+
+        # Layout
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(label, 0, wx.TOP | wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, border=5)
+        vbox.Add(buttons_box, 0, wx.BOTTOM | wx.EXPAND, border=5)
+        control.SetSizer(vbox)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(buttons_box.left_button, 0, wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        hbox.AddStretchSpacer()
+        hbox.Add(buttons_box.right_button, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        buttons_box.SetSizer(hbox)
+
+        control.Layout()
+
+        # Events
+        buttons_box.left_button.Bind(wx.EVT_BUTTON, lambda v: self.laser_reset() )
+        buttons_box.right_button.Bind(wx.EVT_BUTTON, lambda v: self.laser_capture() )
+
+
+        self.content.vbox.Add(control, 0, wx.BOTTOM | wx.EXPAND, 5)
+        self.content.vbox.Layout()
+        if sys.is_wx30():
+            self.content.SetSizerAndFit(self.content.vbox)
+
+
     def update_callbacks(self):
         self.update_callback('capture_mode_calibration', lambda v: self._set_camera_mode(v))
 
@@ -385,6 +488,39 @@ class CalibrationCapturePanel(ExpandablePanel):
             self.parent.Refresh()
         self.parent.Layout()
         self.Layout()
+
+
+    def laser_reset(self):
+        current_video.updating = True
+        current_video.sync()
+
+        profile.laser_bg_calibration = [None for _ in profile.laser_bg_calibration]
+        image_capture.laser_mode.laser_bg = profile.laser_bg_calibration
+
+        current_video.updating = False
+
+
+    def laser_capture(self):
+        if current_video.updating:
+            return
+        current_video.updating = True
+        current_video.sync()
+
+        dlg = wx.MessageDialog(
+            self,
+            _("Please remove everything from platform and press OK."),
+            _("Capture laser background"), wx.OK | wx.ICON_INFORMATION)
+        dlg.ShowModal()
+        dlg.Destroy()
+
+        images = image_capture.capture_lasers()
+        for i, image in enumerate(images):
+            image = laser_segmentation.compute_line_segmentation_bg(image)
+
+        image_capture.laser_mode.laser_bg = images
+        profile.laser_bg_calibration = images
+
+        current_video.updating = False
 
 
 class CalibrationSegmentationPanel(ExpandablePanel):
