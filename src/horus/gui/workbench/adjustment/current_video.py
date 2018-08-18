@@ -48,8 +48,9 @@ class CurrentVideo(object):
             if self.calibration:
                 image = image_capture.capture_pattern()
                 corners = image_detection.detect_corners(image)
-                image_capture.flush_laser(14)
+#                image_capture.flush_laser(14)
                 image = image_capture.capture_all_lasers()
+#                image = image_capture.capture_lasers()
                 image = image_detection.pattern_mask(image, corners)
             else:
                 image = image_capture.capture_all_lasers()
@@ -58,7 +59,7 @@ class CurrentVideo(object):
             if self.calibration:
                 image = image_capture.capture_pattern()
                 corners = image_detection.detect_corners(image)
-                image_capture.flush_laser(14)
+#                image_capture.flush_laser(14)
                 images = image_capture.capture_lasers()
                 for i in xrange(2):
                     images[i] = image_detection.pattern_mask(images[i], corners)

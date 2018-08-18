@@ -659,24 +659,24 @@ class Settings(collections.MutableMapping):
         # - Linux
         self._add_setting(
             Setting('flush_linux', 'Flush Linux', 'preferences',
-                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([3, 2, 3]))))
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([3, 2, 3, 0]))))
         self._add_setting(
             Setting('flush_stream_linux', 'Flush stream Linux', 'preferences',
-                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([0, 3, 3]))))
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([0, 3, 3, 0]))))
         # - Darwin
         self._add_setting(
             Setting('flush_darwin', 'Flush Darwin', 'preferences',
-                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([4, 3, 4]))))
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([4, 3, 4, 0]))))
         self._add_setting(
             Setting('flush_stream_darwin', 'Flush stream Darwin', 'preferences',
-                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([0, 3, 3]))))
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([0, 3, 3, 0]))))
         # - Windows
         self._add_setting(
             Setting('flush_windows', 'Flush Windows', 'preferences',
-                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([4, 3, 4]))))
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([4, 3, 4, 0]))))
         self._add_setting(
             Setting('flush_stream_windows', 'Flush stream Windows', 'preferences',
-                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([0, 3, 3]))))
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([0, 3, 3, 0]))))
 
         self._add_setting(
             Setting('point_size', 'Point size', 'preferences', int, 2, min_value=1, max_value=4))

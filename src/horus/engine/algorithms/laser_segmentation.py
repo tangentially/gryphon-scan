@@ -126,12 +126,12 @@ class LaserSegmentation(object):
         elif self.red_channel == 'HSV':
             ret = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
             # lower mask (0-10)
-            lower_red = np.array([0,50,50])
+            lower_red = np.array([0,50,self.threshold_value])
             upper_red = np.array([10,255,255])
             mask0 = cv2.inRange(ret, lower_red, upper_red)
 
             # upper mask (170-180)
-            lower_red = np.array([170,50,50])
+            lower_red = np.array([160,50,self.threshold_value])
             upper_red = np.array([180,255,255])
             mask1 = cv2.inRange(ret, lower_red, upper_red)
 

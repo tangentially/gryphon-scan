@@ -24,7 +24,9 @@ class CameraSettings(object):
         self.contrast = 0
         self.saturation = 0
         self.exposure = 0
+        # Photo lamps
         self.light = [0,0]
+        # Laser capture background
         self.laser_bg = [None, None]
         self.laser_bg_enable = False
 
@@ -80,6 +82,7 @@ class CameraSettings(object):
         else:
             self.laser_bg = [None, None]
             self.laser_bg_enable = False
+        print("Capture profile load: "+mode)
 
 @Singleton
 class ImageCapture(object):
@@ -89,8 +92,11 @@ class ImageCapture(object):
         self.calibration_data = CalibrationData()
 
         self.texture_mode = CameraSettings()
+        self.texture_mode.nam = 'Capture texture'
         self.laser_mode = CameraSettings()
+        self.laser_mode.nam = 'Capture laser'
         self.pattern_mode = CameraSettings()
+        self.pattern_mode.nam = 'Capture pattern'
 
         self.stream = True
         self._mode = self.pattern_mode
@@ -98,23 +104,23 @@ class ImageCapture(object):
         self._remove_background = True
         self._updating = False
         self.use_distortion = False
-#        self.laser_bg = [None, None]
-#        self.laser_bg_enable = False
 
     def initialize(self):
         self.texture_mode.initialize()
         self.laser_mode.initialize()
         self.pattern_mode.initialize()
 
-    def set_flush_values(self, texture, laser, pattern):
+    def set_flush_values(self, texture, laser, pattern, mode):
         self._flush_texture = texture
         self._flush_laser = laser
         self._flush_pattern = pattern
+        self._flush_mode = mode
 
-    def set_flush_stream_values(self, texture, laser, pattern):
+    def set_flush_stream_values(self, texture, laser, pattern, mode):
         self._flush_stream_texture = texture
         self._flush_stream_laser = laser
         self._flush_stream_pattern = pattern
+        self._flush_stream_mode = mode
 
     def set_use_distortion(self, value):
         self.use_distortion = value
@@ -129,7 +135,13 @@ class ImageCapture(object):
             self._mode = mode
             self._mode.selected = True
             self._mode.send_all_settings()
+            # wait for camera to adjust to new settings
+            if self.stream:
+                self.capture_image(flush=self._flush_stream_mode)
+            else:
+                self.capture_image(flush=self._flush_mode)
             self._updating = False
+            print("Cap mode: "+mode.nam)
 
     def set_mode_texture(self):
         self.set_mode(self.texture_mode)
@@ -184,6 +196,7 @@ class ImageCapture(object):
     def capture_laser(self, index):
         # Capture background
         image_background = None
+        self.set_mode(self.laser_mode)
         if self._remove_background:
             self.driver.board.lasers_off()
             if self.stream:
@@ -201,6 +214,7 @@ class ImageCapture(object):
     def capture_lasers(self):
         # Capture background
         image_background = None
+        self.set_mode(self.laser_mode)
         if self._remove_background:
             self.driver.board.lasers_off()
             if self.stream:

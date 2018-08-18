@@ -64,20 +64,20 @@ class ComboCalibration(MovingCalibration):
                 self.laser_calibration_angles[:,0]<alpha,
                 self.laser_calibration_angles[:,1]>alpha ))[0]
             if lasers.size > 0:
-                self.image_capture.flush_laser(14)
+#                self.image_capture.flush_laser()
+#                self.image_capture.flush_laser()
                 for i in lasers:
-#                    if (i == 0 and alpha < 10) or (i == 1 and alpha > -10):
-                        image = self.image_capture.capture_laser(i)
-                        image = self.image_detection.pattern_mask(image, corners)
-                        self.image = image
-                        points_2d, image = self.laser_segmentation.compute_2d_points(image)
-                        point_3d = self.point_cloud_generation.compute_camera_point_cloud(
-                            points_2d, distance, normal)
-                        if self._point_cloud[i] is None:
-                            self._point_cloud[i] = point_3d.T
-                        else:
-                            self._point_cloud[i] = np.concatenate(
-                                (self._point_cloud[i], point_3d.T))
+                    image = self.image_capture.capture_laser(i)
+                    image = self.image_detection.pattern_mask(image, corners)
+                    self.image = image
+                    points_2d, image = self.laser_segmentation.compute_2d_points(image)
+                    point_3d = self.point_cloud_generation.compute_camera_point_cloud(
+                        points_2d, distance, normal)
+                    if self._point_cloud[i] is None:
+                        self._point_cloud[i] = point_3d.T
+                    else:
+                        self._point_cloud[i] = np.concatenate(
+                            (self._point_cloud[i], point_3d.T))
             else:
                 self.image = image
                 print("Skip laser calibration at "+str(alpha))

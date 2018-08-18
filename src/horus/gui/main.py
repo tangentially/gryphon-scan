@@ -618,7 +618,7 @@ class MainWindow(wx.Frame):
             flush_setting += 'windows'
             flush_stream_setting += 'windows'
 
-        texture, laser, pattern = profile.settings[flush_setting]
-        image_capture.set_flush_values(texture, laser, pattern)
-        texture, laser, pattern = profile.settings[flush_stream_setting]
-        image_capture.set_flush_stream_values(texture, laser, pattern)
+        texture, laser, pattern, chmode = profile.settings[flush_setting]
+        image_capture.set_flush_values(texture, laser, pattern, chmode)
+        texture, laser, pattern, chmode = profile.settings[flush_stream_setting]
+        image_capture.set_flush_stream_values(texture, laser, pattern, chmode)

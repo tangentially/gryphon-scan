@@ -145,7 +145,7 @@ class Autocheck(Calibration):
     def check_lasers(self):
         image = self.image_capture.capture_pattern()
         corners = self.image_detection.detect_corners(image)
-        self.image_capture.flush_laser()
+#        self.image_capture.flush_laser()
         for i in xrange(2):
             if not self._is_calibrating:
                 raise CalibrationCancel()

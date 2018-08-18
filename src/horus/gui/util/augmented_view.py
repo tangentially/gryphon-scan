@@ -123,9 +123,12 @@ def augmented_pattern_mask(image, corners):
         t = -horus.gui.engine.pattern.square_width
         r = horus.gui.engine.pattern.square_width * horus.gui.engine.pattern.columns
         b = horus.gui.engine.pattern.square_width * horus.gui.engine.pattern.rows
-        w = 5
+        wl = horus.gui.engine.pattern.border_l
+        wr = horus.gui.engine.pattern.border_r
+        wt = horus.gui.engine.pattern.border_t
+        wb = horus.gui.engine.pattern.border_b
         points = np.float32( (
-            (l-w,t-w,0),(r+w,t-w,0),(r+w,b+w,0),(l-w,b+w,0),
+            (l-wl,t-wt,0),(r+wr,t-wt,0),(r+wr,b+wb,0),(l-wl,b+wb,0),
             ) )
         p, jac = cv2.projectPoints(points, \
             pose[0], \

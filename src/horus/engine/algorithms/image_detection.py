@@ -78,8 +78,8 @@ class ImageDetection(object):
                 """
                 mask = augmented_pattern_mask(image, corners)
                 image = cv2.bitwise_and(image, image, mask=mask)
-                if self.chessboard_mask is not None:
-                    image = cv2.bitwise_and(image, image, mask=self.chessboard_mask)
+#                if self.chessboard_mask is not None:
+#                    image = cv2.bitwise_and(image, image, mask=self.chessboard_mask)
         return image
 
     def _detect_chessboard(self, image):
