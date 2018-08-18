@@ -292,8 +292,8 @@ class Settings(collections.MutableMapping):
             Setting('draw_line_scanning', _('Draw line'), 'profile_settings', bool, True))
         self._add_setting(
             Setting('red_channel_scanning', _('Red channel'), 'profile_settings',
-                    unicode, u'R (RGB)',
-                    possible_values=(u'R (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
+                    unicode, u'HSV',
+                    possible_values=(u'R (RGB)', u'HSV', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
             Setting('threshold_enable_scanning', _('Enable threshold'),
                     'profile_settings', bool, True))
@@ -363,9 +363,11 @@ class Settings(collections.MutableMapping):
                     'profile_settings', bool, True))
 
         self._add_setting(
+            Setting('draw_line_calibration', _('Draw line'), 'profile_settings', bool, True))
+        self._add_setting(
             Setting('red_channel_calibration', _('Red channel'), 'profile_settings',
-                    unicode, u'R (RGB)',
-                    possible_values=(u'R (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
+                    unicode, u'HSV',
+                    possible_values=(u'R (RGB)', u'HSV', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
             Setting('threshold_enable_calibration', _('Enable threshold'),
                     'profile_settings', bool, True))

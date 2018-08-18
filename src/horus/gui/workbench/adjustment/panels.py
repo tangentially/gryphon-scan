@@ -20,6 +20,7 @@ current_video = CurrentVideo()
 class ScanCapturePanel(ExpandablePanel):
 
     def __init__(self, parent, on_selected_callback):
+        self.avoid_platform = False
         ExpandablePanel.__init__(self, parent, _("Scan capture"))
 
     def add_controls(self):
@@ -91,6 +92,7 @@ class ScanCapturePanel(ExpandablePanel):
 
         label = wx.StaticText(control, label=_("Laser background filter"), style=wx.ALIGN_CENTER)
         enable_box = wx.CheckBox(control, label="Enable filter")
+        platform_box = wx.CheckBox(control, label="Don't mask platform")
         buttons_box = wx.Panel(control)
         buttons_box.left_button = wx.Button(buttons_box, -1, "Reset")
         buttons_box.right_button = wx.Button(buttons_box, -1, "Capture")
@@ -99,6 +101,7 @@ class ScanCapturePanel(ExpandablePanel):
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, 0, wx.TOP | wx.EXPAND, border=5)
         vbox.Add(enable_box, 0, wx.TOP | wx.EXPAND, border=5)
+        vbox.Add(platform_box, 0, wx.TOP | wx.EXPAND, border=5)
         vbox.Add(buttons_box, 0, wx.TOP | wx.EXPAND, border=5)
         control.SetSizer(vbox)
 
@@ -113,9 +116,11 @@ class ScanCapturePanel(ExpandablePanel):
         # Events
         buttons_box.left_button.Bind(wx.EVT_BUTTON, lambda v: self.laser_reset() )
         buttons_box.right_button.Bind(wx.EVT_BUTTON, lambda v: self.laser_capture() )
-        enable_box.Bind(wx.EVT_CHECKBOX, lambda v: self.laser_bg_enable(v) )
+        enable_box.Bind(wx.EVT_CHECKBOX, lambda v: self.laser_bg_enable(v.GetEventObject().GetValue()) )
+        platform_box.Bind(wx.EVT_CHECKBOX, lambda v: self.set_avoid_platform(v.GetEventObject().GetValue()) )
 
         enable_box.SetValue(profile.laser_bg_scanning_enable)
+        platform_box.SetValue(self.avoid_platform)
 
         self.content.vbox.Add(control, 0, wx.BOTTOM | wx.EXPAND, 5)
         self.content.vbox.Layout()
@@ -235,12 +240,14 @@ class ScanCapturePanel(ExpandablePanel):
         dlg.ShowModal()
         dlg.Destroy()
 
+        image_capture.laser_mode.laser_bg_enable = False
         images = image_capture.capture_lasers()
         for i, image in enumerate(images):
-            image = laser_segmentation.compute_line_segmentation_bg(image)
+            images[i] = laser_segmentation.compute_line_segmentation_bg(image, self.avoid_platform)
 
-        image_capture.laser_mode.laser_bg = images
         profile.laser_bg_scanning = images
+        image_capture.laser_mode.laser_bg = images
+        image_capture.laser_mode.laser_bg_enable = profile.laser_bg_scanning_enable
 
         current_video.updating = False
 
@@ -255,6 +262,10 @@ class ScanCapturePanel(ExpandablePanel):
         current_video.updating = False
 
 
+    def set_avoid_platform(self, value):
+        self.avoid_platform = value
+
+
 class ScanSegmentationPanel(ExpandablePanel):
 
     def __init__(self, parent, on_selected_callback):
@@ -263,6 +274,7 @@ class ScanSegmentationPanel(ExpandablePanel):
     def add_controls(self):
         # self.add_control('red_channel_scanning', ComboBox)
         self.add_control('draw_line_scanning', CheckBox)
+        self.add_control('red_channel_scanning', ComboBox, _("Red color detection algorithm"))
         self.add_control(
             'threshold_value_scanning', Slider,
             _("Remove all pixels which intensity is less that the threshold value"))
@@ -286,6 +298,7 @@ class ScanSegmentationPanel(ExpandablePanel):
     def update_callbacks(self):
         # self.update_callback('red_channel_scanning', laser_segmentation.set_red_channel)
         self.update_callback('draw_line_scanning', current_video.set_draw_line)
+        self.update_callback('red_channel_scanning', laser_segmentation.set_red_channel)
         self.update_callback('threshold_value_scanning', laser_segmentation.set_threshold_value)
         self.update_callback('threshold_enable_scanning', laser_segmentation.set_threshold_enable)
         self.update_callback('blur_value_scanning', laser_segmentation.set_blur_value)
@@ -317,6 +330,7 @@ class ScanSegmentationPanel(ExpandablePanel):
 class CalibrationCapturePanel(ExpandablePanel):
 
     def __init__(self, parent, on_selected_callback):
+        self.avoid_platform = False
         ExpandablePanel.__init__(self, parent, _("Calibration capture"))
 
     def add_controls(self):
@@ -388,6 +402,7 @@ class CalibrationCapturePanel(ExpandablePanel):
 
         label = wx.StaticText(control, label=_("Laser background filter"), style=wx.ALIGN_CENTER)
         enable_box = wx.CheckBox(control, label="Enable filter")
+        platform_box = wx.CheckBox(control, label="Don't mask platform")
         buttons_box = wx.Panel(control)
         buttons_box.left_button = wx.Button(buttons_box, -1, "Reset")
         buttons_box.right_button = wx.Button(buttons_box, -1, "Capture")
@@ -396,6 +411,7 @@ class CalibrationCapturePanel(ExpandablePanel):
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, 0, wx.TOP | wx.EXPAND, border=5)
         vbox.Add(enable_box, 0, wx.TOP | wx.EXPAND, border=5)
+        vbox.Add(platform_box, 0, wx.TOP | wx.EXPAND, border=5)
         vbox.Add(buttons_box, 0, wx.TOP | wx.EXPAND, border=5)
         control.SetSizer(vbox)
 
@@ -410,9 +426,11 @@ class CalibrationCapturePanel(ExpandablePanel):
         # Events
         buttons_box.left_button.Bind(wx.EVT_BUTTON, lambda v: self.laser_reset() )
         buttons_box.right_button.Bind(wx.EVT_BUTTON, lambda v: self.laser_capture() )
-        enable_box.Bind(wx.EVT_CHECKBOX, lambda v: self.laser_bg_enable(v) )
+        enable_box.Bind(wx.EVT_CHECKBOX, lambda v: self.laser_bg_enable(v.GetEventObject().GetValue()) )
+        platform_box.Bind(wx.EVT_CHECKBOX, lambda v: self.set_avoid_platform(v.GetEventObject().GetValue()) )
 
         enable_box.SetValue(profile.laser_bg_calibration_enable)
+        platform_box.SetValue(self.avoid_platform)
 
         self.content.vbox.Add(control, 0, wx.BOTTOM | wx.EXPAND, 5)
         self.content.vbox.Layout()
@@ -531,12 +549,14 @@ class CalibrationCapturePanel(ExpandablePanel):
         dlg.ShowModal()
         dlg.Destroy()
 
+        image_capture.laser_mode.laser_bg_enable = False
         images = image_capture.capture_lasers()
         for i, image in enumerate(images):
-            image = laser_segmentation.compute_line_segmentation_bg(image)
+            images[i] = laser_segmentation.compute_line_segmentation_bg(image, self.avoid_platform)
 
-        image_capture.laser_mode.laser_bg = images
         profile.laser_bg_calibration = images
+        image_capture.laser_mode.laser_bg = images
+        image_capture.laser_mode.laser_bg_enable = profile.laser_bg_calibration_enable
 
         current_video.updating = False
 
@@ -551,6 +571,10 @@ class CalibrationCapturePanel(ExpandablePanel):
         current_video.updating = False
 
 
+    def set_avoid_platform(self, value):
+        self.avoid_platform = value
+
+
 class CalibrationSegmentationPanel(ExpandablePanel):
 
     def __init__(self, parent, on_selected_callback):
@@ -558,6 +582,8 @@ class CalibrationSegmentationPanel(ExpandablePanel):
 
     def add_controls(self):
         # self.add_control('red_channel_calibration', ComboBox)
+        self.add_control('draw_line_calibration', CheckBox)
+        self.add_control('red_channel_calibration', ComboBox, _("Red color detection algorithm"))
         self.add_control(
             'threshold_value_calibration', Slider,
             _("Remove all pixels which intensity is less that the threshold value"))
@@ -580,6 +606,8 @@ class CalibrationSegmentationPanel(ExpandablePanel):
 
     def update_callbacks(self):
         # self.update_callback('red_channel_calibration', laser_segmentation.set_red_channel)
+        self.update_callback('draw_line_calibration', current_video.set_draw_line)
+        self.update_callback('red_channel_calibration', laser_segmentation.set_red_channel)
         self.update_callback('threshold_value_calibration', laser_segmentation.set_threshold_value)
         self.update_callback(
             'threshold_enable_calibration', laser_segmentation.set_threshold_enable)
@@ -596,6 +624,7 @@ class CalibrationSegmentationPanel(ExpandablePanel):
         # Update mode settings
         current_video.calibration = True
         current_video.mode = 'Gray'
+        current_video.set_draw_line(profile.settings['draw_line_calibration'])
 
         image_capture.laser_mode.read_profile('laser_calibration')
         image_capture.set_remove_background(profile.settings['remove_background_calibration'])

@@ -62,16 +62,23 @@ class CurrentVideo(object):
                 images = image_capture.capture_lasers()
                 for i in xrange(2):
                     images[i] = image_detection.pattern_mask(images[i], corners)
-                    images[i] = laser_segmentation.compute_line_segmentation(images[i])
-                    images[i] = cv2.cvtColor(images[i], cv2.COLOR_GRAY2RGB)
+                    if self.draw_line:
+                        (u, v), images[i] = laser_segmentation.compute_2d_points(images[i])
+                        images[i] = cv2.cvtColor(images[i], cv2.COLOR_GRAY2RGB)
+                        self._draw_line(images[i], u, v)
+                    else:
+                        images[i] = laser_segmentation.compute_line_segmentation(images[i])
+                        images[i] = cv2.cvtColor(images[i], cv2.COLOR_GRAY2RGB)
             else:
                 images = image_capture.capture_lasers()
                 for i in xrange(2):
-                    images[i] = laser_segmentation.compute_line_segmentation(images[i])
-                    (u, v), _ = laser_segmentation.compute_2d_points(images[i])
-                    images[i] = cv2.cvtColor(images[i], cv2.COLOR_GRAY2RGB)
                     if self.draw_line:
+                        (u, v), images[i] = laser_segmentation.compute_2d_points(images[i])
+                        images[i] = cv2.cvtColor(images[i], cv2.COLOR_GRAY2RGB)
                         self._draw_line(images[i], u, v)
+                    else:
+                        images[i] = laser_segmentation.compute_line_segmentation(images[i])
+                        images[i] = cv2.cvtColor(images[i], cv2.COLOR_GRAY2RGB)
 
             if images[0] is not None and images[1] is not None:
                 image = np.maximum(images[0], images[1])

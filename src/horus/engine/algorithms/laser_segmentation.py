@@ -14,6 +14,8 @@ from horus import Singleton
 from horus.engine.calibration.calibration_data import CalibrationData
 from horus.engine.algorithms.point_cloud_roi import PointCloudROI
 
+from horus.gui.util.augmented_view import augmented_platform_mask
+
 from horus.util import profile
 
 @Singleton
@@ -103,22 +105,16 @@ class LaserSegmentation(object):
             image = self._window_mask(image)
             return image
 
-    def compute_line_segmentation_bg(self, image):
+    def compute_line_segmentation_bg(self, image, avoid_platform = False):
         mask = image.copy()
         mask = self._obtain_red_channel(mask)
         mask = self._threshold_image(mask)
         mask = self._window_mask(mask)
 
-#        (u, v), _ = self.compute_2d_points(mask)
         ret, mask = cv2.threshold(mask, 0, 255, cv2.THRESH_BINARY)
-#        mask = np.zeros(mask.shape[0:2], dtype = "uint8")
-#        v = v.astype(int)
-#        u = np.around(u).astype(int)
-#        mask[v, u] = (255, 0, 0)
-        mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB)#change mask to a 3 channel image 
-        image = cv2.subtract(image, mask)
-#        image = cv2.bitwise_and(image, image, mask=mask)
-        image = image - self.threshold_value
+        if avoid_platform:
+            mask = cv2.bitwise_and(mask, augmented_platform_mask(mask))
+        image = cv2.subtract(image, self.threshold_value, mask=mask)
 
         return image
 
@@ -126,11 +122,31 @@ class LaserSegmentation(object):
         ret = None
         if self.red_channel == 'R (RGB)':
             ret = cv2.split(image)[0]
-            # ret = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+
+        elif self.red_channel == 'HSV':
+            ret = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+            # lower mask (0-10)
+            lower_red = np.array([0,50,50])
+            upper_red = np.array([10,255,255])
+            mask0 = cv2.inRange(ret, lower_red, upper_red)
+
+            # upper mask (170-180)
+            lower_red = np.array([170,50,50])
+            upper_red = np.array([180,255,255])
+            mask1 = cv2.inRange(ret, lower_red, upper_red)
+
+            # join masks
+            mask = mask0+mask1
+
+            ret = cv2.split(ret)[2]
+            ret[np.where(mask==0)] = 0
+
         elif self.red_channel == 'Cr (YCrCb)':
             ret = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YCR_CB))[1]
+
         elif self.red_channel == 'U (YUV)':
             ret = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YUV))[1]
+
         return ret
 
     def _threshold_image(self, image):

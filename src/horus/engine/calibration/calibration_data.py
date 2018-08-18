@@ -44,7 +44,7 @@ class CalibrationData(object):
     def read_profile_camera(self):
         driver = Driver() # load driver singleton
         width, height = driver.camera.get_resolution()
-        print(driver.camera.get_resolution())
+        print("calibration_data.read_profile_camera: camera res = "+str(driver.camera.get_resolution()))
         self.set_resolution(width, height)
         self.camera_matrix = profile.settings['camera_matrix']
         self.distortion_vector = profile.settings['distortion_vector']
