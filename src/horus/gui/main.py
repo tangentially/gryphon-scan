@@ -21,7 +21,7 @@ from horus.gui.welcome import WelcomeDialog
 from horus.gui.util.preferences import PreferencesDialog
 # from horus.gui.util.machine_settings import MachineSettingsDialog  # add in future version
 
-from horus.gui.workbench.toolbar import ToolbarConnection
+from horus.gui.workbench.toolbar import MainToolbar
 from horus.gui.workbench.control.main import ControlWorkbench
 from horus.gui.workbench.adjustment.main import AdjustmentWorkbench
 from horus.gui.workbench.calibration.main import CalibrationWorkbench
@@ -66,7 +66,7 @@ class MainWindow(wx.Frame):
         logger.info("Finish application " + __title__)
 
     def load_workbenches(self):
-        self.toolbar = ToolbarConnection(self, self.on_connect, self.on_disconnect)
+        self.toolbar = MainToolbar(self, self.on_connect, self.on_disconnect)
         self.workbench = OrderedDict()
         self.workbench['control'] = ControlWorkbench(self)
         self.workbench['adjustment'] = AdjustmentWorkbench(self)
@@ -321,12 +321,14 @@ class MainWindow(wx.Frame):
 
     def enable_gui(self, status):
         if status:
-            self.toolbar.toolbar.Enable()
+            self.toolbar.toolbar_connect.Enable()
+            self.toolbar.toolbar_control.Enable()
             self.toolbar.combo.Enable()
             for i in xrange(self.menu_bar.GetMenuCount()):
                 self.menu_bar.EnableTop(i, True)
         else:
-            self.toolbar.toolbar.Disable()
+            self.toolbar.toolbar_connect.Disable()
+            self.toolbar.toolbar_control.Disable()
             self.toolbar.combo.Disable()
             for i in xrange(self.menu_bar.GetMenuCount()):
                 self.menu_bar.EnableTop(i, False)

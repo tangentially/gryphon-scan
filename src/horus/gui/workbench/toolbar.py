@@ -15,46 +15,49 @@ from horus.engine.driver.camera import WrongCamera, CameraNotConnected, InvalidV
     WrongDriver
 
 
-class Toolbar(wx.Panel):
+class MainToolbar(wx.Panel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, on_connect_callback=None, on_disconnect_callback=None):
         wx.Panel.__init__(self, parent)
 
+        # ====== common ======
         # Element
-        self.toolbar = wx.ToolBar(self)
-        self.toolbar.SetDoubleBuffered(True)
+        self.toolbar_connect = wx.ToolBar(self)
+        self.toolbar_connect.SetDoubleBuffered(True)
+
         self.toolbar_scan = wx.ToolBar(self)
         self.toolbar_scan.SetDoubleBuffered(True)
+
+        self.toolbar_control = wx.ToolBar(self)
+        self.toolbar_control.SetDoubleBuffered(True)
+
         self.combo = wx.ComboBox(self, -1, size=(250, -1), style=wx.CB_READONLY)
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.toolbar, 0, wx.ALL | wx.EXPAND, 1)
-        hbox.Add(self.toolbar_scan, 0, wx.ALL | wx.EXPAND, 1)
+        hbox.Add(self.toolbar_connect, 0, wx.ALL | wx.EXPAND, 3)
+        hbox.Add(self.toolbar_control, 0, wx.ALL | wx.EXPAND, 3)
+        hbox.Add(self.toolbar_scan, 0, wx.ALL | wx.EXPAND, 3)
         hbox.Add((0, 0), 1, wx.ALL | wx.EXPAND, 1)
         hbox.Add(self.combo, 0, wx.ALL, 10)
         self.SetSizer(hbox)
         self.Layout()
 
 
-class ToolbarConnection(Toolbar):
-
-    def __init__(
-            self, parent, on_connect_callback=None, on_disconnect_callback=None):
-
-        Toolbar.__init__(self, parent)
-
+        # ======== Connect toolbar ========
         self.on_connect_callback = on_connect_callback
         self.on_disconnect_callback = on_disconnect_callback
 
         # Elements
-        self.connect_tool = self.toolbar.AddLabelTool(
+        self.connect_tool = self.toolbar_connect.AddLabelTool(
             wx.NewId(), _("Connect"),
             wx.Bitmap(resources.get_path_for_image("connect.png")), shortHelp=_("Connect"))
-        self.disconnect_tool = self.toolbar.AddLabelTool(
+
+        self.disconnect_tool = self.toolbar_connect.AddLabelTool(
             wx.NewId(), _("Disconnect"),
             wx.Bitmap(resources.get_path_for_image("disconnect.png")), shortHelp=_("Disconnect"))
-        self.toolbar.Realize()
+
+        self.toolbar_connect.Realize()
 
         self._enable_tool(self.connect_tool, True)
         self._enable_tool(self.disconnect_tool, False)
@@ -62,6 +65,36 @@ class ToolbarConnection(Toolbar):
         # Events
         self.Bind(wx.EVT_TOOL, self.on_connect_tool_clicked, self.connect_tool)
         self.Bind(wx.EVT_TOOL, self.on_disconnect_tool_clicked, self.disconnect_tool)
+
+
+        # ========= Control toolbar ========
+        # Elements
+        self.r_left_tool = self.toolbar_control.AddLabelTool(
+            wx.NewId(), _("Rotate left"),
+            wx.Bitmap(resources.get_path_for_image("baseline_rotate_right_black_24dp.png")), 
+            shortHelp=_("Rotate left"))
+
+        self.r_right_tool = self.toolbar_control.AddLabelTool(
+            wx.NewId(), _("Rotate right"),
+            wx.Bitmap(resources.get_path_for_image("baseline_rotate_left_black_24dp.png")), shortHelp=_("Rotate right"))
+
+        Laser_On_Bitmap = wx.Bitmap(resources.get_path_for_image("baseline_brightness_7_black_24dp.png"))
+        Laser_Off_Bitmap = wx.Bitmap(resources.get_path_for_image("baseline_brightness_5_black_24dp.png"))
+
+        self.l1_tool = self.toolbar_control.AddCheckTool(wx.NewId(), Laser_On_Bitmap)
+        self.l2_tool = self.toolbar_control.AddCheckTool(wx.NewId(), Laser_On_Bitmap)
+
+        self.toolbar_control.Realize()
+
+        self._enable_control_tools(False)
+
+        # Events
+        self.Bind(wx.EVT_TOOL, self.on_r_left_tool_clicked, self.r_left_tool)
+        self.Bind(wx.EVT_TOOL, self.on_r_right_tool_clicked, self.r_right_tool)
+        self.Bind(wx.EVT_TOOL, lambda v: self.on_laser_tool_clicked(0, v.IsChecked()), self.l1_tool )
+        self.Bind(wx.EVT_TOOL, lambda v: self.on_laser_tool_clicked(1, v.IsChecked()), self.l2_tool )
+
+
 
     def on_connect_tool_clicked(self, event):
         # If no camera id is selected
@@ -141,6 +174,7 @@ class ToolbarConnection(Toolbar):
     def update_status(self, status):
         self._enable_tool(self.connect_tool, not status)
         self._enable_tool(self.disconnect_tool, status)
+        self._enable_control_tools(status)
         if status:
             if self.on_connect_callback is not None:
                 self.on_connect_callback()
@@ -160,10 +194,40 @@ class ToolbarConnection(Toolbar):
         dlg.Destroy()
 
     def _enable_tool(self, item, enable):
-        self.toolbar.EnableTool(item.GetId(), enable)
+        item.ToolBar.EnableTool(item.GetId(), enable)
 
     def scanning_mode(self, enable):
         if enable:
             self.toolbar_scan.Show()
         else:
             self.toolbar_scan.Hide()
+
+
+    # ============= Control methods ===============
+    def _enable_control_tools(self, enable):
+        self._enable_tool(self.r_left_tool, enable)
+        self._enable_tool(self.r_right_tool, enable)
+        self._enable_tool(self.l1_tool, enable)
+        self._enable_tool(self.l2_tool, enable)
+
+    def on_r_left_tool_clicked(self, item):
+        step = profile.settings['motor_step_control']
+        self._enable_control_tools(False)
+        driver.board.motor_move(-step, nonblocking=False, callback=lambda v: self._enable_control_tools(True))
+#        self._enable_control_tools(True)
+
+    def on_r_right_tool_clicked(self, item):
+        step = profile.settings['motor_step_control']
+        self._enable_control_tools(False)
+        driver.board.motor_move(step, nonblocking=False, callback=lambda v: self._enable_control_tools(True))
+#        self._enable_control_tools(True)
+
+    def on_laser_tool_clicked(self, laser_id, state):
+        if state:
+            driver.board.laser_on(laser_id)
+        else:
+            driver.board.laser_off(laser_id)
+
+
+
+

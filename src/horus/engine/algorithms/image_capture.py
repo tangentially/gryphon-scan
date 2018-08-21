@@ -92,11 +92,11 @@ class ImageCapture(object):
         self.calibration_data = CalibrationData()
 
         self.texture_mode = CameraSettings()
-        self.texture_mode.nam = 'Capture texture'
+#        self.texture_mode.nam = 'Capture texture'
         self.laser_mode = CameraSettings()
-        self.laser_mode.nam = 'Capture laser'
+#        self.laser_mode.nam = 'Capture laser'
         self.pattern_mode = CameraSettings()
-        self.pattern_mode.nam = 'Capture pattern'
+#        self.pattern_mode.nam = 'Capture pattern'
 
         self.stream = True
         self._mode = self.pattern_mode
@@ -141,7 +141,7 @@ class ImageCapture(object):
             else:
                 self.capture_image(flush=self._flush_mode)
             self._updating = False
-            print("Cap mode: "+mode.nam)
+#            print("Cap mode: "+mode.nam)
 
     def set_mode_texture(self):
         self.set_mode(self.texture_mode)
