@@ -76,7 +76,7 @@ class PointCloudROI(object):
         else:
             return image
 
-    def mask_point_cloud(self, point_cloud, texture):
+    def mask_point_cloud(self, point_cloud, texture, index=None):
         if point_cloud is not None and texture is not None and len(point_cloud) > 0:
             rho = np.sqrt(np.square(point_cloud[0, :]) + np.square(point_cloud[1, :]))
             z = point_cloud[2, :]
@@ -93,7 +93,7 @@ class PointCloudROI(object):
                                (rho >= -self.calibration_data.platform_translation[2]) &
                                (rho <=  self.calibration_data.platform_translation[2]))[0]
 
-            return point_cloud[:, idx], texture[:, idx]
+            return point_cloud[:, idx], texture[:, idx], index
 
     def draw_cross(self, image):
         if image is not None and self._center_v != 0 and self._center_u != 0 and self._show_center:

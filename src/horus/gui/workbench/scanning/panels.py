@@ -135,9 +135,11 @@ class PointCloudColor(ExpandablePanel):
 
     def add_controls(self):
         self.add_control('point_cloud_color', Button)
+        self.add_control('point_cloud_bicolor', CheckBox)
 
     def update_callbacks(self):
         self.update_callback('point_cloud_color', self.on_color_picker)
+        self.update_callback('point_cloud_bicolor', lambda v: self.on_set_bicolor(v) )
 
     def on_color_picker(self):
         data = wx.ColourData()
@@ -150,6 +152,10 @@ class PointCloudColor(ExpandablePanel):
             ciclop_scan.color = color
             profile.settings['point_cloud_color'] = unicode("".join(map(chr, color)).encode('hex'))
         dialog.Destroy()
+
+    def on_set_bicolor(self, value):
+        print(value)
+        ciclop_scan._bicolor = value
 
     def on_selected(self):
         self.main.scene_view._view_roi = False

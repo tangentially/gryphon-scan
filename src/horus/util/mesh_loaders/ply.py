@@ -27,22 +27,25 @@ logger = logging.getLogger(__name__)
 
 
 def _load_ascii(mesh, stream, dtype, count):
+    #TODO: build exact field indexes by actual header data. Do not estimate by data existance
     fields = dtype.fields
 
     v = 0
     c = 0
+    idx = 0
 
     if 'c' in fields:
         c += 3
     if 'n' in fields:
         c += 3
+    idx = c + 3
 
     i = 0
     while i < count:
         i += 1
         data = stream.readline().split(' ')
         if data is not None:
-            mesh._add_vertex(data[v], data[v + 1], data[v + 2], data[c], data[c + 1], data[c + 2])
+            mesh._add_vertex(data[v], data[v + 1], data[v + 2], data[c], data[c + 1], data[c + 2], data[idx])
 
 
 def _load_binary(mesh, stream, dtype, count):
@@ -65,6 +68,11 @@ def _load_binary(mesh, stream, dtype, count):
         mesh.colors = data['c']
     else:
         mesh.colors = 255 * np.ones((count, 3))
+
+    if 'i' in fields:
+        mesh.cloud_index = data['i']
+    else:
+        mesh.cloud_index = np.zeros((count, 1))
 
 
 def load_scene(filename):
@@ -99,8 +107,8 @@ def load_scene(filename):
                     fm = '<'
 
             df = {'float': fm + 'f', 'uchar': fm + 'B'}
-            dt = {'x': 'v', 'nx': 'n', 'red': 'c', 'alpha': 'a'}
-            ds = {'x': 3, 'nx': 3, 'red': 3, 'alpha': 1}
+            dt = {'x': 'v', 'nx': 'n', 'red': 'c', 'alpha': 'a', 'scalar_Original_cloud_index': 'i'}
+            ds = {'x': 3, 'nx': 3, 'red': 3, 'alpha': 1, 'scalar_Original_cloud_index': 1}
 
             for line in header:
                 if 'element vertex ' in line:
@@ -150,6 +158,7 @@ def save_scene_stream(stream, _object):
         frame += "property uchar red\n"
         frame += "property uchar green\n"
         frame += "property uchar blue\n"
+        frame += "property uchar scalar_Original_cloud_index\n"
         frame += "element face 0\n"
         frame += "property list uchar int vertex_indices\n"
         frame += "end_header\n"
@@ -157,11 +166,11 @@ def save_scene_stream(stream, _object):
         if m.vertex_count > 0:
             if binary:
                 for i in xrange(m.vertex_count):
-                    stream.write(struct.pack("<fffBBB",
+                    stream.write(struct.pack("<fffBBBB",
                                              m.vertexes[i, 0], m.vertexes[i, 1], m.vertexes[i, 2],
-                                             m.colors[i, 0], m.colors[i, 1], m.colors[i, 2]))
+                                             m.colors[i, 0], m.colors[i, 1], m.colors[i, 2], m.cloud_index[i]))
             else:
                 for i in xrange(m.vertex_count):
-                    stream.write("{0} {1} {2} {3} {4} {5}\n".format(
+                    stream.write("{0} {1} {2} {3} {4} {5} {6}\n".format(
                                  m.vertexes[i, 0], m.vertexes[i, 1], m.vertexes[i, 2],
-                                 m.colors[i, 0], m.colors[i, 1], m.colors[i, 2]))
+                                 m.colors[i, 0], m.colors[i, 1], m.colors[i, 2]), m.cloud_index[i])

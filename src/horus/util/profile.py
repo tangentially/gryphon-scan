@@ -435,6 +435,8 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('point_cloud_color', _('Choose point cloud color'), 'profile_settings',
                     unicode, u'AAAAAA'))
+        self._add_setting(
+            Setting('point_cloud_bicolor', _('Red/Cyan point cloud'), 'profile_settings', bool, False))
 
         self._add_setting(
             Setting('scan_sleep', _(u'Wait time in each scan interval'), 'profile_settings',

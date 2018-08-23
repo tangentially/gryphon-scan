@@ -60,8 +60,8 @@ class SceneView(opengl_gui.glGuiPanel):
         self._view_roi = False
         self._point_size = 2
 
-        self._object_point_cloud = []
-        self._object_texture = []
+#        self._object_point_cloud = []
+#        self._object_texture = []
 
         self.Bind(wx.EVT_MOUSEWHEEL, self.on_mouse_wheel)
         self.Bind(wx.EVT_LEAVE_WINDOW, self.on_mouse_leave)
@@ -104,16 +104,19 @@ class SceneView(opengl_gui.glGuiPanel):
         self._object._add_mesh()
         self._object._mesh._prepare_vertex_count(4000000)
 
-    def append_point_cloud(self, point, color):
-        self._object_point_cloud.append(point)
-        self._object_texture.append(color)
+    def append_point_cloud(self, point, color, index=None):
+#        self._object_point_cloud.append(point)
+#        self._object_texture.append(color)
         # TODO: optimize
         if self._object is not None:
             if self._object._mesh is not None:
+                self._object._mesh._add_pointcloud(point.T, color.T, index)
+                """
                 for i in xrange(point.shape[1]):
                     self._object._mesh._add_vertex(
                         point[0][i], point[1][i], point[2][i],
                         color[0][i], color[1][i], color[2][i])
+                """
             # Conpute Z center
             if point.shape[1] > 0:
                 zmax = max(point[2])

@@ -137,8 +137,8 @@ class ScanningWorkbench(Workbench):
             self.gauge.SetRange(range)
             self.gauge.SetValue(progress)
         if point_cloud is not None:
-            points, texture = point_cloud
-            self.scene_view.append_point_cloud(points, texture)
+            (points, texture, index) = point_cloud
+            self.scene_view.append_point_cloud(points, texture, index)
 
     def on_play_tool_clicked(self, event):
         if ciclop_scan._inactive:

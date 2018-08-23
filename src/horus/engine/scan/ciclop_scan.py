@@ -283,9 +283,9 @@ class CiclopScan(Scan):
 
                 if self._bicolor:
                     if i == 0:
-                        r, g, b = 255, 0, 0
+                        r, g, b = 255, 0, 0 # read eye left
                     else:
-                        r, g, b = 0, 255, 0
+                        r, g, b = 0, 255, 255 # cyan
                     texture = np.zeros((3, len(v)), np.uint8)
                     texture[0, :] = r
                     texture[1, :] = g
@@ -295,7 +295,7 @@ class CiclopScan(Scan):
 
                 if self.point_cloud_callback:
                     self.point_cloud_callback(self._range, self._progress,
-                                              (point_cloud, texture))
+                                              (point_cloud, texture, i))
 
         # Set current video images
         self.current_video.set_gray(images)
