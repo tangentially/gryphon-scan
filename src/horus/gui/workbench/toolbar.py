@@ -71,12 +71,12 @@ class MainToolbar(wx.Panel):
         # Elements
         self.r_left_tool = self.toolbar_control.AddLabelTool(
             wx.NewId(), _("Rotate left"),
-            wx.Bitmap(resources.get_path_for_image("baseline_rotate_right_black_24dp.png")), 
+            wx.Bitmap(resources.get_path_for_image("baseline_rotate_left_black_24dp.png")), 
             shortHelp=_("Rotate left"))
 
         self.r_right_tool = self.toolbar_control.AddLabelTool(
             wx.NewId(), _("Rotate right"),
-            wx.Bitmap(resources.get_path_for_image("baseline_rotate_left_black_24dp.png")), shortHelp=_("Rotate right"))
+            wx.Bitmap(resources.get_path_for_image("baseline_rotate_right_black_24dp.png")), shortHelp=_("Rotate right"))
 
         Laser_On_Bitmap = wx.Bitmap(resources.get_path_for_image("baseline_brightness_7_black_24dp.png"))
         Laser_Off_Bitmap = wx.Bitmap(resources.get_path_for_image("baseline_brightness_5_black_24dp.png"))

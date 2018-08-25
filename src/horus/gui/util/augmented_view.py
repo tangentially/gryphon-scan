@@ -162,17 +162,18 @@ def overlay_mask(image, mask, color=(255,0,0)):
 # estimate platform rotate angle to to make pattern on platform perpendicular to camera
 def estimate_platform_angle_from_pattern(pose):
 #	pose = horus.gui.engine.image_detection.detect_pose_from_corners(corners)
+    calibration = horus.gui.engine.platform_extrinsics.calibration_data
     if pose is not None:
-        if horus.gui.engine.platform_extrinsics.calibration_data.platform_rotation is not None and \
-           horus.gui.engine.platform_extrinsics.calibration_data.platform_translation is not None:
+        if calibration.platform_rotation is not None and \
+           calibration.platform_translation is not None:
             # Platform position known. Calculate angle in platform space
 
             # pattern normal in camera space
-            pc = np.float32([(0,0,-1)]).dot(pose[0].T) 
+            pc = np.float32([(0,0,-1)]).dot(pose[0].T)
             # add camera-to-platform vector
-            vv = np.append(pc, [-horus.gui.engine.platform_extrinsics.calibration_data.platform_translation / np.linalg.norm(horus.gui.engine.platform_extrinsics.calibration_data.platform_translation)], axis=0)
+            vv = np.append(pc, [-calibration.platform_translation / np.linalg.norm(calibration.platform_translation)], axis=0)
             # move all to platform space
-            pz = vv.dot(horus.gui.engine.platform_extrinsics.calibration_data.platform_rotation)
+            pz = vv.dot(calibration.platform_rotation)
             # flattern to platform XY / normalize
             pz[:,2] = 0
             pz /= np.apply_along_axis(np.linalg.norm, 1, pz)[..., np.newaxis]
@@ -185,3 +186,106 @@ def estimate_platform_angle_from_pattern(pose):
             # camera Z to pattern space
             v = np.float32([(0,0,1)]).dot(pose[0]) # camera Z axis to pattern space
             return math.copysign(np.rad2deg(math.acos(v[0,2]/np.linalg.norm( (v[0,0], v[0,2]) ))), v[0,0]) 
+
+# draw laser plane projection
+def augmented_draw_lasers_on_platform(image):
+    if image is None:
+        return
+    calibration = horus.gui.engine.platform_extrinsics.calibration_data
+    if calibration.platform_rotation is not None and \
+       calibration.platform_translation is not None:
+            p_norm, p_dist = pos2nd(calibration.platform_rotation, calibration.platform_translation)
+            for laser in calibration.laser_planes:
+                line_vec, line_p = plane_cross(p_norm, p_dist, laser.normal, laser.distance)
+                
+                p1, p2 = line_cross_sphere(line_vec, line_p, 
+                    calibration.platform_translation, 
+                    profile.settings['machine_diameter']/2 )
+                points = np.float32([p1, p2])
+                p, jac = cv2.projectPoints(points,
+                    np.identity(3),
+                    np.zeros(3),
+                    calibration.camera_matrix,
+                    calibration.distortion_vector)
+                p = np.int32(p).reshape(-1,2)
+                cv2.line(image, tuple(p[0]), tuple(p[1]), (255,0,0), 2)
+
+
+def augmented_draw_lasers_on_pattern(image, pose):
+    if image is None or pose is None:
+        return
+
+    calibration = horus.gui.engine.platform_extrinsics.calibration_data
+    if calibration.platform_rotation is None or \
+       calibration.platform_translation is None:
+        return
+
+    p = horus.gui.engine.pattern
+#    pl = -p.square_width - p.border_l
+    pt = -p.square_width - p.border_t
+#    pr = p.square_width * p.columns + p.border_r
+    pb = p.square_width * p.rows + p.border_b
+
+    r_inv = np.linalg.inv(pose[0])
+
+    for laser in calibration.laser_planes:
+        l_n = r_inv.dot(laser.normal)
+        pp = laser.distance*laser.normal[:]-pose[1].T[0]
+        l_d = pp.dot(laser.normal.T)
+
+        if l_n[0] != 0:
+            xt = (l_d-pt*l_n[1])/l_n[0]
+            xb = (l_d-pb*l_n[1])/l_n[0]
+            points = np.float32([ (xt,pt,0),(xb,pb,0) ])
+            p, jac = cv2.projectPoints(points,
+                pose[0],
+                pose[1].T[0],
+                calibration.camera_matrix,
+                calibration.distortion_vector)
+            p = np.int32(p).reshape(-1,2)
+            cv2.line(image, tuple(p[0]), tuple(p[1]), (255,0,0), 2)
+
+
+def pos2nd(m,t):
+    # m - rotation matrix, t - translation
+    if m is None or t is None:
+        return (None, None)
+                
+    norm = m.T[2] 
+    norm[:] /= np.linalg.norm(norm)
+    dist = t.dot(norm.T)
+
+    return (norm, dist)
+
+
+def plane_cross(n1, d1, n2, d2):
+    if n1 is None or d1 is None or n2 is None or d2 is None:
+        return (None, None)
+
+    vec = np.cross(n1, n2)
+#    A = np.array([n1, n2, vec])
+    A = np.array([n1, n2, (0,0,1)])
+    d = np.array([d1, d2, 0 ])
+    pt = np.linalg.solve(A,d).T
+
+    return (vec ,pt)
+
+
+def line_cross_sphere(vec, pt, center, radius):
+    pc = center - pt
+    pc_len = np.linalg.norm(pc)
+    pn = vec.dot(pc.T)
+    d2 = radius*radius - (pc_len*pc_len - pn*pn)
+    if d2 < 0:
+       return None, None
+            
+    delta = np.sqrt(d2)
+    p1 = pt + (pn+delta)*vec
+    p2 = pt + (pn-delta)*vec
+    return p1, p2
+
+
+
+
+
+

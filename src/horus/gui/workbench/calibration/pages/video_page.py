@@ -14,7 +14,8 @@ from horus.gui.engine import image_capture, image_detection, scanner_autocheck, 
 from horus.gui.workbench.calibration.pages.page import Page
 from horus.gui.util.image_view import ImageView
 from horus.gui.util.video_view import VideoView
-from horus.gui.util.augmented_view import augmented_draw_platform
+from horus.gui.util.augmented_view import augmented_draw_platform, augmented_draw_lasers_on_platform, \
+    augmented_draw_lasers_on_pattern
 
 
 class VideoPage(Page):
@@ -89,7 +90,12 @@ class VideoPage(Page):
             image = platform_extrinsics.image
         else:
             image = image_capture.capture_pattern()
-            image = image_detection.detect_pattern(image)
+            if image is not None:
+                corners = image_detection.detect_corners(image)
+                image = image_detection.draw_pattern(image, corners)
+                pose = image_detection.detect_pose_from_corners(corners)
+                augmented_draw_lasers_on_pattern(image, pose)
+            augmented_draw_lasers_on_platform(image)
 
         augmented_draw_platform(image)
         return image

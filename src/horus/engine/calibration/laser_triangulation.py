@@ -154,9 +154,10 @@ class PlaneDetection(object):
 
     def fit(self, X):
         M, Xm = self._compute_m(X)
+#        print("PlaneDetection.fit M: "+str(M.shape))
         # U = linalg.svds(M, k=2)[0]
         # normal = np.cross(U.T[0], U.T[1])
-        normal = numpy.linalg.svd(M)[0][:, 2]
+        normal = numpy.linalg.svd(M, full_matrices= False)[0][:, 2]
         if normal[2] < 0:
             normal *= -1
         dist = np.dot(normal, Xm)

@@ -31,10 +31,11 @@ class ImageDetection(object):
         return image
 
     def draw_pattern(self, image, corners):
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-        cv2.drawChessboardCorners(
-            image, (self.pattern.columns, self.pattern.rows), corners, True)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        if image is not None:
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            cv2.drawChessboardCorners(
+                image, (self.pattern.columns, self.pattern.rows), corners, True)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         return image
 
     def detect_corners(self, image):
@@ -43,15 +44,15 @@ class ImageDetection(object):
 
     def detect_pose(self, image):
         corners = self._detect_chessboard(image)
-        if corners is not None:
-            return self.detect_pose_from_corners(corners)
+        return self.detect_pose_from_corners(corners)
 
     def detect_pose_from_corners(self, corners):
-        ret, rvecs, tvecs = cv2.solvePnP(
-            self.pattern.object_points, corners,
-            self.calibration_data.camera_matrix, self.calibration_data.distortion_vector)
-        if ret:
-            return (cv2.Rodrigues(rvecs)[0], tvecs, corners)
+        if corners is not None:
+            ret, rvecs, tvecs = cv2.solvePnP(
+                self.pattern.object_points, corners,
+                self.calibration_data.camera_matrix, self.calibration_data.distortion_vector)
+            if ret:
+                return (cv2.Rodrigues(rvecs)[0], tvecs, corners)
 
     def detect_pattern_plane(self, pose):
         if pose is not None:
