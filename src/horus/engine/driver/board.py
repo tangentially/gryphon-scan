@@ -90,6 +90,8 @@ class Board(object):
                     self._serial_port.timeout = 0.05
                     self._is_connected = True
                     # Set current position as origin
+                    self.motor_speed(profile.settings['motor_speed_control'])
+                    self.motor_acceleration(profile.settings['motor_acceleration_control'])
                     self.motor_reset_origin()
                     logger.info(" Done")
                 else:
