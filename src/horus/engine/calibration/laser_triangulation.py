@@ -8,6 +8,9 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import struct
 import math
 import numpy as np
+from scipy.sparse import linalg as splinalg
+from scipy import sparse, linalg
+import numpy.linalg
 
 from horus import Singleton
 from horus.engine.calibration.calibration import CalibrationCancel
@@ -39,15 +42,21 @@ class LaserTriangulation(MovingCalibration):
 
     def __init__(self):
         self.image = None
+        self.points_image = None
         self.has_image = False
+        self._point_cloud = [None, None]
         self.laser_calibration_angles = np.float32( [ (-90,90), (-90,90) ])
+        self.continue_calibration = False
         MovingCalibration.__init__(self)
 
     def _initialize(self):
         self.image = None
         self.has_image = True
         self.image_capture.stream = False
-        self._point_cloud = [None, None]
+        if not self.continue_calibration:
+            self.points_image = None
+            self._point_cloud = [None, None]
+        self.continue_calibration = False
 
     def read_profile(self):
         MovingCalibration.read_profile(self)
@@ -70,13 +79,20 @@ class LaserTriangulation(MovingCalibration):
 #                self.image_capture.flush_laser()
 #                self.image_capture.flush_laser()
                 images = self.image_capture.capture_lasers()
+
+                if self.points_image is None:
+                    self.points_image = np.zeros(images[0].shape, dtype = "uint8")
+                self.image = np.copy(self.points_image)
+                colors = [(255,255,0), (0,255,255), (255,0,255)]
+
                 for i in lasers:
-#                    image = self.image_capture.capture_laser(i)
                     image = images[i]
                     image = self.image_detection.pattern_mask(image, corners)
 
-                    self.image = image
+                    np.maximum(self.image, image, out = self.image)
+
                     points_2d, image = self.laser_segmentation.compute_2d_points(image)
+                    self.points_image[points_2d[1],np.rint(points_2d[0]).astype(int)] = colors[i]
                     point_3d = self.point_cloud_generation.compute_camera_point_cloud(
                         points_2d, distance, normal)
                     if self._point_cloud[i] is None:
@@ -129,6 +145,8 @@ class LaserTriangulation(MovingCalibration):
             self.calibration_data.laser_planes[i].normal = self.normal[i]
 
 
+# ========================================================
+
 def compute_plane(index, X):
     if X is not None and X.shape[0] > 3:
         model, inliers = ransac(X, PlaneDetection(), 3, 0.1)
@@ -146,18 +164,24 @@ def compute_plane(index, X):
     else:
         return None, None, None
 
-import numpy.linalg
-# from scipy.sparse import linalg
-
 
 class PlaneDetection(object):
 
     def fit(self, X):
         M, Xm = self._compute_m(X)
-#        print("PlaneDetection.fit M: "+str(M.shape))
         # U = linalg.svds(M, k=2)[0]
         # normal = np.cross(U.T[0], U.T[1])
-        normal = numpy.linalg.svd(M, full_matrices= False)[0][:, 2]
+
+        # slower but fit in memory
+        U = splinalg.svds(M, k=2)[0]
+        normal = np.cross(U.T[0], U.T[1])
+
+        # faster but need a lot of memory 
+        #normal = numpy.linalg.svd(M)[0][:, 2]
+
+        # save memory enough to fit but.... is this ok?
+        #normal = numpy.linalg.svd(M, full_matrices= False)[0][:, 2]
+
         if normal[2] < 0:
             normal *= -1
         dist = np.dot(normal, Xm)

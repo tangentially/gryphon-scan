@@ -216,8 +216,7 @@ def augmented_draw_lasers_on_pattern(image, pose):
         return
 
     calibration = horus.gui.engine.platform_extrinsics.calibration_data
-    if calibration.platform_rotation is None or \
-       calibration.platform_translation is None:
+    if calibration.laser_planes is None:
         return
 
     p = horus.gui.engine.pattern
@@ -229,6 +228,9 @@ def augmented_draw_lasers_on_pattern(image, pose):
     r_inv = np.linalg.inv(pose[0])
 
     for laser in calibration.laser_planes:
+        if laser.normal is None or laser.distance is None:
+            continue
+
         l_n = r_inv.dot(laser.normal)
         pp = laser.distance*laser.normal[:]-pose[1].T[0]
         l_d = pp.dot(laser.normal.T)

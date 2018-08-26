@@ -95,6 +95,17 @@ class LaserTriangulationPages(wx.Panel):
             laser_triangulation.set_callbacks(lambda: wx.CallAfter(self.before_calibration),
                                               lambda p: wx.CallAfter(self.progress_calibration, p),
                                               lambda r: wx.CallAfter(self.after_calibration, r))
+
+            if laser_triangulation._point_cloud[0] is not None:
+                dlg = wx.MessageDialog(
+                    self,
+                    _("Previous calibration results found. Continue previous calibration?\n"
+                      " Yes - append to previous calibration.\n No - reset and start new calibration.\n"),
+                    "Continue previous calibration?", wx.YES_NO | wx.ICON_QUESTION)
+                result = dlg.ShowModal() == wx.ID_YES
+                dlg.Destroy()
+                laser_triangulation.continue_calibration = result
+
             laser_triangulation.start()
         else:
             dlg = wx.MessageDialog(

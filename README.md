@@ -13,12 +13,23 @@ Also to enhance the existing functions and to fix bugs.
 - customizible scan area (turntable) size
 - photo lights control support at laser pins 3 and 4 (be aware that board hardware pins current is limited and you need extra hardware for powerful lights)
 - fixed turntable firmware 2.0 support (also custom grbl based firmwares now can be used if same G-codes are supported)
-- enhanced augmented visualization allow visually check calibration quality
-- better pattern usage in laser calibration
-- more informative calibration pages
+- enhanced calibration:
+    - augmented visualization allow visually check calibration quality both for platform and lasers
+    - augmented laser lines draw over pattern allow to manually move pattern and compare actual laser beam and calibrated
+    - better pattern usage in laser calibration
+    - "continue" mode for laser calibration to increase accuracy
+    - more informative calibration directions pages
+    - experimental "Laser background" filter to remove laser line at back plane
+- laser id saved as "Original_cloud_index" field at .ply export so point cloud can be separated by lasers and additionally aligned
 - some builtin constant values moved to settings or estimated automatically
+- movement toolbar
 - some bugs fixed
 
+
+
+Night Gryphon 
+ngryph@gmail.com
+http://vk.com/wingcatlab
 
 
 ------------------------------------------
