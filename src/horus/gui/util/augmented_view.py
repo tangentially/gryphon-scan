@@ -42,22 +42,30 @@ def augmented_draw_platform(image):
 
     if horus.gui.engine.platform_extrinsics.calibration_data.platform_rotation is not None and \
        horus.gui.engine.platform_extrinsics.calibration_data.platform_translation is not None:
-        #cv2.circle(image, (50,50), 5, (0,0,255), -1)
+
+        calibration_data = horus.gui.engine.platform_extrinsics.calibration_data
+        if horus.gui.engine.image_capture.use_distortion:
+            # distortion already corrected while capturing underlying image
+            distortion = np.float32( [0,0,0,0,0] )
+        else:
+            # paint on distorted image. need add distortion
+            distortion = calibration_data.distortion_vector
+
         # platform border
         p, jac = cv2.projectPoints(platform_border, \
-            horus.gui.engine.platform_extrinsics.calibration_data.platform_rotation, \
-            horus.gui.engine.platform_extrinsics.calibration_data.platform_translation, \
-            horus.gui.engine.platform_extrinsics.calibration_data.camera_matrix, \
-            horus.gui.engine.platform_extrinsics.calibration_data.distortion_vector)
+            calibration_data.platform_rotation, \
+            calibration_data.platform_translation, \
+            calibration_data.camera_matrix, \
+            distortion)
         p = np.int32([p])
         cv2.polylines(image, p, True, (0,255,0), 2)
 
         # marker positions
         p, jac = cv2.projectPoints(platform_points, \
-            horus.gui.engine.platform_extrinsics.calibration_data.platform_rotation, \
-            horus.gui.engine.platform_extrinsics.calibration_data.platform_translation, \
-            horus.gui.engine.platform_extrinsics.calibration_data.camera_matrix, \
-            horus.gui.engine.platform_extrinsics.calibration_data.distortion_vector)
+            calibration_data.platform_rotation, \
+            calibration_data.platform_translation, \
+            calibration_data.camera_matrix, \
+            distortion)
         p = np.int32(p).reshape(-1,2)
         for pp in p:
             cv2.circle(image, tuple(pp), 5, (0,0,255), -1)
@@ -73,12 +81,21 @@ def augmented_platform_mask(image):
 
     if horus.gui.engine.platform_extrinsics.calibration_data.platform_rotation is not None and \
        horus.gui.engine.platform_extrinsics.calibration_data.platform_translation is not None:
+
+        calibration_data = horus.gui.engine.platform_extrinsics.calibration_data
+        if horus.gui.engine.image_capture.use_distortion:
+            # distortion already corrected while capturing underlying image
+            distortion = np.float32( [0,0,0,0,0] )
+        else:
+            # paint on distorted image. need add distortion
+            distortion = calibration_data.distortion_vector
+
         # platform border
         p, jac = cv2.projectPoints(platform_border, \
-            horus.gui.engine.platform_extrinsics.calibration_data.platform_rotation, \
-            horus.gui.engine.platform_extrinsics.calibration_data.platform_translation, \
-            horus.gui.engine.platform_extrinsics.calibration_data.camera_matrix, \
-            horus.gui.engine.platform_extrinsics.calibration_data.distortion_vector)
+            calibration_data.platform_rotation, \
+            calibration_data.platform_translation, \
+            calibration_data.camera_matrix, \
+            distortion)
         p = np.int32([p])
         cv2.fillPoly(mask, p, 0)
     return mask
@@ -98,6 +115,15 @@ def augmented_draw_pattern(image, corners):
         wr = horus.gui.engine.pattern.border_r
         wt = horus.gui.engine.pattern.border_t
         wb = horus.gui.engine.pattern.border_b
+
+        calibration_data = horus.gui.engine.platform_extrinsics.calibration_data
+        if horus.gui.engine.image_capture.use_distortion:
+            # distortion already corrected while capturing underlying image
+            distortion = np.float32( [0,0,0,0,0] )
+        else:
+            # paint on distorted image. need add distortion
+            distortion = calibration_data.distortion_vector
+
         points = np.float32( (
             (l,t,0),(r,t,0),(r,b,0),(l,b,0),
             (l-wl,t-wt,0),(r+wr,t-wt,0),(r+wr,b+wb,0),(l-wl,b+wb,0),
@@ -106,8 +132,8 @@ def augmented_draw_pattern(image, corners):
         p, jac = cv2.projectPoints(points, \
             pose[0], \
             pose[1].T[0], \
-            horus.gui.engine.platform_extrinsics.calibration_data.camera_matrix, \
-            horus.gui.engine.platform_extrinsics.calibration_data.distortion_vector)
+            calibration_data.camera_matrix, \
+            distortion)
         p = np.int32(p).reshape(-1,2)
         cv2.polylines(image, np.int32([p[0:4]]), True, (0,255,0), 2)
         cv2.polylines(image, np.int32([p[4:8]]), True, (255,0,0), 2)
@@ -127,14 +153,23 @@ def augmented_pattern_mask(image, corners):
         wr = horus.gui.engine.pattern.border_r
         wt = horus.gui.engine.pattern.border_t
         wb = horus.gui.engine.pattern.border_b
+
+        calibration_data = horus.gui.engine.platform_extrinsics.calibration_data
+        if horus.gui.engine.image_capture.use_distortion:
+            # distortion already corrected while capturing underlying image
+            distortion = np.float32( [0,0,0,0,0] )
+        else:
+            # paint on distorted image. need add distortion
+            distortion = calibration_data.distortion_vector
+
         points = np.float32( (
             (l-wl,t-wt,0),(r+wr,t-wt,0),(r+wr,b+wb,0),(l-wl,b+wb,0),
             ) )
         p, jac = cv2.projectPoints(points, \
             pose[0], \
             pose[1].T[0], \
-            horus.gui.engine.platform_extrinsics.calibration_data.camera_matrix, \
-            horus.gui.engine.platform_extrinsics.calibration_data.distortion_vector)
+            calibration_data.camera_matrix, \
+            distortion)
         p = np.int32(p).reshape(-1,2)
 
         cv2.fillConvexPoly(mask, np.int32([p]), 255)
@@ -194,6 +229,13 @@ def augmented_draw_lasers_on_platform(image):
     calibration = horus.gui.engine.platform_extrinsics.calibration_data
     if calibration.platform_rotation is not None and \
        calibration.platform_translation is not None:
+            if horus.gui.engine.image_capture.use_distortion:
+                # distortion already corrected while capturing underlying image
+                distortion = np.float32( [0,0,0,0,0] )
+            else:
+                # paint on distorted image. need add distortion
+                distortion = calibration.distortion_vector
+
             p_norm, p_dist = pos2nd(calibration.platform_rotation, calibration.platform_translation)
             for laser in calibration.laser_planes:
                 line_vec, line_p = plane_cross(p_norm, p_dist, laser.normal, laser.distance)
@@ -206,7 +248,7 @@ def augmented_draw_lasers_on_platform(image):
                     np.identity(3),
                     np.zeros(3),
                     calibration.camera_matrix,
-                    calibration.distortion_vector)
+                    distortion)
                 p = np.int32(p).reshape(-1,2)
                 cv2.line(image, tuple(p[0]), tuple(p[1]), (255,0,0), 2)
 
@@ -218,6 +260,13 @@ def augmented_draw_lasers_on_pattern(image, pose):
     calibration = horus.gui.engine.platform_extrinsics.calibration_data
     if calibration.laser_planes is None:
         return
+
+    if horus.gui.engine.image_capture.use_distortion:
+        # distortion already corrected while capturing underlying image
+        distortion = np.float32( [0,0,0,0,0] )
+    else:
+        # paint on distorted image. need add distortion
+        distortion = calibration.distortion_vector
 
     p = horus.gui.engine.pattern
 #    pl = -p.square_width - p.border_l
@@ -243,7 +292,7 @@ def augmented_draw_lasers_on_pattern(image, pose):
                 pose[0],
                 pose[1].T[0],
                 calibration.camera_matrix,
-                calibration.distortion_vector)
+                distortion)
             p = np.int32(p).reshape(-1,2)
             cv2.line(image, tuple(p[0]), tuple(p[1]), (255,0,0), 2)
 

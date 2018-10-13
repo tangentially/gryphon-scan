@@ -52,7 +52,11 @@ class CameraIntrinsics(Calibration):
 
     def capture(self):
         if self.driver.is_connected:
+            use_distortion_save = self.image_capture.use_distortion
+            self.image_capture.set_use_distortion(False)
             image = self.image_capture.capture_pattern()
+            self.image_capture.set_use_distortion(use_distortion_save)
+
             self.shape = image[:, :, 0].shape
             corners = self.image_detection.detect_corners(image)
             if corners is not None:
