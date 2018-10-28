@@ -4,7 +4,8 @@
 This project was created to support custom built Ciclop-style 3D scanners with different hardware configurations and some more features like:
 - photo lights control
 - saving photos for photogrammetry
-- etc?...
+- enchanced calibration
+- etc...
 
 Also to enhance the existing functions and to fix bugs.
 
@@ -18,6 +19,7 @@ Is there any 3D scanner project that superseeds Horus?
 - customizible scan area (turntable) size
 - photo lights control support at laser pins 3 and 4 (be aware that board hardware pins current is limited and you need extra hardware for powerful lights)
 - fixed turntable firmware hello string detection (horus-fw 2.0 support or any custom grbl based firmwares if same G-codes are supported)
+- save frames for Photogrammetry
 - enhanced calibration:
     - augmented visualization allow visually check calibration quality both for platform and lasers
     - augmented laser lines draw over pattern allow to manually move pattern and compare actual laser beam and calibrated
