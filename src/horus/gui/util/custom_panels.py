@@ -6,6 +6,7 @@ __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import wx._core
+import types
 from collections import OrderedDict
 
 from horus.util import profile, resources, system as sys
@@ -525,11 +526,11 @@ class TextBox(ControlPanel):
         self.control.SetValue(profile.settings[self.name])
 
         # Layout
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
-        hbox.AddStretchSpacer()
-        hbox.Add(self.control, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        self.SetSizer(hbox)
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.hbox.AddStretchSpacer()
+        self.hbox.Add(self.control, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        self.SetSizer(self.hbox)
         self.Layout()
 
         # Events
@@ -541,6 +542,41 @@ class TextBox(ControlPanel):
         self.set_engine(value)
         self.release_restore()
 
+
+class DirPicker(ControlPanel):
+
+    def __init__(self, parent, name, engine_callback=None):
+        def _bound_SetValue(self, value):
+            self.SetPath(value)
+        
+        def _bound_GetValue(self, value):
+            return self.GetPath()
+
+        ControlPanel.__init__(self, parent, name, engine_callback)
+
+        # Elements
+        label = wx.StaticText(self, size=(140, -1), label=_(self.setting._label))
+        self.control = wx.DirPickerCtrl(self, size=(120, -1), style= wx.DIRP_USE_TEXTCTRL ) #| wx.DIRP_SMALL ) # | wx.DIRP_DIR_MUST_EXIST)
+        self.control.SetPath(profile.settings[self.name])
+        self.control.SetValue = types.MethodType(_bound_SetValue, self.control)
+        self.control.GetValue = types.MethodType(_bound_GetValue, self.control)
+
+        # Layout
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.hbox.AddStretchSpacer()
+        self.hbox.Add(self.control, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        self.SetSizer(self.hbox)
+        self.Layout()
+
+        # Events
+        self.control.Bind(wx.EVT_DIRPICKER_CHANGED, self._on_dir_changed)
+
+    def _on_dir_changed(self, event):
+        value = self.control.GetPath()
+        self.update_to_profile(value)
+        self.set_engine(value)
+        self.release_restore()
 
 class IntLabel(ControlPanel):
 

@@ -209,7 +209,7 @@ class ImageCapture(object):
         if image_background is not None:
             if image is not None:
                 image = cv2.subtract(image, image_background)
-        return image
+        return [image, image_background]
 
     def capture_lasers(self):
         # Capture background
@@ -223,7 +223,7 @@ class ImageCapture(object):
                 flush = self._flush_laser
             image_background = self.capture_image(flush=flush)
         # Capture lasers
-        images = [None, None]
+        images = [None, None, image_background]
         images[0] = self._capture_laser(0)
         images[1] = self._capture_laser(1)
         if image_background is not None:

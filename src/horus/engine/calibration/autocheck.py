@@ -149,7 +149,7 @@ class Autocheck(Calibration):
         for i in xrange(2):
             if not self._is_calibrating:
                 raise CalibrationCancel()
-            image = self.image_capture.capture_laser(i)
+            image = self.image_capture.capture_laser(i)[0]
             image = self.image_detection.pattern_mask(image, corners)
             lines = self.laser_segmentation.compute_hough_lines(image)
             if lines is None:

@@ -78,7 +78,7 @@ class LaserTriangulation(MovingCalibration):
             if lasers.size > 0:
 #                self.image_capture.flush_laser()
 #                self.image_capture.flush_laser()
-                images = self.image_capture.capture_lasers()
+                images = self.image_capture.capture_lasers()[:-1]
 
                 if self.points_image is None:
                     self.points_image = np.zeros(images[0].shape, dtype = "uint8")

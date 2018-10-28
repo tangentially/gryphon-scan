@@ -11,7 +11,7 @@ import wx._core
 from horus.util import profile
 from horus.gui.engine import driver, ciclop_scan, point_cloud_roi
 from horus.gui.util.custom_panels import ExpandablePanel, Slider, CheckBox, ComboBox, \
-    Button, FloatTextBox
+    Button, FloatTextBox, DirPicker, IntTextBox
 
 
 class ScanParameters(ExpandablePanel):
@@ -154,10 +154,26 @@ class PointCloudColor(ExpandablePanel):
         dialog.Destroy()
 
     def on_set_bicolor(self, value):
-        print(value)
         ciclop_scan._bicolor = value
 
     def on_selected(self):
         self.main.scene_view._view_roi = False
         self.main.scene_view.queue_refresh()
         profile.settings['current_panel_scanning'] = 'point_cloud_color'
+
+class Photogrammetry(ExpandablePanel):
+
+    def __init__(self, parent, on_selected_callback):
+        ExpandablePanel.__init__(
+            self, parent, _("Photogrammetry"), has_undo=False, has_restore=False)
+        self.main = self.GetParent().GetParent().GetParent()
+
+    def add_controls(self):
+        self.add_control('ph_save_enable', CheckBox)
+        self.add_control('ph_save_folder', DirPicker)
+        self.add_control('ph_save_divider', IntTextBox)
+
+    def on_selected(self):
+        self.main.scene_view._view_roi = False
+        self.main.scene_view.queue_refresh()
+        profile.settings['current_panel_scanning'] = 'photogrammetry'

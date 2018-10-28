@@ -632,7 +632,8 @@ class Settings(collections.MutableMapping):
             Setting('current_panel_scanning', u'scan_parameters', 'profile_settings',
                     unicode, u'scan_parameters',
                     possible_values=(u'scan_parameters', u'rotating_platform',
-                                     u'point_cloud_roi', u'point_cloud_color')))
+                                     u'point_cloud_roi', u'point_cloud_color', 
+                                     u'photogrammetry')))
 
         # -- Preferences
 
@@ -731,6 +732,16 @@ class Settings(collections.MutableMapping):
             Setting('model_color', _('Model color'), 'preferences', unicode, u'888888'))
         self._add_setting(
             Setting('last_clear_log_date', _('Last clear log date'), 'preferences', unicode, u''))
+
+        # Photogrammetry
+        self._add_setting(
+            Setting('ph_save_enable', _('Save photos'), 'preferences', bool, False))
+        self._add_setting(
+            Setting('ph_save_folder', _('Images folder'), 'preferences', unicode, u'photo/' ))
+        self._add_setting(
+            Setting('ph_save_divider', 'Save every N\'th frame', 'preferences', int, 2, min_value=1, max_value=9999))
+
+
 
 
 class Setting(object):

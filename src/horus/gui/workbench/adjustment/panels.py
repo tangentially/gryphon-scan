@@ -241,7 +241,7 @@ class ScanCapturePanel(ExpandablePanel):
         dlg.Destroy()
 
         image_capture.laser_mode.laser_bg_enable = False
-        images = image_capture.capture_lasers()
+        images = image_capture.capture_lasers()[:-1]
         for i, image in enumerate(images):
             images[i] = laser_segmentation.compute_line_segmentation_bg(image, self.avoid_platform)
 
@@ -550,7 +550,7 @@ class CalibrationCapturePanel(ExpandablePanel):
         dlg.Destroy()
 
         image_capture.laser_mode.laser_bg_enable = False
-        images = image_capture.capture_lasers()
+        images = image_capture.capture_lasers()[:-1]
         for i, image in enumerate(images):
             images[i] = laser_segmentation.compute_line_segmentation_bg(image, self.avoid_platform)
 

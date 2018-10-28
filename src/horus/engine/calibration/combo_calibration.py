@@ -67,7 +67,7 @@ class ComboCalibration(MovingCalibration):
 #                self.image_capture.flush_laser()
 #                self.image_capture.flush_laser()
                 for i in lasers:
-                    image = self.image_capture.capture_laser(i)
+                    image = self.image_capture.capture_laser(i)[0]
                     image = self.image_detection.pattern_mask(image, corners)
                     self.image = image
                     points_2d, image = self.laser_segmentation.compute_2d_points(image)

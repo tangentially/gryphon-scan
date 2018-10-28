@@ -7,6 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 from horus.util import profile
 
+import cv2
 import logging
 logger = logging.getLogger(__name__)
 
@@ -87,8 +88,9 @@ class Camera(object):
         raise NotImplementedError
 
     def save_image(self, filename, image):
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-        cv2.imwrite(filename, image)
+        if image is not None:
+            #image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            cv2.imwrite(filename, image)
 
     def set_rotate(self, value):
         self._rotate = value
