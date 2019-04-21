@@ -25,7 +25,7 @@ class LaserSegmentation(object):
         self.calibration_data = CalibrationData()
         self.point_cloud_roi = PointCloudROI()
 
-        self.red_channel = 'R (RGB)'
+        self.laser_color_detector = 'R (RGB)'
         self.threshold_enable = False
         self.threshold_value = 0
         self.blur_enable = False
@@ -35,7 +35,7 @@ class LaserSegmentation(object):
         self.refinement_method = 'SGF'
 
     def read_profile(self, mode):
-        self.red_channel = profile.settings['red_channel_'+mode]
+        self.laser_color_detector = profile.settings['laser_color_detector_'+mode]
         self.threshold_enable = profile.settings['threshold_enable_'+mode]
         self.threshold_value = profile.settings['threshold_value_'+mode]
         self.blur_enable = profile.settings['blur_enable_'+mode]
@@ -44,8 +44,8 @@ class LaserSegmentation(object):
         self.window_value = profile.settings['window_value_'+mode]
         self.refinement_method = profile.settings['refinement_'+mode]
 
-    def set_red_channel(self, value):
-        self.red_channel = value
+    def set_laser_color_detector(self, value):
+        self.laser_color_detector = value
 
     def set_threshold_enable(self, value):
         self.threshold_enable = value
@@ -100,14 +100,14 @@ class LaserSegmentation(object):
         if image is not None:
             # Apply ROI mask
             image = self.point_cloud_roi.mask_image(image)
-            image = self._obtain_red_channel(image)
+            image = self._obtain_laser_image(image)
             image = self._threshold_image(image)
             image = self._window_mask(image)
             return image
 
     def compute_line_segmentation_bg(self, image, avoid_platform = False):
         mask = image.copy()
-        mask = self._obtain_red_channel(mask)
+        mask = self._obtain_laser_image(mask)
         mask = self._threshold_image(mask)
         mask = self._window_mask(mask)
 
@@ -118,18 +118,18 @@ class LaserSegmentation(object):
 
         return image
 
-    def _obtain_red_channel(self, image):
+    def _obtain_laser_image(self, image):
         ret = None
-        if self.red_channel == 'R (RGB)':
+        if self.laser_color_detector == 'R (RGB)':
             ret = cv2.split(image)[0]
 
-        elif self.red_channel == 'G (RGB)':
+        elif self.laser_color_detector == 'G (RGB)':
             ret = cv2.split(image)[1]
 
-        elif self.red_channel == 'B (RGB)':
+        elif self.laser_color_detector == 'B (RGB)':
             ret = cv2.split(image)[2]
 
-        elif self.red_channel == 'HSV':
+        elif self.laser_color_detector == 'R (HSV)':
             ret = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
             # lower mask (0-10)
             lower_red = np.array([0,50,self.threshold_value])
@@ -147,10 +147,10 @@ class LaserSegmentation(object):
             ret = cv2.split(ret)[2]
             ret[np.where(mask==0)] = 0
 
-        elif self.red_channel == 'Cr (YCrCb)':
+        elif self.laser_color_detector == 'Cr (YCrCb)':
             ret = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YCR_CB))[1]
 
-        elif self.red_channel == 'U (YUV)':
+        elif self.laser_color_detector == 'U (YUV)':
             ret = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YUV))[1]
 
         return ret

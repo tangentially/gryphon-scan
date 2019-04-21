@@ -291,9 +291,9 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('draw_line_scanning', _('Draw line'), 'profile_settings', bool, True))
         self._add_setting(
-            Setting('red_channel_scanning', _('Red channel'), 'profile_settings',
-                    unicode, u'HSV',
-                    possible_values=(u'R (RGB)', u'G (RGB)', u'B (RGB)', u'HSV', u'Cr (YCrCb)', u'U (YUV)')))
+            Setting('laser_color_detector_scanning', _('Laser color detector'), 'profile_settings',
+                    unicode, u'R (HSV)',
+                    possible_values=(u'R (RGB)', u'G (RGB)', u'B (RGB)', u'R (HSV)', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
             Setting('threshold_enable_scanning', _('Enable threshold'),
                     'profile_settings', bool, True))
@@ -365,9 +365,9 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('draw_line_calibration', _('Draw line'), 'profile_settings', bool, True))
         self._add_setting(
-            Setting('red_channel_calibration', _('Red channel'), 'profile_settings',
-                    unicode, u'HSV',
-                    possible_values=(u'R (RGB)', u'G (RGB)', u'B (RGB)', u'HSV', u'Cr (YCrCb)', u'U (YUV)')))
+            Setting('laser_color_detector_calibration', _('Laser color detector'), 'profile_settings',
+                    unicode, u'R (HSV)',
+                    possible_values=(u'R (RGB)', u'G (RGB)', u'B (RGB)', u'R (HSV)', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
             Setting('threshold_enable_calibration', _('Enable threshold'),
                     'profile_settings', bool, True))
