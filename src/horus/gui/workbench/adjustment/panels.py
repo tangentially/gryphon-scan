@@ -272,9 +272,9 @@ class ScanSegmentationPanel(ExpandablePanel):
         ExpandablePanel.__init__(self, parent, _("Scan segmentation"))
 
     def add_controls(self):
-        # self.add_control('red_channel_scanning', ComboBox)
+        # self.add_control('laser_color_detector_scanning', ComboBox)
         self.add_control('draw_line_scanning', CheckBox)
-        self.add_control('red_channel_scanning', ComboBox, _("Red color detection algorithm"))
+        self.add_control('laser_color_detector_scanning', ComboBox, _("Laser color detection algorithm"))
         self.add_control(
             'threshold_value_scanning', Slider,
             _("Remove all pixels which intensity is less that the threshold value"))
@@ -296,9 +296,9 @@ class ScanSegmentationPanel(ExpandablePanel):
         self.add_control('refinement_scanning', ComboBox)
 
     def update_callbacks(self):
-        # self.update_callback('red_channel_scanning', laser_segmentation.set_red_channel)
+        # self.update_callback('laser_color_detector_scanning', laser_segmentation.set_laser_color_detector)
         self.update_callback('draw_line_scanning', current_video.set_draw_line)
-        self.update_callback('red_channel_scanning', laser_segmentation.set_red_channel)
+        self.update_callback('laser_color_detector_scanning', laser_segmentation.set_laser_color_detector)
         self.update_callback('threshold_value_scanning', laser_segmentation.set_threshold_value)
         self.update_callback('threshold_enable_scanning', laser_segmentation.set_threshold_enable)
         self.update_callback('blur_value_scanning', laser_segmentation.set_blur_value)
@@ -581,9 +581,9 @@ class CalibrationSegmentationPanel(ExpandablePanel):
         ExpandablePanel.__init__(self, parent, _("Calibration segmentation"))
 
     def add_controls(self):
-        # self.add_control('red_channel_calibration', ComboBox)
+        # self.add_control('laser_color_detector_calibration', ComboBox)
         self.add_control('draw_line_calibration', CheckBox)
-        self.add_control('red_channel_calibration', ComboBox, _("Red color detection algorithm"))
+        self.add_control('laser_color_detector_calibration', ComboBox, _("Laser color detection algorithm"))
         self.add_control(
             'threshold_value_calibration', Slider,
             _("Remove all pixels which intensity is less that the threshold value"))
@@ -605,9 +605,9 @@ class CalibrationSegmentationPanel(ExpandablePanel):
         self.add_control('refinement_calibration', ComboBox)
 
     def update_callbacks(self):
-        # self.update_callback('red_channel_calibration', laser_segmentation.set_red_channel)
+        # self.update_callback('laser_color_detector_calibration', laser_segmentation.set_laser_color_detector)
         self.update_callback('draw_line_calibration', current_video.set_draw_line)
-        self.update_callback('red_channel_calibration', laser_segmentation.set_red_channel)
+        self.update_callback('laser_color_detector_calibration', laser_segmentation.set_laser_color_detector)
         self.update_callback('threshold_value_calibration', laser_segmentation.set_threshold_value)
         self.update_callback(
             'threshold_enable_calibration', laser_segmentation.set_threshold_enable)
