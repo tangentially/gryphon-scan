@@ -293,7 +293,7 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('red_channel_scanning', _('Red channel'), 'profile_settings',
                     unicode, u'HSV',
-                    possible_values=(u'R (RGB)', u'HSV', u'Cr (YCrCb)', u'U (YUV)')))
+                    possible_values=(u'R (RGB)', u'G (RGB)', u'B (RGB)', u'HSV', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
             Setting('threshold_enable_scanning', _('Enable threshold'),
                     'profile_settings', bool, True))
@@ -367,7 +367,7 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('red_channel_calibration', _('Red channel'), 'profile_settings',
                     unicode, u'HSV',
-                    possible_values=(u'R (RGB)', u'HSV', u'Cr (YCrCb)', u'U (YUV)')))
+                    possible_values=(u'R (RGB)', u'G (RGB)', u'B (RGB)', u'HSV', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
             Setting('threshold_enable_calibration', _('Enable threshold'),
                     'profile_settings', bool, True))

@@ -123,6 +123,12 @@ class LaserSegmentation(object):
         if self.red_channel == 'R (RGB)':
             ret = cv2.split(image)[0]
 
+        elif self.red_channel == 'G (RGB)':
+            ret = cv2.split(image)[1]
+
+        elif self.red_channel == 'B (RGB)':
+            ret = cv2.split(image)[2]
+
         elif self.red_channel == 'HSV':
             ret = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
             # lower mask (0-10)
