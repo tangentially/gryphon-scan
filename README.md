@@ -60,8 +60,6 @@ This notes can be incomplete. This is my experience for my environment (Win 8.1)
 Yes, there is bundler scripts in Horus but there is a lot of broken download links and old software versions.
 I plan to switch to new OpenCV to use markers to enchance calibration  
 
-(the very first beta notes for myself)
-
 1. Get and install latest Python 2.7  
 https://www.python.org/downloads/release/python-2716/  
 Windows x86-64 MSI installer  
@@ -71,28 +69,41 @@ Required to compile some lib's during pip install
 http://aka.ms/vcpython27  
 http://www.microsoft.com/en-us/download/details.aspx?id=44266  
 
-3. wxWidgets 3.0.4 The older version required for matplotlib==1.4.0.  
-Will switch to newer versions later if required  
+3. Get and install wxWidgets 3.0.4.  
+The 3.0.4 is required for matplotlib==1.4.0. 
+Will switch to new versions later if required  
 https://sourceforge.net/projects/wxpython/files/wxPython/3.0.2.0/  
 wxPython3.0-win64-3.0.2.0-py27.exe  
 
 4. Install OpenCV  
+- as PIP package
 ```
-pip install opencv-python  
+pip install opencv-python
 pip install opencv-contrib-python  
 ```
-Get OpenCV binary package  
+- alternatively as binary package  
 https://opencv.org/releases/  
+No need to install the whole package. Extract and copy this files to \Python27\DLLs\
+```
+\opencv\build\python\cv2\python-2.7\cv2.pyd
+\opencv\build\x64\vc15\bin\opencv_world410.dll
+```
 
-4. Install packages with PIP  
+5. Install OpenGL 
 ```
-pip install -U pyserial pyopengl pyopengl-accelerate numpy scipy matplotlib==1.4.0
+pip install pyopengl pyopengl-accelerate
 ```
-5. OpenGL pip package require GLUT DLLs to be installed separately  
+Also pip package require GLUT DLLs to be installed separately  
 http://freeglut.sourceforge.net/index.php#download  
 https://www.transmissionzero.co.uk/software/freeglut-devel/  
-Download "freeglut 3.0.0 MSVC Package"   
-Extract and copy freeglut.dll -> \Python27\Lib\site-packages\OpenGL\DLLS\ 
+Download "freeglut 3.0.0 MSVC Package"  
+Extract and copy \freeglut\bin\\[x64\\]freeglut.dll -> \Python27\Lib\site-packages\OpenGL\DLLS\freeglut[64].dll  
+For 64 bit python you need to rename DLL to freeglut64.dll
+
+6. Install packages with PIP  
+```
+pip install -U pyserial numpy scipy matplotlib==1.4.0
+```
 
 
 
