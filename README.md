@@ -27,7 +27,7 @@ Is there any 3D scanner project that superseeds Horus?
     - draw trace of detected laser lines during laser triangulation
     - multipass calibration mode for laser triangulation to increase accuracy
     - more informative calibration directions pages
-- HSV laser line detection method
+- HSV laser line detection method, Green and Blue laser colors support
 - experimental "Laser background" filter to remove laser line detected at background objects
 - laser id saved as "Original_cloud_index" field at .ply export so point cloud can be separated by lasers and additionally aligned
 - some builtin constant values moved to settings or estimated automatically
@@ -41,6 +41,50 @@ Night Gryphon
 ngryph@gmail.com
 
 http://vk.com/wingcatlab
+
+
+------------------------------------------
+### Installing Python 2.7.16 (latest 2.7) for Gryphon Scan
+This notes can be incomplete. This is my experience for my environment (Win 8.1)
+Yes, there is bundler scripts in Horus but there is a lot of broken download links and old software versions.
+I plan to switch to new OpenCV to use markers to enchance calibration
+
+(the very first beta notes for myself)
+
+1. Get and install latest Python 2.7
+https://www.python.org/downloads/release/python-2716/
+Windows x86-64 MSI installer
+
+2. Get and install Microsoft Visual C++ Compiler for Python 2.7 
+Required to compile some lib's during pip install
+http://aka.ms/vcpython27
+http://www.microsoft.com/en-us/download/details.aspx?id=44266
+
+3. wxWidgets 3.0.4 The older version required for matplotlib==1.4.0
+Will switch to newer versions later
+
+https://sourceforge.net/projects/wxpython/files/wxPython/3.0.2.0/
+wxPython3.0-win64-3.0.2.0-py27.exe
+
+4. Install OpenCV
+
+pip install opencv-python
+pip install opencv-contrib-python
+
+Get OpenCV binary package
+https://opencv.org/releases/
+
+4. Install packages with PIP
+
+pip install -U pyserial pyopengl pyopengl-accelerate numpy scipy matplotlib==1.4.0
+
+5. OpenGL pip package require GLUT DLLs to be installed separately
+http://freeglut.sourceforge.net/index.php#download
+https://www.transmissionzero.co.uk/software/freeglut-devel/
+Download "freeglut 3.0.0 MSVC Package"
+
+Extract and copy freeglut.dll -> \Python27\Lib\site-packages\OpenGL\DLLS\ 
+
 
 
 ------------------------------------------
