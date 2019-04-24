@@ -9,6 +9,20 @@ This project was created to support custom built Ciclop-style 3D scanners with d
 
 Also to enhance the existing functions and to fix bugs.
 
+
+###### For the people who expect software with the single "Make Cool Scan" button
+Sorry guys. This is DIY project not the finished commercial software. 
+If you are not ready for some manual install and adjustments than please don't waste your time.
+
+This project need a bit of understanding how this things are work. Here can be some bug's. 
+This is platform for your experiments.
+
+I will try to make things more smooth but i can not warranty this SW will work out of the box in every environment. 
+Most likely you'll need to spend some time and use brain to make things work.
+
+Please don't write that shitty comments as you do for Ciclop/Horus just because this is not what you expected.
+
+
 ###### Dear Visitors
 I need some feedback for this project including usage (beta testing) experience.
 Also please point me to the right place where Ciclop/Horus based scanners are discussed at the moment as there is completely no activity on the original Ciclop/Horus repositories.
@@ -52,16 +66,18 @@ I plan to switch to new OpenCV to use markers to enchance calibration
 (the very first beta notes for myself)
 
 1. Get and install latest Python 2.7
+
 https://www.python.org/downloads/release/python-2716/
 Windows x86-64 MSI installer
 
 2. Get and install Microsoft Visual C++ Compiler for Python 2.7 
+
 Required to compile some lib's during pip install
 http://aka.ms/vcpython27
 http://www.microsoft.com/en-us/download/details.aspx?id=44266
 
-3. wxWidgets 3.0.4 The older version required for matplotlib==1.4.0
-Will switch to newer versions later
+3. wxWidgets 3.0.4 The older version required for matplotlib==1.4.0.
+Will switch to newer versions later if required
 
 https://sourceforge.net/projects/wxpython/files/wxPython/3.0.2.0/
 wxPython3.0-win64-3.0.2.0-py27.exe
@@ -79,6 +95,7 @@ https://opencv.org/releases/
 pip install -U pyserial pyopengl pyopengl-accelerate numpy scipy matplotlib==1.4.0
 
 5. OpenGL pip package require GLUT DLLs to be installed separately
+
 http://freeglut.sourceforge.net/index.php#download
 https://www.transmissionzero.co.uk/software/freeglut-devel/
 Download "freeglut 3.0.0 MSVC Package"
