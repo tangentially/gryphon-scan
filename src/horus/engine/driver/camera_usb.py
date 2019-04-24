@@ -14,6 +14,8 @@ import platform
 from horus.engine.driver.camera import Camera, WrongCamera, CameraNotConnected, InvalidVideo, \
     WrongDriver, InputOutputError
 
+from distutils.version import StrictVersion, LooseVersion
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -59,6 +61,24 @@ class Camera_usb(Camera):
             self._max_saturation = 255.
             self._max_exposure = 1000.
 
+        if LooseVersion(cv2.__version__) > LooseVersion("3.0.0"):
+            self.CV_CAP_PROP_BRIGHTNESS   = cv2.CAP_PROP_BRIGHTNESS
+            self.CV_CAP_PROP_CONTRAST     = cv2.CAP_PROP_CONTRAST
+            self.CV_CAP_PROP_SATURATION   = cv2.CAP_PROP_SATURATION
+            self.CV_CAP_PROP_EXPOSURE     = cv2.CAP_PROP_EXPOSURE
+            self.CV_CAP_PROP_FPS          = cv2.CAP_PROP_FPS
+            self.CV_CAP_PROP_FRAME_WIDTH  = cv2.CAP_PROP_FRAME_WIDTH
+            self.CV_CAP_PROP_FRAME_HEIGHT = cv2.CAP_PROP_FRAME_HEIGHT
+        else:
+            self.CV_CAP_PROP_BRIGHTNESS   = cv2.cv.CV_CAP_PROP_BRIGHTNESS
+            self.CV_CAP_PROP_CONTRAST     = cv2.cv.CV_CAP_PROP_CONTRAST
+            self.CV_CAP_PROP_SATURATION   = cv2.cv.CV_CAP_PROP_SATURATION
+            self.CV_CAP_PROP_EXPOSURE     = cv2.cv.CV_CAP_PROP_EXPOSURE
+            self.CV_CAP_PROP_FPS          = cv2.cv.CV_CAP_PROP_FPS
+            self.CV_CAP_PROP_FRAME_WIDTH  = cv2.cv.CV_CAP_PROP_FRAME_WIDTH
+            self.CV_CAP_PROP_FRAME_HEIGHT = cv2.cv.CV_CAP_PROP_FRAME_HEIGHT
+
+
     def connect(self):
         logger.info("Connecting camera {0}".format(self.camera_id))
         self._is_connected = False
@@ -69,16 +89,33 @@ class Camera_usb(Camera):
                     self.controls = uvc.mac.Controls(device.uId)
         if self._capture is not None:
             self._capture.release()
+        #self._capture = cv2.VideoCapture(self.camera_id, cv2.CAP_DSHOW)
+        #self._capture = cv2.VideoCapture(self.camera_id, cv2.CAP_FFMPEG)
         self._capture = cv2.VideoCapture(self.camera_id)
         time.sleep(0.2)
         if not self._capture.isOpened():
             time.sleep(1)
+            #self._capture.open(self.camera_id, cv2.CAP_DSHOW)
+            #self._capture.open(self.camera_id, cv2.CAP_FFMPEG)
             self._capture.open(self.camera_id)
         if self._capture.isOpened():
             self._is_connected = True
+
+            #self.set_resolution(10000,10000)
+            self._capture.set(self.CV_CAP_PROP_FRAME_WIDTH,10000)
+            self._capture.set(self.CV_CAP_PROP_FRAME_HEIGHT,10000)
+            self._update_resolution()
+            self._capture.set(self.CV_CAP_PROP_FPS, 30)
+
+            logger.info("  check_video")
             self._check_video()
+
+            logger.info("  check_camera")
             self._check_camera()
+
+            logger.info("  check_driver")
             self._check_driver()
+
             logger.info(" Done")
         else:
             raise CameraNotConnected()
@@ -94,6 +131,7 @@ class Camera_usb(Camera):
                         tries += 1
                         if not self._reading:
                             self._capture.release()
+                            cv2.destroyAllWindows()
                 logger.info(" Done")
 
     def _check_video(self):
@@ -184,7 +222,7 @@ class Camera_usb(Camera):
                     ctl.set_val(self._line(value, 0, self._max_brightness, ctl.min, ctl.max))
                 else:
                     value = int(value) / self._max_brightness
-                    ret = self._capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value)
+                    ret = self._capture.set(self.CV_CAP_PROP_BRIGHTNESS, value)
                     if system == 'Linux' and ret:
                         raise InputOutputError()
                 self._updating = False
@@ -199,7 +237,7 @@ class Camera_usb(Camera):
                     ctl.set_val(self._line(value, 0, self._max_contrast, ctl.min, ctl.max))
                 else:
                     value = int(value) / self._max_contrast
-                    ret = self._capture.set(cv2.cv.CV_CAP_PROP_CONTRAST, value)
+                    ret = self._capture.set(self.CV_CAP_PROP_CONTRAST, value)
                     if system == 'Linux' and ret:
                         raise InputOutputError()
                 self._updating = False
@@ -214,7 +252,7 @@ class Camera_usb(Camera):
                     ctl.set_val(self._line(value, 0, self._max_saturation, ctl.min, ctl.max))
                 else:
                     value = int(value) / self._max_saturation
-                    ret = self._capture.set(cv2.cv.CV_CAP_PROP_SATURATION, value)
+                    ret = self._capture.set(self.CV_CAP_PROP_SATURATION, value)
                     if system == 'Linux' and ret:
                         raise InputOutputError()
                 self._updating = False
@@ -233,10 +271,10 @@ class Camera_usb(Camera):
                     ctl.set_val(value)
                 elif system == 'Windows':
                     value = int(round(-math.log(value) / math.log(2)))
-                    self._capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
+                    self._capture.set(self.CV_CAP_PROP_EXPOSURE, value)
                 else:
                     value = int(value) / self._max_exposure
-                    ret = self._capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
+                    ret = self._capture.set(self.CV_CAP_PROP_EXPOSURE, value)
                     if system == 'Linux' and ret:
                         raise InputOutputError()
                 self._updating = False
@@ -246,14 +284,34 @@ class Camera_usb(Camera):
         self.set_exposure(self._exposure, force=True)
 
     def set_frame_rate(self, value):
+	print("Set Frame rate: ", value)
+        if LooseVersion(cv2.__version__) >= LooseVersion("3.4.4"):
+            if self._capture.getBackendName() in ["MSMF"]:
+                logger.info("UNSUPPORTED for this video backend {0}".format(self._capture.getBackendName()))
+                return
+        else:
+            if system == 'Windows':
+                logger.info("Possible unsupported. Skipping.")
+                return
+
         if self._is_connected:
             if self._frame_rate != value:
                 self._frame_rate = value
                 self._updating = True
-                self._capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
+                self._capture.set(self.CV_CAP_PROP_FPS, value)
                 self._updating = False
 
     def set_resolution(self, width, height):
+        logger.info("Set Resolution: {0}x{1}".format(width, height))
+        if LooseVersion(cv2.__version__) >= LooseVersion("3.4.4"):
+            if self._capture.getBackendName() in ["MSMF"]:
+                logger.info("UNSUPPORTED for this video backend {0}".format(self._capture.getBackendName()))
+                return
+        else:
+            if system == 'Windows':
+                logger.info("Possible unsupported. Skipping.")
+                return
+
         if self._is_connected:
             if self._width != width or self._height != height:
                 self._updating = True
@@ -269,14 +327,15 @@ class Camera_usb(Camera):
             self.parent.board.set_light(idx,brightness)
 
     def _set_width(self, value):
-        self._capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, value)
+        self._capture.set(self.CV_CAP_PROP_FRAME_WIDTH, value)
 
     def _set_height(self, value):
-        self._capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, value)
+        self._capture.set(self.CV_CAP_PROP_FRAME_HEIGHT, value)
 
     def _update_resolution(self):
-        self._width = int(self._capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
-        self._height = int(self._capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
+        self._width = int(self._capture.get(self.CV_CAP_PROP_FRAME_WIDTH))
+        self._height = int(self._capture.get(self.CV_CAP_PROP_FRAME_HEIGHT))
+        logger.info("Actual Resolution: {0}x{1}".format(self._width, self._height))
 
     def get_brightness(self):
         if self._is_connected:
@@ -284,7 +343,7 @@ class Camera_usb(Camera):
                 ctl = self.controls['UVCC_REQ_BRIGHTNESS_ABS']
                 value = ctl.get_val()
             else:
-                value = self._capture.get(cv2.cv.CV_CAP_PROP_BRIGHTNESS)
+                value = self._capture.get(self.CV_CAP_PROP_BRIGHTNESS)
                 value *= self._max_brightness
             return value
 
@@ -295,10 +354,10 @@ class Camera_usb(Camera):
                 value = ctl.get_val()
                 value /= self._rel_exposure
             elif system == 'Windows':
-                value = self._capture.get(cv2.cv.CV_CAP_PROP_EXPOSURE)
+                value = self._capture.get(self.CV_CAP_PROP_EXPOSURE)
                 value = 2 ** -value
             else:
-                value = self._capture.get(cv2.cv.CV_CAP_PROP_EXPOSURE)
+                value = self._capture.get(self.CV_CAP_PROP_EXPOSURE)
                 value *= self._max_exposure
             return value
 

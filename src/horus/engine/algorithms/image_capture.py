@@ -13,6 +13,8 @@ from horus import Singleton
 from horus.engine.driver.driver import Driver
 from horus.engine.calibration.calibration_data import CalibrationData
 
+import logging
+logger = logging.getLogger(__name__)
 
 class CameraSettings(object):
 
@@ -82,7 +84,7 @@ class CameraSettings(object):
         else:
             self.laser_bg = [None, None]
             self.laser_bg_enable = False
-        print("Capture profile load: "+mode)
+            logger.info("Capture profile load: "+mode)
 
 @Singleton
 class ImageCapture(object):
@@ -141,7 +143,6 @@ class ImageCapture(object):
             else:
                 self.capture_image(flush=self._flush_mode)
             self._updating = False
-#            print("Cap mode: "+mode.nam)
 
     def set_mode_texture(self):
         self.set_mode(self.texture_mode)
@@ -190,7 +191,7 @@ class ImageCapture(object):
                    image is not None:
                     image = cv2.subtract(image, self._mode.laser_bg[index])
             except:
-                print('WARNING: Error applying laser BG @ image_capture._capture_laser')
+                logger.info('WARNING: Error applying laser BG @ image_capture._capture_laser')
         return image
 
     def capture_laser(self, index):
@@ -257,7 +258,7 @@ class ImageCapture(object):
                         if bg is not None:
                             image = cv2.subtract(image, bg)
             except:
-                print('WARNING: Error applying laser BG @ image_capture.capture_all_lasers')
+                logger.info('WARNING: Error applying laser BG @ image_capture.capture_all_lasers')
         return image
 
     def capture_pattern(self):

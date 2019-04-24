@@ -11,6 +11,8 @@ from horus import Singleton
 from horus.engine.driver.board import Board
 from horus.engine.driver.camera_usb import Camera_usb
 
+import logging
+logger = logging.getLogger(__name__)
 
 @Singleton
 class Driver(object):
@@ -41,6 +43,7 @@ class Driver(object):
             self.board.connect()
         except Exception as e:
             exception = e
+            logger.error('Failed to connect: '+ str(e))
         else:
             self.is_connected = True
         finally:
