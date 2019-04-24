@@ -87,17 +87,25 @@ class Camera_usb(Camera):
             for device in uvc.mac.Camera_List():
                 if device.src_id == self.camera_id:
                     self.controls = uvc.mac.Controls(device.uId)
+
         if self._capture is not None:
             self._capture.release()
-        #self._capture = cv2.VideoCapture(self.camera_id, cv2.CAP_DSHOW)
-        #self._capture = cv2.VideoCapture(self.camera_id, cv2.CAP_FFMPEG)
-        self._capture = cv2.VideoCapture(self.camera_id)
+
+        if system == 'Windows':
+            self._capture = cv2.VideoCapture(self.camera_id, cv2.CAP_DSHOW)
+        else:
+            #self._capture = cv2.VideoCapture(self.camera_id, cv2.CAP_FFMPEG)
+            self._capture = cv2.VideoCapture(self.camera_id)
+
         time.sleep(0.2)
         if not self._capture.isOpened():
             time.sleep(1)
-            #self._capture.open(self.camera_id, cv2.CAP_DSHOW)
-            #self._capture.open(self.camera_id, cv2.CAP_FFMPEG)
-            self._capture.open(self.camera_id)
+            if system == 'Windows':
+                self._capture.open(self.camera_id, cv2.CAP_DSHOW)
+            else:
+                #self._capture.open(self.camera_id, cv2.CAP_FFMPEG)
+                self._capture.open(self.camera_id)
+
         if self._capture.isOpened():
             self._is_connected = True
 
@@ -284,7 +292,7 @@ class Camera_usb(Camera):
         self.set_exposure(self._exposure, force=True)
 
     def set_frame_rate(self, value):
-	print("Set Frame rate: ", value)
+	logger.info("Set Frame rate: {0}".format(value))
         if LooseVersion(cv2.__version__) >= LooseVersion("3.4.4"):
             if self._capture.getBackendName() in ["MSMF"]:
                 logger.info("UNSUPPORTED for this video backend {0}".format(self._capture.getBackendName()))

@@ -48,7 +48,10 @@ Is there any 3D scanner project that superseeds Horus?
 - some bugs fixed
 
 
-
+Discussion board:  
+https://vk.com/topic-99790498_40015734  
+  
+  
 Night Gryphon  
 ngryph@gmail.com  
 http://vk.com/wingcatlab  
