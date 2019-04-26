@@ -171,6 +171,9 @@ class VideoSettings(ExpandablePanel):
             self.add_control('camera_width', IntTextBox, _("Width"))
             self.add_control('camera_height', IntTextBox, _("Height"))
             self.add_control('set_resolution_button', Button, _("Set resolution"))
+        if driver.camera.focus_supported():
+            self.add_control(
+                'camera_focus', Slider, _("Manual focus"))
 
     def update_callbacks(self):
         self.update_callback('camera_rotate', lambda v: driver.camera.set_rotate(v))
@@ -178,6 +181,8 @@ class VideoSettings(ExpandablePanel):
         self.update_callback('camera_vflip', lambda v: driver.camera.set_vflip(v))
         if not sys.is_darwin():
             self.update_callback('set_resolution_button', self._set_resolution)
+        if driver.camera.focus_supported():
+            self.update_callback('camera_focus', lambda v: driver.camera.set_focus(v))
 
     def _set_resolution(self):
         if not sys.is_darwin():

@@ -109,11 +109,15 @@ class Camera_usb(Camera):
         if self._capture.isOpened():
             self._is_connected = True
 
+            # set generic params
             #self.set_resolution(10000,10000)
             self._capture.set(self.CV_CAP_PROP_FRAME_WIDTH,10000)
             self._capture.set(self.CV_CAP_PROP_FRAME_HEIGHT,10000)
             self._update_resolution()
             self._capture.set(self.CV_CAP_PROP_FPS, 30)
+            if LooseVersion(cv2.__version__) > LooseVersion("3.4.4"):
+                self._capture.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+                self.get_focus()
 
             logger.info("  check_video")
             self._check_video()
@@ -422,3 +426,19 @@ class Camera_usb(Camera):
                 baselist = baselist + glob.glob(device)
             self._video_list = baselist
         return self._video_list
+
+    def set_focus(self, value):
+        if self._is_connected and \
+           LooseVersion(cv2.__version__) > LooseVersion("3.4.4"):
+            self._capture.set(cv2.CAP_PROP_FOCUS, value)
+        self._focus = value
+
+    def get_focus(self):
+        if self._is_connected and \
+           LooseVersion(cv2.__version__) > LooseVersion("3.4.4"):
+            self._focus = self._capture.get(cv2.CAP_PROP_FOCUS)
+        return self._focus
+
+    def focus_supported(self):
+        return LooseVersion(cv2.__version__) > LooseVersion("3.4.4")
+

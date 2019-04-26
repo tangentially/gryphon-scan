@@ -65,6 +65,7 @@ class Camera(object):
         self._rotate = True
         self._hflip = True
         self._vflip = False
+        self._focus = 0
 
     def read_profile(self):
         self.set_frame_rate(int(profile.settings['frame_rate']))
@@ -74,6 +75,8 @@ class Camera(object):
         self.set_hflip(profile.settings['camera_hflip'])
         self.set_vflip(profile.settings['camera_vflip'])
         self.set_luminosity(profile.settings['luminosity'])
+        if self.focus_supported():
+            self.set_focus(profile.settings['camera_focus'])
 
     def connect(self):
         raise NotImplementedError
@@ -145,3 +148,12 @@ class Camera(object):
 
     def get_video_list(self):
         raise NotImplementedError
+
+    def set_focus(self, value):
+        self._focus = value
+
+    def get_focus(self):
+        return self._focus
+
+    def focus_supported(self):
+        return False

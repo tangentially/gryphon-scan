@@ -529,6 +529,10 @@ class Settings(collections.MutableMapping):
                     int, 960, min_value=1, max_value=10000))
 
         self._add_setting(
+            Setting('camera_focus', _('Manual focus'), 'calibration_settings',
+                    int, 0, min_value=0, max_value=255))
+
+        self._add_setting(
             Setting('camera_rotate', _('Rotate'), 'calibration_settings', bool, True))
         self._add_setting(
             Setting('camera_hflip', _('Horizontal flip'), 'calibration_settings', bool, True))
