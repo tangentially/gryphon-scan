@@ -164,13 +164,16 @@ class VideoSettings(ExpandablePanel):
         self.add_control('camera_rotate', CheckBox, _("Rotate image"))
         self.add_control('camera_hflip', CheckBox, _("Horizontal flip"))
         self.add_control('camera_vflip', CheckBox, _("Vertical flip"))
-        if sys.is_darwin():
-            self.add_control('camera_width', IntLabel, _("Width"))
-            self.add_control('camera_height', IntLabel, _("Height"))
-        else:
+        if driver.camera.set_resolution_supported():
+            self.add_control('auto_resolution', CheckBox, _("MAX resolution"))
             self.add_control('camera_width', IntTextBox, _("Width"))
             self.add_control('camera_height', IntTextBox, _("Height"))
             self.add_control('set_resolution_button', Button, _("Set resolution"))
+
+            if self.get_control('camera_width').GetValue()<0 or self.get_control('camera_height').GetValue()<0:
+                self.get_control('auto_resolution').SetValue(True)
+                self._auto_resolution(True)
+            
         if driver.camera.focus_supported():
             self.add_control(
                 'camera_focus', Slider, _("Manual focus"))
@@ -179,7 +182,8 @@ class VideoSettings(ExpandablePanel):
         self.update_callback('camera_rotate', lambda v: driver.camera.set_rotate(v))
         self.update_callback('camera_hflip', lambda v: driver.camera.set_hflip(v))
         self.update_callback('camera_vflip', lambda v: driver.camera.set_vflip(v))
-        if not sys.is_darwin():
+        if driver.camera.set_resolution_supported():
+            self.update_callback('auto_resolution', lambda v: self._auto_resolution(v))
             self.update_callback('set_resolution_button', self._set_resolution)
         if driver.camera.focus_supported():
             self.update_callback('camera_focus', lambda v: driver.camera.set_focus(v))
@@ -212,6 +216,29 @@ class VideoSettings(ExpandablePanel):
                     driver.camera.set_resolution(old_width, old_height)
                     self.get_control('camera_width').SetValue(old_width)
                     self.get_control('camera_height').SetValue(old_height)
+
+    def _auto_resolution(self, value):
+        if value:
+            driver.camera.set_resolution(-1, -1)
+            self.get_control('camera_width').SetValue(-1)
+            self.get_control('camera_height').SetValue(-1)
+            self.get_control('camera_width').Hide()
+            self.get_control('camera_height').Hide()
+            self.get_control('set_resolution_button').Hide()
+        else:
+            if driver.is_connected:
+                self.get_control('camera_width').SetValue(driver.camera._width)
+                self.get_control('camera_height').SetValue(driver.camera._height)
+            self.get_control('camera_width').Show()
+            self.get_control('camera_height').Show()
+            self.get_control('set_resolution_button').Show()
+
+        if sys.is_wx30():
+            self.content.SetSizerAndFit(self.content.vbox)
+        if sys.is_windows():
+            self.parent.Refresh()
+        self.parent.Layout()
+        self.Layout()
 
 
 class CameraIntrinsics(ExpandablePanel):

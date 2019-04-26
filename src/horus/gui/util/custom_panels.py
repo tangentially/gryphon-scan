@@ -487,6 +487,14 @@ class CheckBox(ControlPanel):
         self.set_engine(value)
         self.release_restore()
 
+    def GetValue(self):
+        return self.control.GetValue()
+
+    def SetValue(self, value):
+        self.control.SetValue(value)
+        self.update_to_profile(value)
+        self.set_engine(value)
+
 
 class RadioButton(ControlPanel):
 

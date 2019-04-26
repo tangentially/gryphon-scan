@@ -5,6 +5,8 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
+from horus.util import profile
+
 import cv2
 import math
 import time
@@ -40,6 +42,8 @@ class Camera_usb(Camera):
         self._last_image = None
         self._video_list = None
         self._tries = 0  # Check if command fails
+
+        self._auto_resolution = False
 
         self.initialize()
 
@@ -109,23 +113,25 @@ class Camera_usb(Camera):
         if self._capture.isOpened():
             self._is_connected = True
 
-            # set generic params
-            #self.set_resolution(10000,10000)
-            self._capture.set(self.CV_CAP_PROP_FRAME_WIDTH,10000)
-            self._capture.set(self.CV_CAP_PROP_FRAME_HEIGHT,10000)
-            self._update_resolution()
-            self._capture.set(self.CV_CAP_PROP_FPS, 30)
+            # set initial resolution to auto, FPS to 30
+            # assume BEFORE any frames captured set resolution and FPS applicable for all backends (?)
+            logger.info("  set initial resolution/FPS")
+            self._auto_resolution = False
+            self.set_resolution(
+                profile.settings['camera_width'], profile.settings['camera_height'], True)
+            self.set_frame_rate(int(profile.settings['frame_rate']), True)
+
             if LooseVersion(cv2.__version__) > LooseVersion("3.4.4"):
                 self._capture.set(cv2.CAP_PROP_AUTOFOCUS, 0)
                 self.get_focus()
 
-            logger.info("  check_video")
+            logger.info("  check read frame")
             self._check_video()
 
-            logger.info("  check_camera")
+            logger.info("  check adjust exposure/brightness")
             self._check_camera()
 
-            logger.info("  check_driver")
+            logger.info("  check win driver bug")
             self._check_driver()
 
             logger.info(" Done")
@@ -295,36 +301,51 @@ class Camera_usb(Camera):
         Camera.set_luminosity(self, value)
         self.set_exposure(self._exposure, force=True)
 
-    def set_frame_rate(self, value):
+    def set_frame_rate(self, value, init_phase=False):
 	logger.info("Set Frame rate: {0}".format(value))
-        if LooseVersion(cv2.__version__) >= LooseVersion("3.4.4"):
-            if self._capture.getBackendName() in ["MSMF"]:
-                logger.info("UNSUPPORTED for this video backend {0}".format(self._capture.getBackendName()))
-                return
-        else:
-            if system == 'Windows':
-                logger.info("Possible unsupported. Skipping.")
-                return
-
         if self._is_connected:
+            if not init_phase:
+                if LooseVersion(cv2.__version__) >= LooseVersion("3.4.4"):
+                    if self._capture.getBackendName() in ["MSMF"]:
+                        logger.info("UNSUPPORTED for this video backend {0}".format(self._capture.getBackendName()))
+                        return
+                else:
+                    if system == 'Windows':
+                        logger.info("Possible unsupported. Skipping.")
+                        return
+
             if self._frame_rate != value:
                 self._frame_rate = value
                 self._updating = True
                 self._capture.set(self.CV_CAP_PROP_FPS, value)
                 self._updating = False
 
-    def set_resolution(self, width, height):
-        logger.info("Set Resolution: {0}x{1}".format(width, height))
-        if LooseVersion(cv2.__version__) >= LooseVersion("3.4.4"):
-            if self._capture.getBackendName() in ["MSMF"]:
-                logger.info("UNSUPPORTED for this video backend {0}".format(self._capture.getBackendName()))
-                return
-        else:
-            if system == 'Windows':
-                logger.info("Possible unsupported. Skipping.")
-                return
+    def set_resolution_supported(self, init_phase=False):
+        # init_phase - bypass for systems support set resolution before capture first frame
+        if system == 'Darwin':
+            return False
 
-        if self._is_connected:
+        if self._is_connected and not init_phase:
+            if LooseVersion(cv2.__version__) >= LooseVersion("3.4.4"):
+                if self._capture.getBackendName() in ["MSMF"]:
+                    return False
+            else:
+                if system == 'Windows':
+                    return False
+        return True
+
+    def set_resolution(self, width, height, init_phase = False):
+        logger.info("Set Resolution: {0}x{1}".format(width, height))
+        if self._is_connected and self.set_resolution_supported(init_phase):
+            if width>0 and height>0:
+                self._auto_resolution = False
+            else:
+                if self._auto_resolution:
+                    return
+                self._auto_resolution = True
+                width = 10000
+                height = 10000
+
             if self._width != width or self._height != height:
                 self._updating = True
                 self._set_width(width)

@@ -137,11 +137,15 @@ class Settings(collections.MutableMapping):
 
         json_dict["settings_version"] = self.settings_version
         for key in self._settings_dict.keys():
-            if categories is not None and self.get_setting(key)._category not in categories:
+            cur_setting = self.get_setting(key)
+            if categories is not None and cur_setting._category not in categories:
                 continue
-            if self.get_setting(key)._category not in json_dict:
-                json_dict[self.get_setting(key)._category] = dict()
-            json_dict[self.get_setting(key)._category][key] = self.get_setting(key)._to_json_dict()
+            # hack to use panel add_control()
+            if cur_setting._category == 'no_settings':
+                continue
+            if cur_setting._category not in json_dict:
+                json_dict[cur_setting._category] = dict()
+            json_dict[cur_setting._category][key] = cur_setting._to_json_dict()
         return json_dict
 
     # Other
@@ -471,6 +475,8 @@ class Settings(collections.MutableMapping):
             Setting('autocheck_button', _('Perform autocheck'), 'no_settings', unicode, u''))
         self._add_setting(
             Setting('set_resolution_button', _('Set resolution'), 'no_settings', unicode, u''))
+        self._add_setting(
+            Setting('auto_resolution', _('MAX resolution'), 'no_settings', bool, False))
 
         # -- Calibration Settings
 
@@ -523,10 +529,10 @@ class Settings(collections.MutableMapping):
 
         self._add_setting(
             Setting('camera_width', _('Width'), 'calibration_settings',
-                    int, 1280, min_value=1, max_value=10000))
+                    int, -1, min_value=-1, max_value=10000))
         self._add_setting(
             Setting('camera_height', _('Height'), 'calibration_settings',
-                    int, 960, min_value=1, max_value=10000))
+                    int, -1, min_value=-1, max_value=10000))
 
         self._add_setting(
             Setting('camera_focus', _('Manual focus'), 'calibration_settings',

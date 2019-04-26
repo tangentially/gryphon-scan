@@ -13,11 +13,11 @@ Also to enhance the existing functions and to fix bugs.
 ###### For the people who expect software with the single "Make Cool Scan" button
 Sorry guys. This is DIY project not the finished commercial software. 
 If you are not ready for some manual install and adjustments than please don't waste your time.  
-This project need a bit of understanding how this things are work. Here can be some bug's. 
+This project need a bit of understanding how things are work. Here can be some bug's. 
 This is platform for learning and experiments.  
 
-I will try to make things more smooth but i can not warranty this SW will work out of the box in every environment. 
-Most likely you'll need to spend some time and use brain to make things work.
+I will try to make things work smooth but i can not warranty everything will work out of the box in every environment. 
+Most likely you'll need to spend some time and use brain to make things work.  
 
 Please don't write that shitty comments as you do for Ciclop/Horus. This is not expected to be out of the box solution.  
 
@@ -29,6 +29,7 @@ Is there any 3D scanner project that superseeds Horus?
 
 ###### At the moment:
 - customizible camera height/angle/distance
+- support for autofocus cameras (camera driver has to support manual focus), autodetect camera resolution
 - customizible scan area (turntable) size
 - photo lights control support at laser pins 3 and 4 (be aware that board hardware pins current is limited and you need extra hardware for powerful lights)
 - fixed turntable firmware hello string detection (horus-fw 2.0 support or any custom grbl based firmwares if same G-codes are supported)
@@ -61,7 +62,7 @@ http://vk.com/wingcatlab
 ### Installing Python 2.7.16 (latest 2.7) for Gryphon Scan
 This notes can be incomplete. This is my experience for my environment (Win 8.1)
 Yes, there is bundler scripts in Horus but there is a lot of broken download links and old software versions.
-I plan to switch to new OpenCV to use markers to enchance calibration  
+I plan to switch to new OpenCV with contrib package (4.1.0 at the moment)  
 
 1. Get and install latest Python 2.7  
 https://www.python.org/downloads/release/python-2716/  

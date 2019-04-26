@@ -60,8 +60,8 @@ class Camera(object):
         self._exposure = 0
         self._luminosity = 1.0
         self._frame_rate = 0
-        self._width = 0
-        self._height = 0
+        self._width = 1280 # default Logitech C960
+        self._height = 960
         self._rotate = True
         self._hflip = True
         self._vflip = False
@@ -127,9 +127,13 @@ class Camera(object):
     def set_frame_rate(self, value):
         self._frame_rate = value
 
+    def set_resolution_supported(self):
+        return False
+
     def set_resolution(self, width, height):
-        self._width = width
-        self._height = height
+        if width>0 and height>0:
+            self._width = width
+            self._height = height
 
     def set_light(self, idx, brightness):
         raise NotImplementedError
