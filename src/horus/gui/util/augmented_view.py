@@ -26,7 +26,7 @@ def init_platform_augmented_draw():
     platform_points = np.float32( [(0,0,0),(r,0,h),(-r,0,h),(0,r,h),(0,-r,h),(rr,rr,h),(rr,-rr,h),(-rr,rr,h),(-rr,-rr,h)])
 
     h = profile.settings['machine_shape_z']
-    polys = profile.get_machine_size_polygons(profile.settings["machine_shape"])
+    polys = profile.get_machine_size_polygons()
     platform_border = []
     for p in polys[0]:
         platform_border.append( ( p[0], p[1], h) )
@@ -123,11 +123,11 @@ def augmented_draw_pattern(image, corners):
         else:
             # paint on distorted image. need add distortion
             distortion = calibration_data.distortion_vector
-
         points = np.float32( (
             (l,t,0),(r,t,0),(r,b,0),(l,b,0),
             (l-wl,t-wt,0),(r+wr,t-wt,0),(r+wr,b+wb,0),(l-wl,b+wb,0),
-            (l-wl,b-horus.gui.engine.pattern.square_width+horus.gui.engine.pattern.origin_distance,0),(r+wr,b-horus.gui.engine.pattern.square_width+horus.gui.engine.pattern.origin_distance,0)
+            (l-wl,b-horus.gui.engine.pattern.square_width+horus.gui.engine.pattern.origin_distance,0),(r+wr,b-horus.gui.engine.pattern.square_width+horus.gui.engine.pattern.origin_distance,0),
+            (l,b,0),(l,b,-50)
             ) )
         p, jac = cv2.projectPoints(points, \
             pose[0], \
@@ -138,6 +138,7 @@ def augmented_draw_pattern(image, corners):
         cv2.polylines(image, np.int32([p[0:4]]), True, (0,255,0), 2)
         cv2.polylines(image, np.int32([p[4:8]]), True, (255,0,0), 2)
         cv2.line(image, tuple(p[8]), tuple(p[9]), (255,0,0), 2)
+        cv2.line(image, tuple(p[10]), tuple(p[11]), (255,0,0), 2)
     return image
 
 #pattern mask
@@ -195,12 +196,15 @@ def overlay_mask(image, mask, color=(255,0,0)):
 
 
 # estimate platform rotate angle to to make pattern on platform perpendicular to camera
-def estimate_platform_angle_from_pattern(pose):
+def estimate_platform_angle_from_pattern(pose, use_camera_space = False):
 #	pose = horus.gui.engine.image_detection.detect_pose_from_corners(corners)
     calibration = horus.gui.engine.platform_extrinsics.calibration_data
     if pose is not None:
         if calibration.platform_rotation is not None and \
-           calibration.platform_translation is not None:
+           np.count_nonzero(calibration.platform_rotation) > 0 and \
+           calibration.platform_translation is not None and \
+           np.count_nonzero(calibration.platform_translation) > 0 and \
+           not use_camera_space:
             # Platform position known. Calculate angle in platform space
 
             # pattern normal in camera space
@@ -221,6 +225,7 @@ def estimate_platform_angle_from_pattern(pose):
             # camera Z to pattern space
             v = np.float32([(0,0,1)]).dot(pose[0]) # camera Z axis to pattern space
             return math.copysign(np.rad2deg(math.acos(v[0,2]/np.linalg.norm( (v[0,0], v[0,2]) ))), v[0,0]) 
+    return None
 
 # draw laser plane projection
 def augmented_draw_lasers_on_platform(image):
@@ -238,19 +243,20 @@ def augmented_draw_lasers_on_platform(image):
 
             p_norm, p_dist = pos2nd(calibration.platform_rotation, calibration.platform_translation)
             for laser in calibration.laser_planes:
-                line_vec, line_p = plane_cross(p_norm, p_dist, laser.normal, laser.distance)
-                
-                p1, p2 = line_cross_sphere(line_vec, line_p, 
-                    calibration.platform_translation, 
-                    profile.settings['machine_diameter']/2 )
-                points = np.float32([p1, p2])
-                p, jac = cv2.projectPoints(points,
-                    np.identity(3),
-                    np.zeros(3),
-                    calibration.camera_matrix,
-                    distortion)
-                p = np.int32(p).reshape(-1,2)
-                cv2.line(image, tuple(p[0]), tuple(p[1]), (255,0,0), 2)
+                if not laser.is_empty():
+                    line_vec, line_p = plane_cross(p_norm, p_dist, laser.normal, laser.distance)
+                    
+                    p1, p2 = line_cross_sphere(line_vec, line_p, 
+                        calibration.platform_translation, 
+                        profile.settings['machine_diameter']/2 )
+                    points = np.float32([p1, p2])
+                    p, jac = cv2.projectPoints(points,
+                        np.identity(3),
+                        np.zeros(3),
+                        calibration.camera_matrix,
+                        distortion)
+                    p = np.int32(p).reshape(-1,2)
+                    cv2.line(image, tuple(p[0]), tuple(p[1]), (255,0,0), 2)
 
 
 def augmented_draw_lasers_on_pattern(image, pose):

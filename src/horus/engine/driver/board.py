@@ -89,6 +89,9 @@ class Board(object):
                     self.motor_speed(1)
                     self._serial_port.timeout = 0.05
                     self._is_connected = True
+                    # Send init string
+                    if profile.settings['init_string']:
+                        self._send_command(profile.settings['init_string'].encode('ascii','ignore'))
                     # Set current position as origin
                     self.motor_speed(profile.settings['motor_speed_control'])
                     self.motor_acceleration(profile.settings['motor_acceleration_control'])

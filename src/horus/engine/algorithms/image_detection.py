@@ -67,16 +67,6 @@ class ImageDetection(object):
         if image is not None:
             h, w, d = image.shape
             if corners is not None:
-                """
-                corners = corners.astype(np.int)
-                p1 = corners[0][0]
-                p2 = corners[self.pattern.columns - 1][0]
-                p3 = corners[self.pattern.columns * (self.pattern.rows - 1)][0]
-                p4 = corners[self.pattern.columns * self.pattern.rows - 1][0]
-                mask = np.zeros((h, w), np.uint8)
-                points = np.array([p1, p2, p4, p3])
-                cv2.fillConvexPoly(mask, points, 255)
-                """
                 mask = augmented_pattern_mask(image, corners)
                 image = cv2.bitwise_and(image, image, mask=mask)
 #                if self.chessboard_mask is not None:

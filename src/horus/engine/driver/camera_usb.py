@@ -96,7 +96,10 @@ class Camera_usb(Camera):
             self._capture.release()
 
         if system == 'Windows':
-            self._capture = cv2.VideoCapture(self.camera_id, cv2.CAP_DSHOW)
+            if LooseVersion(cv2.__version__) > LooseVersion("3.4.4"):
+                self._capture = cv2.VideoCapture(self.camera_id, cv2.CAP_DSHOW)
+            else:
+                self._capture = cv2.VideoCapture(self.camera_id)
         else:
             #self._capture = cv2.VideoCapture(self.camera_id, cv2.CAP_FFMPEG)
             self._capture = cv2.VideoCapture(self.camera_id)
@@ -105,7 +108,10 @@ class Camera_usb(Camera):
         if not self._capture.isOpened():
             time.sleep(1)
             if system == 'Windows':
-                self._capture.open(self.camera_id, cv2.CAP_DSHOW)
+                if LooseVersion(cv2.__version__) > LooseVersion("3.4.4"):
+                    self._capture.open(self.camera_id, cv2.CAP_DSHOW)
+                else:
+                    self._capture.open(self.camera_id)
             else:
                 #self._capture.open(self.camera_id, cv2.CAP_FFMPEG)
                 self._capture.open(self.camera_id)

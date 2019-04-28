@@ -660,6 +660,8 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('firmware_string', 'Firmware version string', 'preferences', unicode, u"Horus 0.2 ['$' for help]"))
         self._add_setting(
+            Setting('init_string', 'Board init string', 'preferences', unicode, u''))
+        self._add_setting(
             Setting('invert_motor', _('Invert motor'), 'preferences', bool, False))
         self._add_setting(
             Setting('language', _('Language'), 'preferences', unicode, u'English',
@@ -913,16 +915,29 @@ def load_settings():
 
 # Returns a list of convex polygons, first polygon is the allowed area of the machine,
 # the rest of the polygons are the dis-allowed areas of the machine.
-def get_machine_size_polygons(machine_shape):
+def get_machine_size_polygons():
+    machine_shape = settings["machine_shape"]
     if machine_shape == "Circular":
-        size = np.array(
-            [settings['machine_diameter'],
-             settings['machine_diameter'],
-             settings['machine_height']], np.float32)
+        size = np.array([ settings['machine_diameter'],
+                          settings['machine_diameter'],
+                          settings['machine_height'] ], np.float32)
     elif machine_shape == "Rectangular":
-        size = np.array([settings['machine_width'],
-                         settings['machine_depth'],
-                         settings['machine_height']], np.float32)
+        size = np.array([ settings['machine_width'],
+                          settings['machine_depth'],
+                          settings['machine_height'] ], np.float32)
+    return get_size_polygons(size, machine_shape)
+
+
+def get_roi_size_polygons():
+    machine_shape = settings["machine_shape"]
+    if machine_shape == "Circular":
+        size = np.array([ settings['roi_diameter'],
+                          settings['roi_diameter'],
+                          settings['roi_height'] ], np.float32)
+    elif machine_shape == "Rectangular":
+        size = np.array([ settings['roi_width'],
+                          settings['roi_depth'],
+                          settings['roi_height'] ], np.float32)
     return get_size_polygons(size, machine_shape)
 
 

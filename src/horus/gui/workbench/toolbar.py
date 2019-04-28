@@ -213,13 +213,13 @@ class MainToolbar(wx.Panel):
     def on_r_left_tool_clicked(self, item):
         step = profile.settings['motor_step_control']
         self._enable_control_tools(False)
-        driver.board.motor_move(-step, nonblocking=False, callback=lambda v: self._enable_control_tools(True))
+        driver.board.motor_move(step, nonblocking=False, callback=lambda v: self._enable_control_tools(True))
 #        self._enable_control_tools(True)
 
     def on_r_right_tool_clicked(self, item):
         step = profile.settings['motor_step_control']
         self._enable_control_tools(False)
-        driver.board.motor_move(step, nonblocking=False, callback=lambda v: self._enable_control_tools(True))
+        driver.board.motor_move(-step, nonblocking=False, callback=lambda v: self._enable_control_tools(True))
 #        self._enable_control_tools(True)
 
     def on_laser_tool_clicked(self, laser_id, state):

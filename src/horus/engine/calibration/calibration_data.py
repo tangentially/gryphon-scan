@@ -21,6 +21,13 @@ class LaserPlane(object):
         self.normal = None
         self.distance = None
 
+    def is_empty(self):
+        if self.distance is None or self.normal is None:
+            return True
+        if self.distance == 0.0 or np.all(self.normal == 0.0):
+            return True
+        return False
+
 
 @Singleton
 class CalibrationData(object):
@@ -107,19 +114,28 @@ class CalibrationData(object):
         self._weight_matrix = np.array((np.matrix(np.linspace(0, self.width - 1, self.width)).T *
                                         np.matrix(np.ones(self.height))).T)
 
-    def check_calibration(self):
+    def check_camera_calibration(self):
         if self.camera_matrix is None or self.distortion_vector is None:
             return False
+        return True
+
+    def check_lasers_calibration(self):
         for plane in self.laser_planes:
-            if plane.distance is None or plane.normal is None:
+            if plane is None or plane.is_empty():
                 return False
-            if plane.distance == 0.0 or self._is_zero(plane.normal):
-                return False
+        return True
+
+    def check_platform_calibration(self):
         if self.platform_rotation is None or self.platform_translation is None:
             return False
         if self._is_zero(self.platform_rotation) or self._is_zero(self.platform_translation):
             return False
         return True
+
+    def check_calibration(self):
+        return self.check_camera_calibration() and \
+            self.check_lasers_calibration() and \
+            self.check_platform_calibration()
 
     def _is_zero(self, array):
         return np.all(array == 0.0)

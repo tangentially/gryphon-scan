@@ -649,17 +649,8 @@ class SceneView(opengl_gui.glGuiPanel):
 
         machine_shape = profile.settings['machine_shape']
 
-        if machine_shape == 'Circular':
-            size = numpy.array([profile.settings['roi_diameter'],
-                                profile.settings['roi_diameter'],
-                                profile.settings['roi_height']], numpy.float32)
-        elif machine_shape == 'Rectangular':
-            size = numpy.array([profile.settings['roi_width'],
-                                profile.settings['roi_depth'],
-                                profile.settings['roi_height']], numpy.float32)
-
         if self._view_roi:
-            polys = profile.get_size_polygons(size, machine_shape)
+            polys = profile.get_roi_size_polygons()
             height = profile.settings['roi_height']
 
             # Draw the sides of the build volume.
@@ -705,7 +696,7 @@ class SceneView(opengl_gui.glGuiPanel):
             gluCylinder(quadric, 6, 6, 1, 32, 16)
             glTranslate(0, 0, -height + 1)
 
-        polys = profile.get_machine_size_polygons(profile.settings["machine_shape"])
+        polys = profile.get_machine_size_polygons()
 
         # Draw checkerboard
         if self._platform_texture is None:

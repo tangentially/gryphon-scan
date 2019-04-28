@@ -60,8 +60,8 @@ class Camera(object):
         self._exposure = 0
         self._luminosity = 1.0
         self._frame_rate = 0
-        self._width = 1280 # default Logitech C960
-        self._height = 960
+        self._width = 0 # has to be detected at camera connect
+        self._height = 0
         self._rotate = True
         self._hflip = True
         self._vflip = False
