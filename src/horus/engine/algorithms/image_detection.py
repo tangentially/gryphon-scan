@@ -73,12 +73,15 @@ class ImageDetection(object):
 #                    image = cv2.bitwise_and(image, image, mask=self.chessboard_mask)
         return image
 
-    def _detect_chessboard(self, image):
+    def _detect_chessboard(self, image, retry = True):
         if image is not None:
             if self.pattern.rows > 2 and self.pattern.columns > 2:
                 gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
                 ret, corners = cv2.findChessboardCorners(
                     gray, (self.pattern.columns, self.pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
+                if retry and not ret:
+                    ret, corners = cv2.findChessboardCorners(
+                        gray, (self.pattern.columns, self.pattern.rows), flags=0)
                 if ret:
                     self.chessboard_mask = cv2.threshold(
                         gray, gray.max() / 2, 255, cv2.THRESH_BINARY)[1]

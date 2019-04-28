@@ -7,10 +7,12 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import numpy as np
 from scipy import optimize
+import cv2
 
 from horus import Singleton
 from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
+from horus.gui.util.augmented_view import augmented_draw_pattern
 
 import logging
 logger = logging.getLogger(__name__)
@@ -47,23 +49,76 @@ class PlatformExtrinsics(MovingCalibration):
         self.y = []
         self.z = []
 
+        self.x1 = []
+        self.y1 = []
+        self.z1 = []
+
     def _capture(self, angle):
         image = self.image_capture.capture_pattern()
-        pose = self.image_detection.detect_pose(image)
+        corners = self.image_detection.detect_corners(image)
+        pose = self.image_detection.detect_pose_from_corners(corners)
+#        pose = self.image_detection.detect_pose(image)
         if pose is not None:
+            print("\n---- platform_extrinsics ---")
+            # detect_pose() uses distortion while estimate pattern pose
+
+            # ----- bottom point from pattern pose -----
+            #rvec = pose[0]
+            tvec = pose[1].T[0]
+            #point = np.float32([0, self.pattern.square_width * (self.pattern.rows-1),0])
+            #pp = rvec.dot(point) + tvec
+            pp = (self.pattern.square_width * (self.pattern.rows-1)) * pose[0].T[1] + pose[1].T[0]
+            #pp = (self.pattern.square_width * (self.pattern.rows-1) + self.pattern.origin_distance) * pose[0].T[1] + pose[1].T[0]
+            print(pp) # bottom point from pattern pose
+            self.x += [pp[0]]
+            self.y += [pp[1]]
+            self.z += [pp[2]]
+            #self.image = self.image_detection.draw_pattern(image, corners)
+            self.image = augmented_draw_pattern(image, corners)
+
+            self.x1 += [tvec[0]]
+            self.y1 += [tvec[1]]
+            self.z1 += [tvec[2]]
+
+            p, jac = cv2.projectPoints(np.float32( [tuple(pp)] ), \
+                np.identity(3),
+                np.zeros(3),
+                self.calibration_data.camera_matrix, \
+                self.calibration_data.distortion_vector )
+            print(p) # bottom point projection
+            
+            # ----- bottom point from corner projection -----
             plane = self.image_detection.detect_pattern_plane(pose)
             if plane is not None:
                 distance, normal, corners = plane
-                self.image = self.image_detection.draw_pattern(image, corners)
+                #self.image = self.image_detection.draw_pattern(image, corners)
                 if corners is not None:
+                    # ----- original Ciclop -----
+                    print("--- distorted ---")
                     origin = corners[self.pattern.columns * (self.pattern.rows - 1)][0]
                     origin = np.array([[origin[0]], [origin[1]]])
+                    #origin = p[0].T # debug: test with point projection from prev step
+                    print(origin.T)
+
                     t = self.point_cloud_generation.compute_camera_point_cloud(
                         origin, distance, normal)
                     if t is not None:
-                        self.x += [t[0][0]]
-                        self.y += [t[1][0]]
-                        self.z += [t[2][0]]
+                        #self.x += [t[0][0]]
+                        #self.y += [t[1][0]]
+                        #self.z += [t[2][0]]
+                        print( [t[0][0], t[1][0], t[2][0]])
+                        print( np.array([t[0][0], t[1][0], t[2][0]]) - pp)
+            
+                    # ----- using undistort -----
+                    o = self.point_cloud_generation.undistort_points(origin, image.shape[:-1]) #[::-1])
+                    o = tuple(o.T)
+                    #print(o)
+                    t = self.point_cloud_generation.compute_camera_point_cloud(
+                        o, distance, normal)
+                    if t is not None:
+                        print( [t[0][0], t[1][0], t[2][0]])
+                        print( np.array([t[0][0], t[1][0], t[2][0]]) - pp)
+            
         else:
             self.image = image
 
@@ -76,6 +131,11 @@ class PlatformExtrinsics(MovingCalibration):
         self.z = np.array(self.z)
         points = zip(self.x, self.y, self.z)
 
+        self.x1 = np.array(self.x1)
+        self.y1 = np.array(self.y1)
+        self.z1 = np.array(self.z1)
+        points1 = zip(self.x1, self.y1, self.z1)
+
         if len(points) > 4:
             # Fitting a plane
             point, normal = fit_plane(points)
@@ -84,12 +144,37 @@ class PlatformExtrinsics(MovingCalibration):
             # Fitting a circle inside the plane
             center, self.R, circle = fit_circle(point, normal, points)
             # Get real origin
-            self.t = center - self.pattern.origin_distance * np.array(normal)
+            self.t = center #- self.pattern.origin_distance * np.array(normal)
 
             logger.info("Platform calibration ")
             logger.info(" Translation: " + str(self.t))
             logger.info(" Rotation: " + str(self.R).replace('\n', ''))
             logger.info(" Normal: " + str(normal))
+
+            # ==== top circle points
+            point1, normal1 = fit_plane(points1)
+            if normal1[1] > 0:
+                normal1 = -normal1
+            # Fitting a circle inside the plane
+            center1, self.R1, circle1 = fit_circle(point1, normal1, points1)
+            # Get real origin
+            self.t1 = center1 - (self.pattern.square_width * (self.pattern.rows-1) + self.pattern.origin_distance) * np.array(normal)
+
+            normal_c = center - center1
+            normal_c /= np.linalg.norm(normal_c)
+
+            normal_avg = (normal + normal1)/2
+
+            logger.info(" --- TOP --- ")
+            logger.info(" Translation Top: " + str(self.t1))
+            logger.info(" Rotation Top: " + str(self.R1).replace('\n', ''))
+            logger.info(" Normal Top: " + str(normal1))
+            logger.info(" --- by Centers --- ")
+            logger.info(" Normal by Centers: " + str( normal_c ))
+            logger.info(" Rotation : " + str(make_R(normal_c)).replace('\n', ''))
+            logger.info(" --- AVG --- ")
+            logger.info(" Normal avg: " + str( normal_avg ))
+            logger.info(" Rotation : " + str(make_R(normal_avg)).replace('\n', ''))
 
         if self._is_calibrating and self.t is not None: # and \
 #           np.linalg.norm(self.t - estimated_t) < 100:
@@ -148,6 +233,18 @@ def residuals_circle(parameters, points, s, r, point):
     distance = [np.linalg.norm(plane_point - np.array([x, y, z])) for x, y, z in points]
     res = [(Ri - dist) for dist in distance]
     return res
+
+
+def make_R(normal):
+    # creating two inplane vectors
+    # assuming that normal not parallel x!
+    s = np.cross(np.array([1, 0, 0]), np.array(normal))
+    s = s / np.linalg.norm(s)
+    r = np.cross(np.array(normal), s)
+    r = r / np.linalg.norm(r)  # should be normalized already, but anyhow
+
+    # Define rotation
+    return np.array([s, r, normal]).T
 
 
 def fit_circle(point, normal, points):

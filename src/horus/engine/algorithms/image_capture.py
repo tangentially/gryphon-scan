@@ -105,7 +105,7 @@ class ImageCapture(object):
         self._mode.selected = True
         self._remove_background = True
         self._updating = False
-        self.use_distortion = False
+#        self.use_distortion = False
 
     def initialize(self):
         self.texture_mode.initialize()
@@ -124,8 +124,8 @@ class ImageCapture(object):
         self._flush_stream_pattern = pattern
         self._flush_stream_mode = mode
 
-    def set_use_distortion(self, value):
-        self.use_distortion = value
+#    def set_use_distortion(self, value):
+#        self.use_distortion = value
 
     def set_remove_background(self, value):
         self._remove_background = value
@@ -272,6 +272,7 @@ class ImageCapture(object):
 
     def capture_image(self, flush=0):
         image = self.driver.camera.capture_image(flush=flush)
+        '''
         if self.use_distortion:
             if image is not None and \
                self.calibration_data.camera_matrix is not None and \
@@ -282,4 +283,5 @@ class ImageCapture(object):
                                       self.calibration_data.distortion_vector,
                                       None,
                                       self.calibration_data.dist_camera_matrix)
+        '''
         return image

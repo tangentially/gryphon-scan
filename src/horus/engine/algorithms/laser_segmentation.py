@@ -83,6 +83,16 @@ class LaserSegmentation(object):
                 u = self._ransac(u, v)
             # Saturate u
             u = np.clip(u, 0, self.calibration_data.width - 1)
+            print("compute_2d_points: " + str(u.shape))
+            pp = np.asarray(tuple( (u,v) )).transpose()
+            pp = np.expand_dims(pp, axis=0)
+            print(pp.size)
+            if pp.size>0:
+                print(pp[0][0])
+            
+            s = image.shape
+            print(s[::-1])
+            print("--------------------")
             return (u, v), image
 
     def compute_hough_lines(self, image):
