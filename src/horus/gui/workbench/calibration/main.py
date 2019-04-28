@@ -128,7 +128,6 @@ class CalibrationWorkbench(Workbench):
         image_capture.texture_mode.read_profile('texture_scanning')
         image_capture.laser_mode.read_profile('laser_calibration')
 
-#        image_capture.set_use_distortion(profile.settings['use_distortion'])
         image_capture.set_remove_background(profile.settings['remove_background_calibration'])
 
         laser_segmentation.read_profile('calibration')

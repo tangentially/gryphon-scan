@@ -11,7 +11,6 @@ import cv2
 
 from horus import Singleton
 from horus.engine.calibration.calibration_data import CalibrationData
-from horus.engine.driver.driver import Driver
 
 
 @Singleton
@@ -19,7 +18,6 @@ class PointCloudGeneration(object):
 
     def __init__(self):
         self.calibration_data = CalibrationData()
-        self.driver = Driver() # load driver singleton
 
     def compute_point_cloud(self, theta, points_2d, index):
         # Load calibration values
@@ -47,45 +45,17 @@ class PointCloudGeneration(object):
         return R.T * Xc - R.T * t
 
 
-    def undistort_points(self, points_2d, camera_shape = None): #, keepSize = True):
-        # camera_shape = image.shape[::-1] 
+    def undistort_points(self, points_2d):
         # correct camera distortion
         print("---------- undistort_points ------------")
         print(points_2d.T)
 
-        #pts = np.asarray(tuple(points_2d)).transpose()
-        #pts = np.expand_dims(pts, axis=0)
-
-        #print(pts.shape)
-        #print(pts[0][0])
-        #rs = cv2.undistortPoints(pp, self.calibration_data.camera_matrix, self.calibration_data.distortion_vector)
-        #print(rs)
-
-        if not camera_shape:
-            camera_shape = self.driver.camera.get_resolution()
 	cam = self.calibration_data.camera_matrix
         d = self.calibration_data.distortion_vector
 
-        #pts = np.asarray(points, dtype=np.float32)
-        #if pts.ndim == 2:
-        #    pts = np.expand_dims(pts, axis=0)
-
-        #newCameraMatrix, roi = cv2.getOptimalNewCameraMatrix(cam, d, camera_shape, 1, camera_shape, 0)
-        #print(roi)
-
-	#xx, yy = roi[:2]
-        #u,v = points_2d
-        #pts = np.asarray((u - xx, v - yy)).transpose()
         pts = np.asarray(tuple(points_2d)).transpose()
         pts = np.expand_dims(pts, axis=0)
 
-        #print(pts)
-        #if not keepSize:
-        #    xx, yy = roi[:2]
-        #    pts[0, 0] -= xx
-        #    pts[0, 1] -= yy
-
-        #rs = cv2.undistortPoints(pts, cam, d, P=newCameraMatrix)[0]
         rs = cv2.undistortPoints(pts, cam, d, P=cam)[0]
         print(rs)
         return rs

@@ -54,7 +54,6 @@ class AdjustmentWorkbench(Workbench):
         driver.camera.read_profile()
         self.current_video.mode = profile.settings['current_video_mode_adjustment']
         pattern.read_profile()
-#        image_capture.set_use_distortion(profile.settings['use_distortion'])
         calibration_data.read_profile_camera()
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_adjustment']].on_title_clicked(None)

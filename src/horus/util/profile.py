@@ -554,8 +554,6 @@ class Settings(collections.MutableMapping):
             Setting('distortion_vector', _('Distortion vector'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(5,),
                                            buffer=np.array([0.0, 0.0, 0.0, 0.0, 0.0]))))
-#        self._add_setting(
-#            Setting('use_distortion', _('Use distortion'), 'calibration_settings', bool, False))
 
         self._add_setting(
             Setting('distance_left', _('Distance left (mm)'), 'calibration_settings', float, 0.0))

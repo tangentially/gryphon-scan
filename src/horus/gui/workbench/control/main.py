@@ -54,7 +54,6 @@ class ControlWorkbench(Workbench):
         driver.camera.read_profile()
 
         image_capture.texture_mode.read_profile('control')
-#        image_capture.set_use_distortion(profile.settings['use_distortion'])
         image_capture.set_mode_texture()
 
         calibration_data.read_profile_camera()

@@ -110,9 +110,8 @@ class PlatformExtrinsics(MovingCalibration):
                         print( np.array([t[0][0], t[1][0], t[2][0]]) - pp)
             
                     # ----- using undistort -----
-                    o = self.point_cloud_generation.undistort_points(origin, image.shape[:-1]) #[::-1])
+                    o = self.point_cloud_generation.undistort_points(origin)
                     o = tuple(o.T)
-                    #print(o)
                     t = self.point_cloud_generation.compute_camera_point_cloud(
                         o, distance, normal)
                     if t is not None:
@@ -144,7 +143,8 @@ class PlatformExtrinsics(MovingCalibration):
             # Fitting a circle inside the plane
             center, self.R, circle = fit_circle(point, normal, points)
             # Get real origin
-            self.t = center #- self.pattern.origin_distance * np.array(normal)
+            self.t = center - self.pattern.origin_distance * np.array(normal)
+            #self.t = center
 
             logger.info("Platform calibration ")
             logger.info(" Translation: " + str(self.t))
