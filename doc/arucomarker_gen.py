@@ -1,16 +1,22 @@
 import cairo,argparse,random
 
+# remake of SatoshiRobatoFujimoto/arucomarker.py
+# https://gist.github.com/SatoshiRobatoFujimoto/982a5721ea8842ded202d8a27886d0ea
+
 #TEST: https://jcmellado.github.io/js-aruco/getusermedia/getusermedia.html
 #http://terpconnect.umd.edu/~jwelsh12/enes100/markergen.html
 #http://terpconnect.umd.edu/~jwelsh12/enes100/markers.js
-markers_opts = [[False,True,True,True,True],[False,True,False,False,False]
-                   ,[True,False,True,True,False],[True,False,False,False,True]];
-import string
-digs = string.digits + string.letters
 
+# more online tool with different dictionaries
+# http://chev.me/arucogen/
+
+# aruco_25.pdf
+# python ./arucomarker_gen.py --first=0 --count=60 --markersize=25 --border --bordersize=5 --spacing=0 --cols=5 --rows=8 --pagemargin=10
+
+import string
 import cv2.aruco as aruco
 
-aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_1000) #aruco.DICT_6X6_250) #aruco.DICT_4X4_50)
+aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_1000) # aruco.DICT_6X6_250
 
 def drawMarker(canvas,id,sw,sh,x,y):
     marker = aruco.drawMarker(aruco_dict, id, aruco_dict.markerSize+2)
