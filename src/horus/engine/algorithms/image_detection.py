@@ -33,7 +33,9 @@ class ImageDetection(object):
 
         if aruco_present:
             self.aruco_dict = aruco.Dictionary_get(self.pattern.aruco_dict)
+            # https://docs.opencv.org/3.4.3/d1/dcd/structcv_1_1aruco_1_1DetectorParameters.html
             self.aruco_parameters = aruco.DetectorParameters_create()
+            self.aruco_parameters.cornerRefinementMethod = aruco.CORNER_REFINE_APRILTAG # aruco.CORNER_REFINE_SUBPIX
 
 
     def detect_pattern(self, image):

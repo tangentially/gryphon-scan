@@ -11,7 +11,13 @@ import cairo,argparse,random
 # http://chev.me/arucogen/
 
 # aruco_25.pdf
-# python ./arucomarker_gen.py --first=0 --count=60 --markersize=25 --border --bordersize=5 --spacing=0 --cols=5 --rows=8 --pagemargin=10
+# python ./arucomarker_gen.py --first=0 --count=60 --markersize=25 --border --bordersize=5 --spacing=0 --cols=5 --rows=8 --pagemargin=10 --output=aruco_25.pdf
+
+# 24,36,42
+# python ./arucomarker_gen.py --first=0 --count=60 --markersize=24 --border --bordersize=3 --spacing=0 --cols=6 --rows=9 --pagemargin=10 --output=aruco_24.pdf
+# python ./arucomarker_gen.py --first=30 --count=60 --markersize=36 --border --bordersize=2 --spacing=0 --cols=5 --rows=7 --pagemargin=5 --output=./aruco_36.pdf
+# python ./arucomarker_gen.py --first=40 --count=60 --markersize=42 --border --bordersize=4 --spacing=0 --cols=4 --rows=5 --pagemargin=5 --output=./aruco_42.pdf
+#
 
 import string
 import cv2.aruco as aruco
