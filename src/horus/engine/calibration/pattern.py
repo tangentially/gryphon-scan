@@ -6,6 +6,12 @@ __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import numpy as np
+try:
+    import cv2.aruco as aruco
+    aruco_present = True
+except ImportError:
+    aruco_present = False
+
 
 from horus import Singleton
 
@@ -23,6 +29,10 @@ class Pattern(object):
         self.border_r = 0
         self.border_t = 0
         self.border_b = 0
+
+        if aruco_present:
+            self.aruco_size = 30
+            self.aruco_dict = aruco.DICT_4X4_50 # aruco.DICT_6X6_250
 
     def read_profile(self):
         self.rows = profile.settings['pattern_rows']

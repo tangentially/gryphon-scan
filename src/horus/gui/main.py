@@ -35,7 +35,7 @@ from horus.util import profile, resources, mesh_loader, version, system as sys
 import logging
 logger = logging.getLogger(__name__)
 
-__title__ = "Horus " + __version__
+__title__ = "Horus / Gryphon Scan " + __version__
 
 
 class MainWindow(wx.Frame):

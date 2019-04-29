@@ -95,7 +95,11 @@ class VideoPage(Page):
                 image = image_detection.draw_pattern(image, corners)
                 pose = image_detection.detect_pose_from_corners(corners)
                 augmented_draw_lasers_on_pattern(image, pose)
-            augmented_draw_lasers_on_platform(image)
+                augmented_draw_lasers_on_platform(image)
+
+                corners, ids = image_detection.aruco_detect(image)
+                if corners:
+                    image,_,_ = image_detection.aruco_draw_markers(image, corners, ids)
 
         augmented_draw_platform(image)
         return image
