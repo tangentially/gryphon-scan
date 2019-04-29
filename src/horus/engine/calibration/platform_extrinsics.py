@@ -96,7 +96,7 @@ class PlatformExtrinsics(MovingCalibration):
                     # ----- original Ciclop -----
                     print("--- distorted ---")
                     origin = corners[self.pattern.columns * (self.pattern.rows - 1)][0]
-                    origin = np.array([[origin[0]], [origin[1]]])
+                    origin = np.array([[origin[0], corners[0][0][0]], [origin[1], corners[0][0][1]]])
                     #origin = p[0].T # debug: test with point projection from prev step
                     print(origin.T)
 
@@ -111,7 +111,6 @@ class PlatformExtrinsics(MovingCalibration):
             
                     # ----- using undistort -----
                     o = self.point_cloud_generation.undistort_points(origin)
-                    o = tuple(o.T)
                     t = self.point_cloud_generation.compute_camera_point_cloud(
                         o, distance, normal)
                     if t is not None:
@@ -160,10 +159,13 @@ class PlatformExtrinsics(MovingCalibration):
             # Get real origin
             self.t1 = center1 - (self.pattern.square_width * (self.pattern.rows-1) + self.pattern.origin_distance) * np.array(normal)
 
-            normal_c = center - center1
+            normal_c = center1 - center
             normal_c /= np.linalg.norm(normal_c)
+            R_c = make_R(normal_c)
 
             normal_avg = (normal + normal1)/2
+            center_avg = (self.t + self.t1)/2
+            R_avg = make_R(normal_avg)
 
             logger.info(" --- TOP --- ")
             logger.info(" Translation Top: " + str(self.t1))
@@ -171,14 +173,16 @@ class PlatformExtrinsics(MovingCalibration):
             logger.info(" Normal Top: " + str(normal1))
             logger.info(" --- by Centers --- ")
             logger.info(" Normal by Centers: " + str( normal_c ))
-            logger.info(" Rotation : " + str(make_R(normal_c)).replace('\n', ''))
+            logger.info(" Rotation : " + str(R_c).replace('\n', ''))
             logger.info(" --- AVG --- ")
             logger.info(" Normal avg: " + str( normal_avg ))
-            logger.info(" Rotation : " + str(make_R(normal_avg)).replace('\n', ''))
+            logger.info(" Rotation : " + str(R_avg).replace('\n', ''))
 
         if self._is_calibrating and self.t is not None: # and \
 #           np.linalg.norm(self.t - estimated_t) < 100:
-            response = (True, (self.R, self.t, center, point, normal,
+#            response = (True, (self.R, self.t, center, point, normal,
+#                        [self.x, self.y, self.z], circle))
+            response = (True, (self.R, center_avg, center, point, normal,
                         [self.x, self.y, self.z], circle))
 
         else:

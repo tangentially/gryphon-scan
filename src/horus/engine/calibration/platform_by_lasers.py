@@ -53,21 +53,12 @@ class PlatformByLasers(Calibration):
                 platform_border.append( ( p[0], p[1], 0) )
             platform_border = np.float32(platform_border)
 
-            distortion = self.calibration_data.distortion_vector
-            '''
-            if self.image_capture.use_distortion:
-                # distortion already corrected while capturing underlying image
-                distortion = np.float32( [0,0,0,0,0] )
-            else:
-                # paint on distorted image. need add distortion
-                distortion = self.calibration_data.distortion_vector
-            '''
             # project platform border to mask
             p, jac = cv2.projectPoints(platform_border, \
                 self.calibration_data.platform_rotation, \
                 self.calibration_data.platform_translation, \
                 self.calibration_data.camera_matrix, \
-                distortion)
+                self.calibration_data.distortion_vector)
             p = np.int32([p])
             cv2.fillPoly(mask, p, 1)
 
@@ -77,6 +68,7 @@ class PlatformByLasers(Calibration):
             for idx,image in enumerate(images):
                 image = apply_mask(image, mask)
                 points_2d, image = self.laser_segmentation.compute_2d_points(image)
+                points_2d = self.point_cloud_generation.undistort_points(points_2d)
                 point_3d = self.point_cloud_generation.compute_camera_point_cloud(
                     points_2d, 
                     self.calibration_data.laser_planes[idx].distance, 

@@ -71,6 +71,7 @@ class ComboCalibration(MovingCalibration):
                     image = self.image_detection.pattern_mask(image, corners)
                     self.image = image
                     points_2d, image = self.laser_segmentation.compute_2d_points(image)
+                    points_2d = self.point_cloud_generation.undistort_points(points_2d)
                     point_3d = self.point_cloud_generation.compute_camera_point_cloud(
                         points_2d, distance, normal)
                     if self._point_cloud[i] is None:
@@ -83,14 +84,10 @@ class ComboCalibration(MovingCalibration):
                 print("Skip laser calibration at "+str(alpha))
 
             # Platform extrinsics
-            origin = corners[self.pattern.columns * (self.pattern.rows - 1)][0]
-            origin = np.array([[origin[0]], [origin[1]]])
-            t = self.point_cloud_generation.compute_camera_point_cloud(
-                origin, distance, normal)
-            if t is not None:
-                self.x += [t[0][0]]
-                self.y += [t[1][0]]
-                self.z += [t[2][0]]
+            pp = (self.pattern.square_width * (self.pattern.rows-1)) * pose[0].T[1] + pose[1].T[0]
+            self.x += [pp[0]]
+            self.y += [pp[1]]
+            self.z += [pp[2]]
         else:
             self.image = image
 

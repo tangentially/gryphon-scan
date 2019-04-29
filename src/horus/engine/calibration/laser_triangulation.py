@@ -93,6 +93,7 @@ class LaserTriangulation(MovingCalibration):
 
                     points_2d, image = self.laser_segmentation.compute_2d_points(image)
                     self.points_image[points_2d[1],np.rint(points_2d[0]).astype(int)] = colors[i]
+                    points_2d = self.point_cloud_generation.undistort_points(points_2d)
                     point_3d = self.point_cloud_generation.compute_camera_point_cloud(
                         points_2d, distance, normal)
                     if self._point_cloud[i] is None:
