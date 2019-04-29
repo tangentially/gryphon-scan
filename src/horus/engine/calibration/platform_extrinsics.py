@@ -26,15 +26,64 @@ class PlatformExtrinsicsError(Exception):
 
 #estimated_t = [-5, 90, 320]
 
+class MarkerData(object):
+
+    def __init__(self, name, h = None):
+        self.name = name
+        self.h = h
+
+        self.x = []
+        self.y = []
+        self.z = []
+
+        # circle
+        self.center = None
+        self.circle = None
+
+        # platform
+        self.R = None
+        self.t = None
+        self.n = None
+
+    def is_calibrated(self):
+        return self.R is not None and \
+               self.n is not None
+
+    def put(self, x, y, z):
+        self.x += [x]
+        self.y += [y]
+        self.z += [z]
+
+    def calibrate(self):
+        self.R = None
+        self.t = None
+        self.n = None
+
+        self.x = np.array(self.x)
+        self.y = np.array(self.y)
+        self.z = np.array(self.z)
+        points = zip(self.x, self.y, self.z)
+
+        if len(points) > 4:
+            # Fitting a plane
+            point, normal = fit_plane(points)
+            if normal[1] > 0:
+                normal = -normal
+            self.n = normal
+            # Fitting a circle inside the plane
+            self.center, self.R, self.circle = fit_circle(point, normal, points)
+            # Get platform origin
+            if self.h is not None:
+                self.t = self.center - self.h * np.array(normal)
+
+            logger.info("Marker calibration (" + self.name + ')')
+            logger.info(" Translation: " + str(self.t))
+            #logger.info(" Rotation: " + str(self.R).replace('\n', ''))
+            logger.info(" Normal: " + str(self.n))
+
 
 @Singleton
 class PlatformExtrinsics(MovingCalibration):
-
-    """Platform extrinsics algorithm:
-
-            - Rotation matrix
-            - Translation vector
-    """
 
     def __init__(self):
         self.image = None
@@ -45,41 +94,45 @@ class PlatformExtrinsics(MovingCalibration):
         self.image = None
         self.has_image = True
         self.image_capture.stream = False
-        self.x = []
-        self.y = []
-        self.z = []
 
-        self.x1 = []
-        self.y1 = []
-        self.z1 = []
+        self.data = { 'c0': MarkerData('Chessboard pose: platform',
+                                0), 
+                      'c1': MarkerData('Chessboard pose: origin', 
+                                self.pattern.square_width * (self.pattern.rows-1) + self.pattern.origin_distance), 
+                      'c2': MarkerData('Chessboard projection: distorted',
+                                self.pattern.origin_distance), # from bottom corner projection distorted
+                      'c3': MarkerData('Chessboard projection: undistorted',
+                                self.pattern.origin_distance), # from bottom corner projection distorted
+                    } 
 
     def _capture(self, angle):
+        # ============ chessboard pattern ===========
         image = self.image_capture.capture_pattern()
         corners = self.image_detection.detect_corners(image)
         pose = self.image_detection.detect_pose_from_corners(corners)
-#        pose = self.image_detection.detect_pose(image)
         if pose is not None:
-            print("\n---- platform_extrinsics ---")
-            # detect_pose() uses distortion while estimate pattern pose
-
-            # ----- bottom point from pattern pose -----
-            #rvec = pose[0]
-            tvec = pose[1].T[0]
-            #point = np.float32([0, self.pattern.square_width * (self.pattern.rows-1),0])
-            #pp = rvec.dot(point) + tvec
-            pp = (self.pattern.square_width * (self.pattern.rows-1)) * pose[0].T[1] + pose[1].T[0]
-            #pp = (self.pattern.square_width * (self.pattern.rows-1) + self.pattern.origin_distance) * pose[0].T[1] + pose[1].T[0]
-            print(pp) # bottom point from pattern pose
-            self.x += [pp[0]]
-            self.y += [pp[1]]
-            self.z += [pp[2]]
             #self.image = self.image_detection.draw_pattern(image, corners)
             self.image = augmented_draw_pattern(image, corners)
 
-            self.x1 += [tvec[0]]
-            self.y1 += [tvec[1]]
-            self.z1 += [tvec[2]]
+            print("\n---- platform_extrinsics ---")
 
+            # ----- Points from pattern pose -----
+            # detect_pose() uses distortion while estimate pattern pose
+            #rvec = pose[0]
+            tvec = pose[1].T[0]
+
+            # -- Top point
+            self.data['c1'].put(tvec[0], tvec[1], tvec[2])
+
+            # -- Bottom point
+            #point = np.float32([0, self.pattern.square_width * (self.pattern.rows-1) + self.pattern.origin_distance,0])
+            #pp = rvec.dot(point) + tvec
+            # optimized
+            pp = (self.pattern.square_width * (self.pattern.rows-1) + self.pattern.origin_distance) * pose[0].T[1] + pose[1].T[0]
+            print(pp) # bottom point from pattern pose
+            self.data['c0'].put(pp[0], pp[1], pp[2])
+
+            # DEBUG: project bottom point to image coordinates
             p, jac = cv2.projectPoints(np.float32( [tuple(pp)] ), \
                 np.identity(3),
                 np.zeros(3),
@@ -93,27 +146,27 @@ class PlatformExtrinsics(MovingCalibration):
                 distance, normal, corners = plane
                 #self.image = self.image_detection.draw_pattern(image, corners)
                 if corners is not None:
-                    # ----- original Ciclop -----
-                    print("--- distorted ---")
+                    print("--- from corners ---")
                     origin = corners[self.pattern.columns * (self.pattern.rows - 1)][0]
                     origin = np.array([[origin[0], corners[0][0][0]], [origin[1], corners[0][0][1]]])
                     #origin = p[0].T # debug: test with point projection from prev step
                     print(origin.T)
 
+                    print("   - distorted -")
                     t = self.point_cloud_generation.compute_camera_point_cloud(
                         origin, distance, normal)
                     if t is not None:
-                        #self.x += [t[0][0]]
-                        #self.y += [t[1][0]]
-                        #self.z += [t[2][0]]
+                        self.data['c2'].put(t[0][0], t[1][0], t[2][0])
                         print( [t[0][0], t[1][0], t[2][0]])
                         print( np.array([t[0][0], t[1][0], t[2][0]]) - pp)
             
                     # ----- using undistort -----
+                    print("   - undistorted -")
                     o = self.point_cloud_generation.undistort_points(origin)
                     t = self.point_cloud_generation.compute_camera_point_cloud(
                         o, distance, normal)
                     if t is not None:
+                        self.data['c3'].put(t[0][0], t[1][0], t[2][0])
                         print( [t[0][0], t[1][0], t[2][0]])
                         print( np.array([t[0][0], t[1][0], t[2][0]]) - pp)
             
@@ -123,73 +176,44 @@ class PlatformExtrinsics(MovingCalibration):
     def _calibrate(self):
         self.has_image = False
         self.image_capture.stream = True
-        self.t = None
-        self.x = np.array(self.x)
-        self.y = np.array(self.y)
-        self.z = np.array(self.z)
-        points = zip(self.x, self.y, self.z)
 
-        self.x1 = np.array(self.x1)
-        self.y1 = np.array(self.y1)
-        self.z1 = np.array(self.z1)
-        points1 = zip(self.x1, self.y1, self.z1)
+        for d in self.data:
+            d.calibrate()
 
-        if len(points) > 4:
-            # Fitting a plane
-            point, normal = fit_plane(points)
-            if normal[1] > 0:
-                normal = -normal
-            # Fitting a circle inside the plane
-            center, self.R, circle = fit_circle(point, normal, points)
-            # Get real origin
-            self.t = center - self.pattern.origin_distance * np.array(normal)
-            #self.t = center
+        if data['c0'].is_calibrated() and \
+           data['c1'].is_calibrated():
 
-            logger.info("Platform calibration ")
-            logger.info(" Translation: " + str(self.t))
-            logger.info(" Rotation: " + str(self.R).replace('\n', ''))
-            logger.info(" Normal: " + str(normal))
-
-            # ==== top circle points
-            point1, normal1 = fit_plane(points1)
-            if normal1[1] > 0:
-                normal1 = -normal1
-            # Fitting a circle inside the plane
-            center1, self.R1, circle1 = fit_circle(point1, normal1, points1)
-            # Get real origin
-            self.t1 = center1 - (self.pattern.square_width * (self.pattern.rows-1) + self.pattern.origin_distance) * np.array(normal)
-
-            normal_c = center1 - center
+            # normal by centers
+            normal_c = self.data['c1'].center - self.data['c0'].center
             normal_c /= np.linalg.norm(normal_c)
             R_c = make_R(normal_c)
 
-            normal_avg = (normal + normal1)/2
-            center_avg = (self.t + self.t1)/2
+            # average normals
+            normal_avg = self.data['c0'].n + self.data['c1'].n
+            normal_avg /= np.linalg.norm(normal_avg)
+            t_avg = (self.data['c0'].t + self.data['c1'].t)/2
             R_avg = make_R(normal_avg)
 
-            logger.info(" --- TOP --- ")
-            logger.info(" Translation Top: " + str(self.t1))
-            logger.info(" Rotation Top: " + str(self.R1).replace('\n', ''))
-            logger.info(" Normal Top: " + str(normal1))
             logger.info(" --- by Centers --- ")
-            logger.info(" Normal by Centers: " + str( normal_c ))
-            logger.info(" Rotation : " + str(R_c).replace('\n', ''))
+            logger.info(" Normal: " + str( normal_c ))
             logger.info(" --- AVG --- ")
-            logger.info(" Normal avg: " + str( normal_avg ))
-            logger.info(" Rotation : " + str(R_avg).replace('\n', ''))
+            logger.info(" Normal: " + str( normal_avg ))
+            logger.info(" Translation: " + str(t_avg))
 
-        if self._is_calibrating and self.t is not None: # and \
-#           np.linalg.norm(self.t - estimated_t) < 100:
-#            response = (True, (self.R, self.t, center, point, normal,
-#                        [self.x, self.y, self.z], circle))
-            response = (True, (self.R, center_avg, center, point, normal,
-                        [self.x, self.y, self.z], circle))
+        if self._is_calibrating:
+            if data['c0'].is_calibrated(): # and \
+#               np.linalg.norm(self.t - estimated_t) < 100:
+#                response = (True, (self.R, self.t, center, point, normal,
+#                            [self.x, self.y, self.z], circle))
+                response = (True, ( self.data['c0'].R, t_avg, \
+                                    self.data['c0'].center, self.data['c0'].center, self.data['c0'].n, \
+                                    [self.data['c0'].x, self.data['c0'].y, self.data['c0'].z], \
+                                    self.data['c0'].circle))
 
-        else:
-            if self._is_calibrating:
-                response = (False, PlatformExtrinsicsError())
             else:
-                response = (False, CalibrationCancel())
+                response = (False, PlatformExtrinsicsError())
+        else:
+            response = (False, CalibrationCancel())
 
         self._is_calibrating = False
         self.image = None

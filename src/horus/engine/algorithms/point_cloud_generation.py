@@ -49,7 +49,7 @@ class PointCloudGeneration(object):
         # correct camera distortion
         #print("---------- undistort_points ------------")
         if points_2d[0].size == 0:
-            print("  empty undistort_points")
+            #print("  empty undistort_points")
             return points_2d
         #print(points_2d.T)
 
