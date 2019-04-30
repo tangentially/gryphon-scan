@@ -79,19 +79,11 @@ Will switch to new versions later if required
 https://sourceforge.net/projects/wxpython/files/wxPython/3.0.2.0/  
 wxPython3.0-win64-3.0.2.0-py27.exe  
 
-4. Install OpenCV  
-- as PIP package
+4. Install OpenCV-contrib  
 ```
-pip install opencv-python
 pip install opencv-contrib-python  
 ```
-- alternatively as binary package  
-https://opencv.org/releases/  
-No need to install the whole package. Extract and copy this files to \Python27\DLLs\
-```
-\opencv\build\python\cv2\python-2.7\cv2.pyd
-\opencv\build\x64\vc15\bin\opencv_world410.dll
-```
+Note: do NOT install opencv-python. Only install opencv-contrib-python  
 
 5. Install OpenGL 
 ```

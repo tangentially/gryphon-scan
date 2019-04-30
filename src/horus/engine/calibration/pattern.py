@@ -31,7 +31,7 @@ class Pattern(object):
         self.border_b = 0
 
         if aruco_present:
-            self.aruco_size = 30
+            self.aruco_size = 36
             self.aruco_dict = aruco.DICT_4X4_50 # aruco.DICT_6X6_250
 
     def read_profile(self):

@@ -34,9 +34,9 @@ class PlatformExtrinsicsPages(wx.Panel):
 
         self.video_page = VideoPage(self, title=_('Platform extrinsics'),
                                     start_callback=self.on_start, cancel_callback=self.on_exit)
-	self.video_page.add_info(_("Estimate platform position."), "")
-	self.video_page.add_info(_("Put the pattern on the platform as shown in the "
-                             "picture and press \"Start\""), "pattern-position.png")
+	#self.video_page.add_info(_("Estimate platform position."), "")
+	#self.video_page.add_info(_("Put the pattern on the platform as shown in the "
+        #                     "picture and press \"Start\""), "pattern-position.png")
 
         self.result_page = ResultPage(self, exit_callback=self.on_exit)
 
@@ -95,15 +95,28 @@ class PlatformExtrinsicsPages(wx.Panel):
         else:
             image = image_capture.capture_pattern()
             pose = image_detection.detect_pose(image)
-            if pose is not None:
-                platform_extrinsics.angle_offset = estimate_platform_angle_from_pattern(pose)
+            corners, ids = image_detection.aruco_detect(image)
+            if pose or corners:
+                # start from optimal angle for pattern
+                if pose:
+                    platform_extrinsics.angle_offset = estimate_platform_angle_from_pattern(pose)
+                else:
+                    platform_extrinsics.angle_offset = -90
+                print(platform_extrinsics.angle_offset)
+                # full circle for ARUCO markers
+                if corners:
+                    platform_extrinsics.angle_target = 360
+                else:
+                    platform_extrinsics.angle_target = 180
+                print(platform_extrinsics.angle_target)
+
                 platform_extrinsics.set_callbacks(lambda: wx.CallAfter(self.before_calibration),
                                                   lambda p: wx.CallAfter(self.progress_calibration, p),
                                                   lambda r: wx.CallAfter(self.after_calibration, r))
                 platform_extrinsics.start()
             else:
                 dlg = wx.MessageDialog(
-                    self, _("Please put calibration pattern on platform and make sure it is detected correctly.\n"
+                    self, _("Please put calibration pattern/markers on platform and make sure it is detected correctly.\n"
                             "You can set pattern parameters in \"Pattern settings\" panel.\n"
                             "Also you can set up the calibration's capture camera settings "
                             "in the \"Adjustment workbench\"."),

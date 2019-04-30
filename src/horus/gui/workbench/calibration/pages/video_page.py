@@ -46,7 +46,7 @@ class VideoPage(Page):
             self.info_box.Add(title_text, 0, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 12)
 
         self.panel_box.Add(self.info_panel, 2, wx.ALL | wx.EXPAND, 3)
-        self.panel_box.Add(self.video_view, 2, wx.ALL | wx.EXPAND, 3)
+        self.panel_box.Add(self.video_view, 4, wx.ALL | wx.EXPAND, 3)
 
         self.Layout()
 

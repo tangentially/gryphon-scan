@@ -29,6 +29,9 @@ class ImageDetection(object):
         self.calibration_data = CalibrationData()
         self.chessboard_mask = None
 
+        self.chessboard_found_cnt = 0
+        self.chessboard_found_threshold = 2 # if shessboard successfully detected more than this - try use faster detection
+
         self._criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
         if aruco_present:
@@ -87,30 +90,37 @@ class ImageDetection(object):
 #                    image = cv2.bitwise_and(image, image, mask=self.chessboard_mask)
         return image
 
-    def _detect_chessboard(self, image, retry = True):
+    def _detect_chessboard(self, image): #, retry = True):
         if image is not None:
             if self.pattern.rows > 2 and self.pattern.columns > 2:
                 gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-                ret, corners = cv2.findChessboardCorners(
-                    gray, (self.pattern.columns, self.pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
-                if retry and not ret:
+                ret = False
+                if self.chessboard_found_cnt > self.chessboard_found_threshold:
+                    ret, corners = cv2.findChessboardCorners(
+                        gray, (self.pattern.columns, self.pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
+                    if not ret:
+                        self.chessboard_found_cnt = 0
+                #if retry and not ret:
+                if not ret:
                     ret, corners = cv2.findChessboardCorners(
                         gray, (self.pattern.columns, self.pattern.rows), flags=0)
                 if ret:
+                    self.chessboard_found_cnt += 1
                     self.chessboard_mask = cv2.threshold(
                         gray, gray.max() / 2, 255, cv2.THRESH_BINARY)[1]
                     cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), self._criteria)
                     return corners
                 else:
                     self.chessboard_mask = None
+                    self.chessboard_found_cnt = 0
 
 
     def aruco_detect(self, image):
         if not aruco_present:
-            return False
+            return (None, None)
 
         if image is None:
-            return False
+            return (None, None)
 
         gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
         corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, self.aruco_dict, parameters=self.aruco_parameters)
@@ -120,7 +130,7 @@ class ImageDetection(object):
 
     def aruco_pose_from_corners(self, corners):
         if not aruco_present:
-            return False
+            return (None, None)
 
         #Estimate pose of marker and return the values rvet and tvec---different from camera coefficients
         rvecs, tvecs,_ = aruco.estimatePoseSingleMarkers(corners, self.pattern.aruco_size, 
@@ -130,8 +140,8 @@ class ImageDetection(object):
 
 
     def aruco_draw_markers(self, image, corners, ids):
-        rvecs = False
-        tvecs = False
+        rvecs = None
+        tvecs = None
         if aruco_present and \
            image is not None and \
            ids.size > 0:

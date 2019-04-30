@@ -25,6 +25,7 @@ class MovingCalibration(Calibration):
         self.motor_speed = 0
         self.motor_acceleration = 0
         self.angle_offset = 0
+        self.angle_target = 180
         self.final_move = "Return"
 
     def _initialize(self):
@@ -62,10 +63,10 @@ class MovingCalibration(Calibration):
             if self._progress_callback is not None:
                 self._progress_callback(0)
 
-            while self._is_calibrating and abs(angle) < 180:
+            while self._is_calibrating and abs(angle) < self.angle_target:
 
                 if self._progress_callback is not None:
-                    self._progress_callback(100 * abs(angle) / 180.)
+                    self._progress_callback(100 * abs(angle) / self.angle_target)
 
                 self._capture(angle)
 
@@ -75,7 +76,10 @@ class MovingCalibration(Calibration):
 
             if self.final_move == 'Return':
                 # Move to origin
-                self.driver.board.motor_move(90 + self.angle_offset - angle)
+                if -90 - self.angle_offset + angle > 180:
+                    self.driver.board.motor_move(90 + self.angle_offset - angle + 360)
+                else:
+                    self.driver.board.motor_move(90 + self.angle_offset - angle)
             else:
                 if self.final_move == 'Perpendicular':
                     # Move to origin
@@ -83,6 +87,7 @@ class MovingCalibration(Calibration):
 
             self.driver.board.lasers_off()
             self.driver.board.motor_disable()
+            self.driver.board.motor_reset_origin()
             self.angle_offset = 0 # cleanup
 
             # Compute calibration

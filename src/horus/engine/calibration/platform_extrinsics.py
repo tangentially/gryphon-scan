@@ -81,6 +81,9 @@ class MarkerData(object):
             #logger.info(" Rotation: " + str(self.R).replace('\n', ''))
             logger.info(" Normal: " + str(self.n))
 
+            return True
+        return False
+
 
 @Singleton
 class PlatformExtrinsics(MovingCalibration):
@@ -88,6 +91,7 @@ class PlatformExtrinsics(MovingCalibration):
     def __init__(self):
         self.image = None
         self.has_image = False
+        self.points_image = None
         MovingCalibration.__init__(self)
 
     def _initialize(self):
@@ -106,13 +110,17 @@ class PlatformExtrinsics(MovingCalibration):
                     } 
 
     def _capture(self, angle):
-        # ============ chessboard pattern ===========
         image = self.image_capture.capture_pattern()
+
+        if self.points_image is None:
+            self.points_image = np.zeros(image.shape, dtype = "uint8")
+        # ============ chessboard pattern ===========
         corners = self.image_detection.detect_corners(image)
         pose = self.image_detection.detect_pose_from_corners(corners)
         if pose is not None:
-            #self.image = self.image_detection.draw_pattern(image, corners)
-            self.image = augmented_draw_pattern(image, corners)
+            #image = self.image_detection.draw_pattern(image, corners)
+            # TODO: Move all visualizaton AFTER detection
+            image = augmented_draw_pattern(image, corners)
 
             print("\n---- platform_extrinsics ---")
 
@@ -170,18 +178,60 @@ class PlatformExtrinsics(MovingCalibration):
                         print( [t[0][0], t[1][0], t[2][0]])
                         print( np.array([t[0][0], t[1][0], t[2][0]]) - pp)
             
-        else:
-            self.image = image
+        # ============ ARUCO markers ===========
+        corners, ids = self.image_detection.aruco_detect(image)
+        if corners:
+            image, rvecs, tvecs = self.image_detection.aruco_draw_markers(image, corners, ids)
+            #print(rvecs.shape)
+            tvecs = np.squeeze(tvecs, axis=1)
+            print(tvecs.shape)
+            #print(tvecs)
+            for i, id in enumerate(ids):
+               if 'ar'+str(id) not in self.data:
+                   self.data.update({ 'ar'+str(id) : MarkerData('ARUCO #'+str(id), 20) })
+               self.data['ar'+str(id)].put(tvecs[i][0], tvecs[i][1], tvecs[i][2], )
+
+            #points = np.float32([p1, p2])
+            p, jac = cv2.projectPoints(tvecs,
+                np.identity(3),
+                np.zeros(3),
+                self.calibration_data.camera_matrix,
+                self.calibration_data.distortion_vector)
+            p = np.int32(p).reshape(-1,2)
+            for pp in p:
+              cv2.circle(self.points_image, tuple(pp), 5, (255,255,0), -1)
+
+        # display image
+        self.image = image
+        np.maximum(self.image, self.points_image, out = self.image)
 
     def _calibrate(self):
         self.has_image = False
         self.image_capture.stream = True
 
-        for d in self.data:
-            d.calibrate()
+        normal_avg = np.zeros(3)
+        t_avg = np.zeros(3)
+        t_avg_n = 0
 
-        if data['c0'].is_calibrated() and \
-           data['c1'].is_calibrated():
+        # calibrate each data set
+        for i,d in self.data.iteritems():
+            d.calibrate()
+            if d.n is not None:
+                normal_avg += d.n
+            if d.t is not None:
+                t_avg += d.t
+                t_avg_n += 1
+
+        normal_avg /= np.linalg.norm(normal_avg)
+        R_avg = make_R(normal_avg)
+        if t_avg_n>0:
+            t_avg /= t_avg_n
+        logger.info(" --- AVG --- ")
+        logger.info(" Normal: " + str( normal_avg ))
+        logger.info(" Translation: " + str(t_avg))
+
+        if self.data['c0'].is_calibrated() and \
+           self.data['c1'].is_calibrated():
 
             # normal by centers
             normal_c = self.data['c1'].center - self.data['c0'].center
@@ -201,14 +251,22 @@ class PlatformExtrinsics(MovingCalibration):
             logger.info(" Translation: " + str(t_avg))
 
         if self._is_calibrating:
-            if data['c0'].is_calibrated(): # and \
+            if t_avg_n>0:
+##            if self.data['c0'].is_calibrated(): # and \
 #               np.linalg.norm(self.t - estimated_t) < 100:
 #                response = (True, (self.R, self.t, center, point, normal,
 #                            [self.x, self.y, self.z], circle))
-                response = (True, ( self.data['c0'].R, t_avg, \
-                                    self.data['c0'].center, self.data['c0'].center, self.data['c0'].n, \
-                                    [self.data['c0'].x, self.data['c0'].y, self.data['c0'].z], \
-                                    self.data['c0'].circle))
+#                response = (True, ( self.data['c0'].R, t_avg, \
+#                                    self.data['c0'].center, self.data['c0'].center, self.data['c0'].n, \
+#                                    [self.data['c0'].x, self.data['c0'].y, self.data['c0'].z], \
+#                                    self.data['c0'].circle))
+                self.n = normal_avg
+                self.R = R_avg
+                self.t = t_avg
+                response = (True, ( self.R, self.t, \
+                                    d.center, d.center, d.n, \
+                                    [d.x, d.y, d.z], \
+                                    d.circle))
 
             else:
                 response = (False, PlatformExtrinsicsError())
