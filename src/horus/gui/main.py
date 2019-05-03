@@ -134,6 +134,7 @@ class MainWindow(wx.Frame):
         self.menu_scanning_scene = self.menu_scanning.AppendCheckItem(wx.NewId(), _("Scene"))
         self.menu_view.AppendMenu(wx.NewId(), _("Scanning"), self.menu_scanning)
         self.menu_mode_advanced = self.menu_view.AppendCheckItem(wx.NewId(), _("Advanced mode"))
+        self.menu_hide_help = self.menu_view.AppendCheckItem(wx.NewId(), _("Hide directions"))
         self.menu_bar.Append(self.menu_view, _("View"))
 
         # Menu Help
@@ -175,6 +176,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_scanning_video_scene_clicked, self.menu_scanning_video)
         self.Bind(wx.EVT_MENU, self.on_scanning_video_scene_clicked, self.menu_scanning_scene)
         self.Bind(wx.EVT_MENU, self.on_mode_advanced_clicked, self.menu_mode_advanced)
+        self.Bind(wx.EVT_MENU, self.on_hide_help_clicked, self.menu_hide_help)
 
         self.Bind(wx.EVT_MENU, self.on_about, self.menu_about)
         self.Bind(wx.EVT_MENU, self.on_welcome, self.menu_welcome)
@@ -428,6 +430,27 @@ class MainWindow(wx.Frame):
         self.workbench['calibration'].Layout()
         self.Layout()
 
+    def on_hide_help_clicked(self, event):
+        checked = self.menu_hide_help.IsChecked()
+        profile.settings['view_hide_help'] = checked
+        if checked:
+            #self.workbench['calibration'].pages_collection['video_view'].info_panel.Hide()
+            #self.workbench['calibration'].pages_collection['camera_intrinsics_pages'].info_panel.Hide()
+            self.workbench['calibration'].pages_collection['scanner_autocheck_pages'].video_page.info_panel.Hide()
+            self.workbench['calibration'].pages_collection['laser_triangulation_pages'].video_page.info_panel.Hide()
+            self.workbench['calibration'].pages_collection['platform_extrinsics_pages'].video_page.info_panel.Hide()
+            self.workbench['calibration'].pages_collection['pattern_settings_pages'].info_panel.Hide()
+        else:
+            #self.workbench['calibration'].pages_collection['video_view'].info_panel.Show()
+            #self.workbench['calibration'].pages_collection['camera_intrinsics_pages'].info_panel.Show()
+            self.workbench['calibration'].pages_collection['scanner_autocheck_pages'].video_page.info_panel.Show()
+            self.workbench['calibration'].pages_collection['laser_triangulation_pages'].video_page.info_panel.Show()
+            self.workbench['calibration'].pages_collection['platform_extrinsics_pages'].video_page.info_panel.Show()
+            self.workbench['calibration'].pages_collection['pattern_settings_pages'].info_panel.Show()
+
+        self.workbench['calibration'].Layout()
+        self.Layout()
+
     def on_connect(self):
         for workbench in self.workbench.values():
             workbench.enable_content()
@@ -562,8 +585,9 @@ class MainWindow(wx.Frame):
         self.menu_scanning_scene.Check(checked_scene)
 
         checked = profile.settings['view_mode_advanced']
-
         self.menu_mode_advanced.Check(checked)
+
+        self.menu_hide_help.Check(profile.settings['view_hide_help'])
 
         self.workbench['scanning'].pages_collection['view_page'].Unsplit()
         if checked_video:

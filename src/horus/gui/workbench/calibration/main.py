@@ -83,6 +83,14 @@ class CalibrationWorkbench(Workbench):
                profile.settings['current_panel_calibration'] == 'camera_intrinsics':
                 self.on_pattern_settings_selected()
 
+        if profile.settings['view_hide_help']:
+            #self.pages_collection['video_view'].info_panel.Hide()
+            #self.pages_collection['camera_intrinsics_pages'].info_panel.Hide()
+            self.pages_collection['scanner_autocheck_pages'].video_page.info_panel.Hide()
+            self.pages_collection['laser_triangulation_pages'].video_page.info_panel.Hide()
+            self.pages_collection['platform_extrinsics_pages'].video_page.info_panel.Hide()
+            self.pages_collection['pattern_settings_pages'].info_panel.Hide()
+
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_calibration']].on_title_clicked(None)
 

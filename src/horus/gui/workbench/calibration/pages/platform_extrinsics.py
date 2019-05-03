@@ -34,9 +34,9 @@ class PlatformExtrinsicsPages(wx.Panel):
 
         self.video_page = VideoPage(self, title=_('Platform extrinsics'),
                                     start_callback=self.on_start, cancel_callback=self.on_exit)
-	#self.video_page.add_info(_("Estimate platform position."), "")
-	#self.video_page.add_info(_("Put the pattern on the platform as shown in the "
-        #                     "picture and press \"Start\""), "pattern-position.png")
+	self.video_page.add_info(_("Estimate platform position."), "")
+	self.video_page.add_info(_("Put the pattern on the platform as shown in the "
+                             "picture and press \"Start\""), "pattern-position.png")
 
         self.result_page = ResultPage(self, exit_callback=self.on_exit)
 

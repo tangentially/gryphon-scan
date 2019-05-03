@@ -729,6 +729,8 @@ class Settings(collections.MutableMapping):
 
         self._add_setting(
             Setting('view_mode_advanced', _('Advanced mode'), 'preferences', bool, False))
+        self._add_setting(
+            Setting('view_hide_help', _('Hide directions'), 'preferences', bool, False))
 
         self._add_setting(
             Setting('last_files', _('Last files'), 'preferences', list, []))
