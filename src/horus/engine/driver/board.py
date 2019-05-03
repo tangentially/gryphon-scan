@@ -61,20 +61,27 @@ class Board(object):
 
         self._serial_port = None
         self._is_connected = False
+        self._laser_number = 2
+
+        self.reset_state();
+
+
+    def reset_state(self):
         self._motor_enabled = False
         self._motor_position = 0
         self._motor_speed = 0
         self._motor_acceleration = 0
         self._motor_direction = 1
-        self._laser_number = 2
         self._laser_enabled = self._laser_number * [False]
         self._tries = 0  # Check if command fails
 
         self._light = [0,0]
 
+
     def connect(self):
         """Open serial port and perform handshake"""
         logger.info("Connecting board {0} {1}".format(self.serial_name, self.baud_rate))
+        self.reset_state();
         self._is_connected = False
         try:
             self._serial_port = serial.Serial(self.serial_name, self.baud_rate, timeout=2)
@@ -213,9 +220,11 @@ class Board(object):
                 try:
                     self._serial_port.flushInput()
                     self._serial_port.flushOutput()
+                    #print(req)
                     self._serial_port.write(req + "\r\n")
                     while req != '~' and req != '!' and ret == '':
                         ret = self.read(read_lines)
+                        #print(ret)
                         time.sleep(0.01)
                     self._success()
                 except:
