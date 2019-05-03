@@ -53,7 +53,7 @@ class PointCloudGeneration(object):
             return points_2d
         #print(points_2d.T)
 
-	cam = self.calibration_data.camera_matrix
+	cam = np.eye(3) #self.calibration_data.camera_matrix
         d = self.calibration_data.distortion_vector
 
         pts = np.asarray(tuple(points_2d)).transpose()
