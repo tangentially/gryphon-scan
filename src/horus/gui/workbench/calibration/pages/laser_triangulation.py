@@ -172,6 +172,7 @@ class ResultPage(Page):
             dR = result[1][0]
             nR = result[1][1]
             stdR = result[1][2]
+            points = result[2]
             self.result = (dL, nL, dR, nR)
             np.set_printoptions(formatter={'float': '{:g}'.format})
             text = ' L: {0} {1}  R: {2} {3}'.format(
@@ -180,7 +181,7 @@ class ResultPage(Page):
             np.set_printoptions()
             self.desc_text.SetLabel(text)
             self.plot_panel.clear()
-            self.plot_panel.add((dL, nL, stdL, dR, nR, stdR))
+            self.plot_panel.add((dL, nL, stdL, dR, nR, stdR, points))
             self.plot_panel.Show()
             self.Layout()
             dlg = wx.MessageDialog(
@@ -224,7 +225,13 @@ class LaserTriangulation3DPlot(wx.Panel):
         self.Layout()
 
     def add(self, args):
-        dL, nL, stdL, dR, nR, stdR = args
+        dL, nL, stdL, dR, nR, stdR, points = args
+
+        p = points[0][np.random.randint(points[0].shape[0], size=100), :]
+        self.ax.scatter(p[:,0], p[:,2], p[:,1], c='r', marker='o')
+
+        p = points[1][np.random.randint(points[1].shape[0], size=100), :]
+        self.ax.scatter(p[:,0], p[:,2], p[:,1], c='b', marker='o')
 
         rL = np.cross(np.array([0, 0, 1]), nL)
         sL = np.cross(rL, nL)

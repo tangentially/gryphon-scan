@@ -64,7 +64,7 @@ class LaserTriangulation(MovingCalibration):
         
     def _capture(self, angle):
         image = self.image_capture.capture_pattern()
-        pose = self.image_detection.detect_pose(image)
+        pose = self.image_detection.detect_pose(image, False)
         plane = self.image_detection.detect_pattern_plane(pose)
         if plane is not None:
             distance, normal, corners = plane
@@ -87,20 +87,21 @@ class LaserTriangulation(MovingCalibration):
 
                 for i in lasers:
                     image = images[i]
-                    image = self.image_detection.pattern_mask(image, corners)
-
-                    np.maximum(self.image, image, out = self.image)
-
-                    points_2d, image = self.laser_segmentation.compute_2d_points(image)
-                    self.points_image[points_2d[1],np.rint(points_2d[0]).astype(int)] = colors[i]
-                    points_2d = self.point_cloud_generation.undistort_points(points_2d)
-                    point_3d = self.point_cloud_generation.compute_camera_point_cloud(
-                        points_2d, distance, normal)
-                    if self._point_cloud[i] is None:
-                        self._point_cloud[i] = point_3d.T
-                    else:
-                        self._point_cloud[i] = np.concatenate(
-                            (self._point_cloud[i], point_3d.T))
+                    if image is not None:
+                        image = self.image_detection.pattern_mask(image, corners)
+                      
+                        np.maximum(self.image, image, out = self.image)
+                      
+                        points_2d, image = self.laser_segmentation.compute_2d_points(image)
+                        self.points_image[points_2d[1],np.rint(points_2d[0]).astype(int)] = colors[i]
+                        points_2d = self.point_cloud_generation.undistort_points(points_2d)
+                        point_3d = self.point_cloud_generation.compute_camera_point_cloud(
+                            points_2d, distance, normal)
+                        if self._point_cloud[i] is None:
+                            self._point_cloud[i] = point_3d.T
+                        else:
+                            self._point_cloud[i] = np.concatenate(
+                                (self._point_cloud[i], point_3d.T))
             else:
                 self.image = image
                 print("Skip calibration at "+str(alpha))
@@ -112,8 +113,8 @@ class LaserTriangulation(MovingCalibration):
         self.image_capture.stream = True
 
         # Save point clouds
-        for i in xrange(2):
-            save_point_cloud('PC' + str(i) + '.ply', self._point_cloud[i])
+        #for i in xrange(2):
+        #    save_point_cloud('PC' + str(i) + '.ply', self._point_cloud[i])
 
         self.distance = [None, None]
         self.normal = [None, None]
@@ -129,7 +130,8 @@ class LaserTriangulation(MovingCalibration):
             if self.std[0] < 1.0 and self.std[1] < 1.0 and \
                self.normal[0] is not None and self.normal[1] is not None:
                 response = (True, ((self.distance[0], self.normal[0], self.std[0]),
-                                   (self.distance[1], self.normal[1], self.std[1])))
+                                   (self.distance[1], self.normal[1], self.std[1]),
+                                   self._point_cloud))
             else:
                 response = (False, LaserTriangulationError())
         else:
