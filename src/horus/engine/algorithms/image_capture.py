@@ -6,6 +6,7 @@ __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import cv2
+import numpy as np
 
 from horus.util import profile
 
@@ -73,8 +74,8 @@ class CameraSettings(object):
         self.set_contrast(profile.settings['contrast_'+mode])
         self.set_saturation(profile.settings['saturation_'+mode])
         self.set_exposure(profile.settings['exposure_'+mode])
-        self.set_light(1,profile.settings['light1_'+mode])
-        self.set_light(2,profile.settings['light2_'+mode])
+        self.set_light(0,profile.settings['light1_'+mode])
+        self.set_light(1,profile.settings['light2_'+mode])
         if mode == 'laser_calibration':
             self.laser_bg = profile.laser_bg_calibration
             self.laser_bg_enable = profile.laser_bg_calibration_enable
@@ -220,12 +221,14 @@ class ImageCapture(object):
         images = [None, None, image_background]
         images[0] = self._capture_laser(0)
         images[1] = self._capture_laser(1)
-        if image_background is not None:
-            if images[0] is not None:
-                images[0] = cv2.subtract(images[0], image_background)
-            if images[1] is not None:
-                images[1] = cv2.subtract(images[1], image_background)
-        return images
+
+        self.remove_background_subtract(images)
+        # test hsV based BG removal
+        #if self._mode.light[1] > 2:
+        #    self.remove_background_subtract(images)
+        #else:
+        #    self.remove_background_hsv(images,self._mode.light[1])
+        #return images
 
     def capture_all_lasers(self):
         image_background = None
@@ -240,9 +243,14 @@ class ImageCapture(object):
         self.driver.board.lasers_on()
         image = self.capture_image(flush=flush)
         self.driver.board.lasers_off()
-        if image_background is not None:
-            if image is not None and image_background is not None:
-                image = cv2.subtract(image, image_background)
+
+        self.remove_background_subtract([image,image_background])
+        # test hsV based BG removal
+        #if self._mode.light[1] > 2:
+        #    self.remove_background_subtract([image,image_background])
+        #else:
+        #    self.remove_background_hsv([image,image_background],self._mode.light[1])
+
         # substract environment laser lines
         if self._mode.laser_bg_enable:
             try:
@@ -266,3 +274,27 @@ class ImageCapture(object):
     def capture_image(self, flush=0):
         image = self.driver.camera.capture_image(flush=flush)
         return image
+
+    def remove_background_subtract(self,images):
+        background = images[-1]
+        if background is not None:
+            for image in images[:-1]:
+                if image is not None:
+                    cv2.subtract(image, background, image)
+
+    def remove_background_hsv(self,images, ch):
+        background = images[-1]
+        if background is not None:
+            bg_hsv = cv2.cvtColor(background, cv2.COLOR_RGB2HSV)
+            bg_hsv = cv2.split(bg_hsv)[ch]#[2]
+
+            #lower = np.array([0,0,self.threshold_value])
+            #upper = np.array([255,255,255])
+            for image in images[:-1]:
+                if image is not None:
+                    image_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+                    image_hsv = cv2.split(image_hsv)[ch]#[2]
+                    image_hsv = cv2.subtract(image_hsv, bg_hsv)
+                    #mask = cv2.inRange(image, lower, upper)
+                    #image[np.where(mask==0)] = [0,0,0]
+                    image[np.where(image_hsv<self._mode.light[0])] = [0,0,0]

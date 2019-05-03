@@ -136,16 +136,16 @@ class ScanCapturePanel(ExpandablePanel):
         self.update_callback('contrast_texture_scanning', mode.set_contrast)
         self.update_callback('saturation_texture_scanning', mode.set_saturation)
         self.update_callback('exposure_texture_scanning', mode.set_exposure)
-        self.update_callback('light1_texture_scanning', lambda v: mode.set_light(1,v) )
-        self.update_callback('light2_texture_scanning', lambda v: mode.set_light(2,v) )
+        self.update_callback('light1_texture_scanning', lambda v: mode.set_light(0,v) )
+        self.update_callback('light2_texture_scanning', lambda v: mode.set_light(1,v) )
 
         mode = image_capture.laser_mode
         self.update_callback('brightness_laser_scanning', mode.set_brightness)
         self.update_callback('contrast_laser_scanning', mode.set_contrast)
         self.update_callback('saturation_laser_scanning', mode.set_saturation)
         self.update_callback('exposure_laser_scanning', mode.set_exposure)
-        self.update_callback('light1_laser_scanning', lambda v: mode.set_light(1,v) )
-        self.update_callback('light2_laser_scanning', lambda v: mode.set_light(2,v) )
+        self.update_callback('light1_laser_scanning', lambda v: mode.set_light(0,v) )
+        self.update_callback('light2_laser_scanning', lambda v: mode.set_light(1,v) )
         self.update_callback('remove_background_scanning', image_capture.set_remove_background)
 
     def on_selected(self):
@@ -446,16 +446,16 @@ class CalibrationCapturePanel(ExpandablePanel):
         self.update_callback('contrast_pattern_calibration', mode.set_contrast)
         self.update_callback('saturation_pattern_calibration', mode.set_saturation)
         self.update_callback('exposure_pattern_calibration', mode.set_exposure)
-        self.update_callback('light1_pattern_calibration', lambda v: mode.set_light(1,v) )
-        self.update_callback('light2_pattern_calibration', lambda v: mode.set_light(2,v) )
+        self.update_callback('light1_pattern_calibration', lambda v: mode.set_light(0,v) )
+        self.update_callback('light2_pattern_calibration', lambda v: mode.set_light(1,v) )
 
         mode = image_capture.laser_mode
         self.update_callback('brightness_laser_calibration', mode.set_brightness)
         self.update_callback('contrast_laser_calibration', mode.set_contrast)
         self.update_callback('saturation_laser_calibration', mode.set_saturation)
         self.update_callback('exposure_laser_calibration', mode.set_exposure)
-        self.update_callback('light1_laser_calibration', lambda v: mode.set_light(1,v) )
-        self.update_callback('light2_laser_calibration', lambda v: mode.set_light(2,v) )
+        self.update_callback('light1_laser_calibration', lambda v: mode.set_light(0,v) )
+        self.update_callback('light2_laser_calibration', lambda v: mode.set_light(1,v) )
         self.update_callback('remove_background_calibration', image_capture.set_remove_background)
 
     def on_selected(self):
