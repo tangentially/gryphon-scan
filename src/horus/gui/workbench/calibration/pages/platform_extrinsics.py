@@ -229,22 +229,35 @@ class PlatformExtrinsics3DPlot(wx.Panel):
         self.Layout()
 
     def add(self, args):
-        R, t, center, point, normal, [x, y, z], circle = args
+        R, t, data = args
 
-        # plot the surface, data, and synthetic circle
-        self.ax.scatter(x, z, y, c='b', marker='o')
-        # self.ax.scatter(center[0], center[2], center[1], c='b', marker='o')
-        self.ax.plot(circle[0], circle[2], circle[1], c='r')
+        for idx, dat in data.iteritems():
+            # plot the surface, data, and synthetic circle
+            # data poits
+            self.ax.scatter(dat.x, dat.z, dat.y, c='b', marker='o')
 
-        d = pattern.origin_distance
+            # fit circle results
+            if dat.center is not None:
+                self.ax.scatter(dat.center[0], dat.center[2], dat.center[1], c='b', marker='o')
+            if dat.circle is not None:
+                self.ax.plot(dat.circle[0], dat.circle[2], dat.circle[1], c='r')
 
-        self.ax.plot([t[0], t[0] + 50 * R[0][0]], [t[2], t[2] + 50 * R[2][0]],
+            # estimated platform position for this data set
+            if dat.t is not None:
+                self.ax.scatter(dat.t[0], dat.t[2], dat.t[1], c='r', marker='o')
+
+        # calibrated platform XYZ
+        self.ax.plot([t[0], t[0] + 50 * R[0][0]], 
+                     [t[2], t[2] + 50 * R[2][0]],
                      [t[1], t[1] + 50 * R[1][0]], linewidth=2.0, color='red')
-        self.ax.plot([t[0], t[0] + 50 * R[0][1]], [t[2], t[2] + 50 * R[2][1]],
+        self.ax.plot([t[0], t[0] + 50 * R[0][1]], 
+                     [t[2], t[2] + 50 * R[2][1]],
                      [t[1], t[1] + 50 * R[1][1]], linewidth=2.0, color='green')
-        self.ax.plot([t[0], t[0] + d * R[0][2]], [t[2], t[2] + d * R[2][2]],
-                     [t[1], t[1] + d * R[1][2]], linewidth=2.0, color='blue')
+        self.ax.plot([t[0], t[0] + 50 * R[0][2]], 
+                     [t[2], t[2] + 50 * R[2][2]],
+                     [t[1], t[1] + 50 * R[1][2]], linewidth=2.0, color='blue')
 
+        # global axis
         self.ax.plot([0, 50], [0, 0], [0, 0], linewidth=2.0, color='red')
         self.ax.plot([0, 0], [0, 0], [0, 50], linewidth=2.0, color='green')
         self.ax.plot([0, 0], [0, 50], [0, 0], linewidth=2.0, color='blue')

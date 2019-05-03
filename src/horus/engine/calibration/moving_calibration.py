@@ -50,18 +50,19 @@ class MovingCalibration(Calibration):
 
             self._initialize()
 
-            # Setup scanner
-            self.driver.board.lasers_off()
-            self.driver.board.motor_enable()
-            self.driver.board.motor_reset_origin()
-            self.driver.board.motor_speed(self.motor_speed)
-            self.driver.board.motor_acceleration(self.motor_acceleration)
-
-            # Move to starting position
-            self.driver.board.motor_move(-90-self.angle_offset)
-
-            if self._progress_callback is not None:
-                self._progress_callback(0)
+            if self._is_calibrating: # calibration can be cancelled during _initialize()
+                # Setup scanner
+                self.driver.board.lasers_off()
+                self.driver.board.motor_enable()
+                self.driver.board.motor_reset_origin()
+                self.driver.board.motor_speed(self.motor_speed)
+                self.driver.board.motor_acceleration(self.motor_acceleration)
+        
+                # Move to starting position
+                self.driver.board.motor_move(-90-self.angle_offset)
+        
+                if self._progress_callback is not None:
+                    self._progress_callback(0)
 
             while self._is_calibrating and abs(angle) < self.angle_target:
 

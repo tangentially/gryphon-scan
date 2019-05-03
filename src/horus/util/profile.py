@@ -476,7 +476,7 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('set_resolution_button', _('Set resolution'), 'no_settings', unicode, u''))
         self._add_setting(
-            Setting('auto_resolution', _('MAX resolution'), 'no_settings', bool, False))
+            Setting('auto_resolution', _('Use MAX resolution'), 'no_settings', bool, False))
 
         # -- Calibration Settings
 
@@ -548,7 +548,7 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('camera_matrix', _('Camera matrix'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1430.0, 0.0, 480.0],
-                                                                          [0.0, 1430.0, 620.0],
+                                                                          [0.0, 1430.0, 640.0],
                                                                           [0.0, 0.0, 1.0]]))))
         self._add_setting(
             Setting('distortion_vector', _('Distortion vector'), 'calibration_settings',

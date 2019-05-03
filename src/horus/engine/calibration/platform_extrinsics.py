@@ -39,6 +39,7 @@ class MarkerData(object):
         # circle
         self.center = None
         self.circle = None
+        self.radius = None
 
         # platform
         self.R = None
@@ -59,6 +60,10 @@ class MarkerData(object):
         self.t = None
         self.n = None
 
+        self.center = None
+        self.circle = None
+        self.radius = None
+
         self.x = np.array(self.x)
         self.y = np.array(self.y)
         self.z = np.array(self.z)
@@ -71,8 +76,8 @@ class MarkerData(object):
                 normal = -normal
             self.n = normal
             # Fitting a circle inside the plane
-            self.center, self.R, self.circle = fit_circle(point, normal, points)
-            # Get platform origin
+            self.center, self.R, self.circle, self.radius = fit_circle(point, normal, points)
+            # Get platform origin (if known => can find platform center)
             if self.h is not None:
                 self.t = self.center - self.h * np.array(normal)
 
@@ -85,6 +90,22 @@ class MarkerData(object):
         return False
 
 
+class NormalData(MarkerData):
+    def calibrate(self):
+        self.x = np.array(self.x)
+        self.y = np.array(self.y)
+        self.z = np.array(self.z)
+        points = zip(self.x, self.y, self.z)
+
+        if len(points) > 3:
+            # Fitting rotation axis for normals
+            normal = fit_rot_vec(points)
+            if normal[1] > 0:
+                normal = -normal
+            self.n = normal
+            self.R = make_R(self.n)
+
+
 @Singleton
 class PlatformExtrinsics(MovingCalibration):
 
@@ -93,6 +114,8 @@ class PlatformExtrinsics(MovingCalibration):
         self.has_image = False
         self.points_image = None
         MovingCalibration.__init__(self)
+        self.use_chessboard = False
+        self.use_aruco = False
 
     def _initialize(self):
         self.image = None
@@ -107,7 +130,21 @@ class PlatformExtrinsics(MovingCalibration):
                                 self.pattern.origin_distance), # from bottom corner projection distorted
                       'c3': MarkerData('Chessboard projection: undistorted',
                                 self.pattern.origin_distance), # from bottom corner projection distorted
+                      'n':  NormalData('Chessboard normals', None),
                     } 
+
+        # detect which markers to use
+        self.use_chessboard = False
+        self.use_aruco = False
+        image = self.image_capture.capture_pattern()
+        corners = self.image_detection.detect_corners(image)
+        if corners is not None:
+            self.use_chessboard = True
+        corners, ids = self.image_detection.aruco_detect(image)
+        if corners:
+            self.use_aruco = True
+        if not self.use_chessboard and not self.use_aruco:
+            self._is_calibrating = False
 
     def _capture(self, angle):
         image = self.image_capture.capture_pattern()
@@ -115,20 +152,26 @@ class PlatformExtrinsics(MovingCalibration):
         if self.points_image is None:
             self.points_image = np.zeros(image.shape, dtype = "uint8")
         # ============ chessboard pattern ===========
-        corners = self.image_detection.detect_corners(image)
-        pose = self.image_detection.detect_pose_from_corners(corners)
+        pose = None
+        if self.use_chessboard:
+            corners = self.image_detection.detect_corners(image, False)
+            pose = self.image_detection.detect_pose_from_corners(corners)
         if pose is not None:
             #image = self.image_detection.draw_pattern(image, corners)
             # TODO: Move all visualizaton AFTER detection
             image = augmented_draw_pattern(image, corners)
 
-            print("\n---- platform_extrinsics ---")
+            print("\n---- platform_extrinsics --- "+str(angle))
 
             # ----- Points from pattern pose -----
             # detect_pose() uses distortion while estimate pattern pose
-            #rvec = pose[0]
+            rvec = pose[0]
             tvec = pose[1].T[0]
 
+            # -- normal
+            n = rvec.T[0]
+            self.data['n'].put(n[0], n[1], n[2])
+            
             # -- Top point
             self.data['c1'].put(tvec[0], tvec[1], tvec[2])
 
@@ -136,10 +179,21 @@ class PlatformExtrinsics(MovingCalibration):
             #point = np.float32([0, self.pattern.square_width * (self.pattern.rows-1) + self.pattern.origin_distance,0])
             #pp = rvec.dot(point) + tvec
             # optimized
-            pp = (self.pattern.square_width * (self.pattern.rows-1) + self.pattern.origin_distance) * pose[0].T[1] + pose[1].T[0]
+            pp = (self.pattern.square_width * (self.pattern.rows-1) + self.pattern.origin_distance) * rvec.T[1] + tvec
             print(pp) # bottom point from pattern pose
             self.data['c0'].put(pp[0], pp[1], pp[2])
 
+            #points = np.float32([p1, p2])
+            p, jac = cv2.projectPoints([pp, tvec],
+                np.identity(3),
+                np.zeros(3),
+                self.calibration_data.camera_matrix,
+                self.calibration_data.distortion_vector)
+            p = np.int32(p).reshape(-1,2)
+            for pp in p:
+              cv2.circle(self.points_image, tuple(pp), 5, (255,255,0), -1)
+
+            '''
             # DEBUG: project bottom point to image coordinates
             p, jac = cv2.projectPoints(np.float32( [tuple(pp)] ), \
                 np.identity(3),
@@ -148,7 +202,7 @@ class PlatformExtrinsics(MovingCalibration):
                 self.calibration_data.distortion_vector )
             print(p) # bottom point projection
             
-            # ----- bottom point from corner projection -----
+            # ----- reconstruct bottom point from corner projection -----
             plane = self.image_detection.detect_pattern_plane(pose)
             if plane is not None:
                 distance, normal, corners = plane
@@ -177,10 +231,13 @@ class PlatformExtrinsics(MovingCalibration):
                         self.data['c3'].put(t[0][0], t[1][0], t[2][0])
                         print( [t[0][0], t[1][0], t[2][0]])
                         print( np.array([t[0][0], t[1][0], t[2][0]]) - pp)
-            
+            '''
+
         # ============ ARUCO markers ===========
-        corners, ids = self.image_detection.aruco_detect(image)
-        if corners:
+        corners = None
+        if self.use_aruco:
+            corners, ids = self.image_detection.aruco_detect(image)
+        if corners is not None:
             image, rvecs, tvecs = self.image_detection.aruco_draw_markers(image, corners, ids)
             #print(rvecs.shape)
             tvecs = np.squeeze(tvecs, axis=1)
@@ -213,7 +270,7 @@ class PlatformExtrinsics(MovingCalibration):
         t_avg = np.zeros(3)
         t_avg_n = 0
 
-        # calibrate each data set
+        # calibrate each data set and calculate average results
         for i,d in self.data.iteritems():
             d.calibrate()
             if d.n is not None:
@@ -226,7 +283,7 @@ class PlatformExtrinsics(MovingCalibration):
         R_avg = make_R(normal_avg)
         if t_avg_n>0:
             t_avg /= t_avg_n
-        logger.info(" --- AVG --- ")
+        logger.info(" --- AVG all --- ")
         logger.info(" Normal: " + str( normal_avg ))
         logger.info(" Translation: " + str(t_avg))
 
@@ -238,35 +295,52 @@ class PlatformExtrinsics(MovingCalibration):
             normal_c /= np.linalg.norm(normal_c)
             R_c = make_R(normal_c)
 
-            # average normals
+            logger.info(" --- by Centers --- ")
+            logger.info(" Normal: " + str( normal_c ))
+
+            # average normals c0 c1
             normal_avg = self.data['c0'].n + self.data['c1'].n
             normal_avg /= np.linalg.norm(normal_avg)
+            normal_avg = np.float32(normal_avg)
             t_avg = (self.data['c0'].t + self.data['c1'].t)/2
             R_avg = make_R(normal_avg)
 
-            logger.info(" --- by Centers --- ")
-            logger.info(" Normal: " + str( normal_c ))
-            logger.info(" --- AVG --- ")
+            logger.info(" --- AVG c0 c1 --- ")
             logger.info(" Normal: " + str( normal_avg ))
             logger.info(" Translation: " + str(t_avg))
 
+            # estimate rotation
+            rsteps = 3
+            data = zip( zip(self.data['c0'].x, self.data['c0'].y, self.data['c0'].z),
+                        zip(self.data['c1'].x, self.data['c1'].y, self.data['c1'].z) )
+            data1 = np.array(data[:-rsteps]).reshape(-1,3)
+            data2 = np.array(data[rsteps:]).reshape(-1,3)
+            R, t, centroid_A, centroid_B = rigid_transform_3D(data1, data2)
+            
+            Rv,_ = cv2.Rodrigues(R)
+            l = np.linalg.norm(Rv)
+            Rv = Rv.flatten()/l
+            l = l*180/np.pi
+            print("Rv: %s alpha: %s" % (str(Rv), str(l/rsteps)) )
+            tr = PointOntoLine(t, Rv, centroid_A)
+
+            logger.info(" --- Rotation SVD c0 c1 --- ")
+            logger.info(" Normal: " + str( Rv ))
+            logger.info(" Translation: " + str(tr))
+
+        logger.info(" --- Rotation of pattern normal --- ")
+        logger.info(" Normal: " + str( self.data['n'].n ))
+
+        #normal_avg = np.array([0, -1, 0], dtype=np.float32)
+        #R_avg = make_R(normal_avg)
+        #t_avg = np.array([0, 106, 463], dtype=np.float32)
+
         if self._is_calibrating:
             if t_avg_n>0:
-##            if self.data['c0'].is_calibrated(): # and \
-#               np.linalg.norm(self.t - estimated_t) < 100:
-#                response = (True, (self.R, self.t, center, point, normal,
-#                            [self.x, self.y, self.z], circle))
-#                response = (True, ( self.data['c0'].R, t_avg, \
-#                                    self.data['c0'].center, self.data['c0'].center, self.data['c0'].n, \
-#                                    [self.data['c0'].x, self.data['c0'].y, self.data['c0'].z], \
-#                                    self.data['c0'].circle))
                 self.n = normal_avg
                 self.R = R_avg
                 self.t = t_avg
-                response = (True, ( self.R, self.t, \
-                                    d.center, d.center, d.n, \
-                                    [d.x, d.y, d.z], \
-                                    d.circle))
+                response = (True, (self.R, self.t, self.data))
 
             else:
                 response = (False, PlatformExtrinsicsError())
@@ -356,4 +430,75 @@ def fit_circle(point, normal, points):
                  for phi in np.linspace(0, 2 * np.pi, 50)]
     [cxTupel, cyTupel, czTupel] = [x for x in zip(*synthetic)]
 
-    return center_point, R, [cxTupel, cyTupel, czTupel]
+    return center_point, R, [cxTupel, cyTupel, czTupel], RiF
+
+
+# --------- estimate rotation axis for set of rotated vectors ----------
+def residuals_rot_vec(parameters, data_vectors):
+    theta, phi = parameters
+    v = [np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)]
+    distances =  [np.dot(v, [x, y, z]) for x, y, z in data_vectors]
+    return distances
+
+
+def fit_rot_vec(data):
+    estimate = [-np.pi/2, np.pi/2]  # theta, phi
+    best_fit_values, ier = optimize.leastsq(residuals_rot_vec, estimate, args=(data))
+    tF, pF = best_fit_values
+
+    print("Fit vec: Theta %s Phi %s" % (str(tF), str(pF)))
+    v = np.array([np.sin(tF) * np.cos(pF), np.sin(tF) * np.sin(pF), np.cos(tF)])
+
+    return v
+
+
+# Finding optimal rotation and translation between corresponding 3D points
+# http://nghiaho.com/?page_id=671
+#
+# Input: expects Nx3 matrix of points
+# Returns R,t
+# R = 3x3 rotation matrix
+# t = 3x1 column vector
+
+def rigid_transform_3D(A, B):
+    assert len(A) == len(B)
+    print(A.shape)
+    print(B.shape)
+    N = A.shape[0]; # total points
+
+    centroid_A = np.mean(A, axis=0)
+    centroid_B = np.mean(B, axis=0)
+    print(centroid_A)
+    print(centroid_B)
+    
+    # centre the points
+    AA = A - np.tile(centroid_A, (N, 1))
+    BB = B - np.tile(centroid_B, (N, 1))
+
+    # dot is matrix multiplication for array
+    H = np.matmul(np.transpose(AA), BB)
+
+    U, S, Vt = np.linalg.svd(H)
+
+    R = np.matmul(Vt.T, U.T)
+
+    # special reflection case
+    if np.linalg.det(R) < 0:
+       print "Reflection detected"
+       Vt[2,:] *= -1
+       R = np.matmul(Vt.T, U.T)
+
+    t = -np.matmul(R,centroid_A.T) + centroid_B.T
+
+    print t
+
+    return R, t, centroid_A, centroid_B
+
+# Point to line projection
+#  a, v - line point and vector 
+#  p - point to project
+def PointOntoLine(a, v, p):
+    ap = p-a
+    result = a + np.dot(ap,v)/np.dot(v,v) * v
+    return result
+
