@@ -11,6 +11,7 @@ import numpy as np
 from scipy.sparse import linalg as splinalg
 from scipy import sparse, linalg
 import numpy.linalg
+import cv2
 
 from horus import Singleton
 from horus.engine.calibration.calibration import CalibrationCancel
@@ -83,6 +84,7 @@ class LaserTriangulation(MovingCalibration):
                 if self.points_image is None:
                     self.points_image = np.zeros(images[0].shape, dtype = "uint8")
                 self.image = np.copy(self.points_image)
+                #self.image = image
                 colors = [(255,255,0), (0,255,255), (255,0,255)]
 
                 for i in lasers:
@@ -102,6 +104,19 @@ class LaserTriangulation(MovingCalibration):
                         else:
                             self._point_cloud[i] = np.concatenate(
                                 (self._point_cloud[i], point_3d.T))
+
+                        # test line detection: draw 3D points back on image
+                        '''
+                        if point_3d.shape[1]>0:
+                            p, jac = cv2.projectPoints(np.float32(point_3d.T),
+                                np.identity(3),
+                                np.zeros(3),
+                                self.calibration_data.camera_matrix,
+                                self.calibration_data.distortion_vector)
+                            p.reshape(-1,2)
+                            for pp in p.astype(np.int):
+                                self.image[pp[0][1], pp[0][0]] = [255,0,0]
+                        '''
             else:
                 self.image = image
                 print("Skip calibration at "+str(alpha))
