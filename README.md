@@ -49,6 +49,15 @@ Is there any 3D scanner project that superseeds Horus?
 - some bugs fixed
 
 
+###### Notes
+
+1. Do not oversharp/overtight images in laser capture adjustments. 
+A bit blurry laser line before segmentation filters provide subpixel position information.
+Oversharped image create wobbly "pixel stairs" style artifacts at the 3D scan.
+
+2. Using ROI increase overall scan precision by removing noisy surroundings from laser point detection input
+
+
 Discussion board:  
 https://vk.com/topic-99790498_40015734  
   

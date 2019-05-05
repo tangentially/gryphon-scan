@@ -51,17 +51,14 @@ class PointCloudGeneration(object):
         if points_2d[0].size == 0:
             #print("  empty undistort_points")
             return points_2d
-        #print(points_2d.T)
 
 	cam = np.eye(3) #self.calibration_data.camera_matrix
         d = self.calibration_data.distortion_vector
 
         pts = np.asarray(tuple(points_2d)).transpose()
-        #print(pts[0])
         pts = np.expand_dims(pts, axis=0)
 
         rs = cv2.undistortPoints(pts, cam, d, P=cam)[0]
-        #print(rs[0])
         rs = tuple(rs.T)
         return rs
 

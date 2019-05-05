@@ -35,6 +35,7 @@ class MarkerData(object):
         self.x = []
         self.y = []
         self.z = []
+        self.l = []
 
         # circle
         self.center = None
@@ -50,10 +51,11 @@ class MarkerData(object):
         return self.R is not None and \
                self.n is not None
 
-    def put(self, x, y, z):
+    def put(self, x, y, z, l):
         self.x += [x]
         self.y += [y]
         self.z += [z]
+        self.l += [l]
 
     def calibrate(self):
         self.R = None
@@ -72,6 +74,9 @@ class MarkerData(object):
         if len(points) > 4:
             # Fitting a plane
             point, normal = fit_plane(points)
+            print("Err plane: "+str( np.abs((np.float32(points)-point).dot(np.float32(normal))).mean() ))
+            point, normal = fit_plane2(points)
+            print("Err plane2: "+str( np.abs((np.float32(points)-point).dot(np.float32(normal))).mean() ))
             if normal[1] > 0:
                 normal = -normal
             self.n = normal
@@ -81,13 +86,61 @@ class MarkerData(object):
             if self.h is not None:
                 self.t = self.center - self.h * np.array(normal)
 
-            logger.info("Marker calibration (" + self.name + ')')
-            logger.info(" Translation: " + str(self.t))
+            logger.info("\nMarker calibration (" + self.name + ')')
             #logger.info(" Rotation: " + str(self.R).replace('\n', ''))
-            logger.info(" Normal: " + str(self.n))
+            logger.info(" Normal: " + str(np.round(self.n,5)))
+            logger.info(" Translation: " + str(np.round(self.t,5)))
+            err = self.getError(self.R, self.t)
+            d = self.getDelta(self.R, self.t)
+            logger.info(" Delta: %s %s " % (str(np.round(np.linalg.norm(d),6)), str( np.round(d,3) )) )
+            logger.info(" Error: " + str(np.round(err,6)) )
+            err = self.getError(self.R, self.t-d)
+            logger.info(" Error: " + str(np.round(err,6)) )
 
             return True
         return False
+
+    def getError(self, R, t):
+        if len(self.x) > 2:
+            v = zip( self.x, self.y, self.z ) - t
+            v = np.dot(R.T, v.T)
+            print(len(v[0]))
+            dz = np.mean(np.abs(v[2] - np.mean(v[2])))
+            dr = np.linalg.norm(zip(v[0], v[1]), axis=1)
+            r = np.mean(dr)
+            dr = np.mean(np.abs(dr - r))
+            return [dz,dr,r]
+
+    # average displacement of measured points against perfect positions
+    def getDelta(self, R, t, bestIndex=0):
+        if len(self.x) > 2:
+            v = zip( self.x, self.y, self.z ) - t
+            v = np.dot(R.T, v.T)
+            # build first vector for average radius/average height cylinder
+            r = np.mean( np.linalg.norm(zip(v[0], v[1]), axis=1) )
+            v0 = [v[0][bestIndex], v[1][bestIndex]] # Best data point on XY plane vector
+            v0 = np.array(v0) * r / np.linalg.norm(v0) # scale to cylinder radius
+            v0 = np.append(v0,[np.mean(v[2])]) # add Z
+
+            l = np.deg2rad(np.array(self.l) - self.l[bestIndex])
+            #print( np.array(zip( np.round(l,4), np.round(np.array(self.l) - self.l[0],4) )) )
+            e = []
+            # build perfect points positions
+            '''
+            for dv,dl in zip(v,l):
+                print(np.rad2deg(dl))
+                rvec = [ [ np.cos(-dl), -np.sin(-dl), 0 ],
+                         [ np.sin(-dl),  np.cos(-dl), 0 ],
+                         [ 0, 0, 1 ] ]
+                e += [np.dot(np.float32(rvec), dv)]
+            '''
+            for dl in l:
+                rvec = cv2.Rodrigues( np.array([0,0,dl]))[0]
+                e += [np.dot(np.float32(rvec), v0)]
+            #print( np.array(zip( np.round(v,4).tolist(), np.round(e,4).tolist(), np.round(np.array(self.l) - self.l[0],4) )) )
+            e -= v.T
+            #return np.dot( np.sum(e, axis=0), R.T )
+            return np.dot(R, np.mean(e, axis=0))
 
 
 class NormalData(MarkerData):
@@ -99,7 +152,7 @@ class NormalData(MarkerData):
 
         if len(points) > 3:
             # Fitting rotation axis for normals
-            normal = fit_rot_vec(points)
+            normal = fit_normal(points)
             if normal[1] > 0:
                 normal = -normal
             self.n = normal
@@ -145,6 +198,7 @@ class PlatformExtrinsics(MovingCalibration):
             self.use_aruco = True
         if not self.use_chessboard and not self.use_aruco:
             self._is_calibrating = False
+        self.points_image = None
 
     def _capture(self, angle):
         image = self.image_capture.capture_pattern()
@@ -170,10 +224,10 @@ class PlatformExtrinsics(MovingCalibration):
 
             # -- normal
             n = rvec.T[0]
-            self.data['n'].put(n[0], n[1], n[2])
+            self.data['n'].put(n[0], n[1], n[2], angle)
             
             # -- Top point
-            self.data['c1'].put(tvec[0], tvec[1], tvec[2])
+            self.data['c1'].put(tvec[0], tvec[1], tvec[2], angle)
 
             # -- Bottom point
             #point = np.float32([0, self.pattern.square_width * (self.pattern.rows-1) + self.pattern.origin_distance,0])
@@ -181,10 +235,10 @@ class PlatformExtrinsics(MovingCalibration):
             # optimized
             pp = (self.pattern.square_width * (self.pattern.rows-1) + self.pattern.origin_distance) * rvec.T[1] + tvec
             print(pp) # bottom point from pattern pose
-            self.data['c0'].put(pp[0], pp[1], pp[2])
+            self.data['c0'].put(pp[0], pp[1], pp[2], angle)
 
             #points = np.float32([p1, p2])
-            p, jac = cv2.projectPoints([pp, tvec],
+            p, jac = cv2.projectPoints(np.array([pp, tvec]),
                 np.identity(3),
                 np.zeros(3),
                 self.calibration_data.camera_matrix,
@@ -218,7 +272,7 @@ class PlatformExtrinsics(MovingCalibration):
                     t = self.point_cloud_generation.compute_camera_point_cloud(
                         origin, distance, normal)
                     if t is not None:
-                        self.data['c2'].put(t[0][0], t[1][0], t[2][0])
+                        self.data['c2'].put(t[0][0], t[1][0], t[2][0], angle)
                         print( [t[0][0], t[1][0], t[2][0]])
                         print( np.array([t[0][0], t[1][0], t[2][0]]) - pp)
             
@@ -228,7 +282,7 @@ class PlatformExtrinsics(MovingCalibration):
                     t = self.point_cloud_generation.compute_camera_point_cloud(
                         o, distance, normal)
                     if t is not None:
-                        self.data['c3'].put(t[0][0], t[1][0], t[2][0])
+                        self.data['c3'].put(t[0][0], t[1][0], t[2][0], angle)
                         print( [t[0][0], t[1][0], t[2][0]])
                         print( np.array([t[0][0], t[1][0], t[2][0]]) - pp)
             '''
@@ -246,7 +300,7 @@ class PlatformExtrinsics(MovingCalibration):
             for i, id in enumerate(ids):
                if 'ar'+str(id) not in self.data:
                    self.data.update({ 'ar'+str(id) : MarkerData('ARUCO #'+str(id), 20) })
-               self.data['ar'+str(id)].put(tvecs[i][0], tvecs[i][1], tvecs[i][2], )
+               self.data['ar'+str(id)].put(tvecs[i][0], tvecs[i][1], tvecs[i][2], angle)
 
             #points = np.float32([p1, p2])
             p, jac = cv2.projectPoints(tvecs,
@@ -309,6 +363,16 @@ class PlatformExtrinsics(MovingCalibration):
             logger.info(" Normal: " + str( normal_avg ))
             logger.info(" Translation: " + str(t_avg))
 
+            err0 = self.data['c0'].getDelta(R_avg, t_avg, int(len(self.data['c0'].x))/2)
+            print("Error c0: "+ str( err0 )+str(self.data['c0'].getDelta(R_avg, t_avg-err0)) )
+            t_avg = t_avg-err0
+            err0 = self.data['c0'].getDelta(R_avg, t_avg,0)
+            print("Error c0: "+ str( err0 )+str(self.data['c0'].getDelta(R_avg, t_avg-err0)) )
+            err1 = self.data['c1'].getDelta(R_avg, t_avg,0)
+            print("Error c1: "+ str( err1 )+str(self.data['c1'].getDelta(R_avg, t_avg-err0)) )
+            #print( self.data['c1'].getError(R_avg, t_avg) )
+            print("Corrected: "+ str(np.round(t_avg-err0,4)) )
+
             # estimate rotation
             rsteps = 3
             data = zip( zip(self.data['c0'].x, self.data['c0'].y, self.data['c0'].z),
@@ -320,9 +384,14 @@ class PlatformExtrinsics(MovingCalibration):
             Rv,_ = cv2.Rodrigues(R)
             l = np.linalg.norm(Rv)
             Rv = Rv.flatten()/l
-            l = l*180/np.pi
+            l = np.rad2deg(l)
+            print(R)
             print("Rv: %s alpha: %s" % (str(Rv), str(l/rsteps)) )
-            tr = PointOntoLine(t, Rv, centroid_A)
+            #tr = PointOntoLine(t, Rv, centroid_A)
+            print(centroid_A)
+            print(t)
+            #tr = centroid_A - (np.linalg.inv(R-np.eye(3)) * t)
+            tr = np.linalg.inv(np.eye(3)-R) * t
 
             logger.info(" --- Rotation SVD c0 c1 --- ")
             logger.info(" Normal: " + str( Rv ))
@@ -374,19 +443,50 @@ def residuals_plane(parameters, data_point):
 
 
 def fit_plane(data):
-    estimate = [0, 0, 0, 0, 0]  # px,py,pz and zeta, phi
+    centroid = np.mean(data, axis=0)
+    # initial px,py,pz and zeta, phi - center of mass, up
+    estimate = [centroid[0], centroid[1], centroid[2], -np.pi/2, np.pi/2]  
     # you may automize this by using the center of mass data
     # note that the normal vector is given in polar coordinates
     best_fit_values, ier = optimize.leastsq(residuals_plane, estimate, args=(data))
     xF, yF, zF, tF, pF = best_fit_values
 
-    # point  = [xF,yF,zF]
-    point = data[0]
+    #point  = [xF,yF,zF]
+    #point = data[0]
+    point = centroid
     normal = -np.array([np.sin(tF) * np.cos(pF), np.sin(tF) * np.sin(pF), np.cos(tF)])
 
     return point, normal
 
 
+def fit_plane2(data):
+    point = np.mean(data, axis=0)
+    normal = fit_normal(data - point)
+
+    return point, normal
+
+
+# --------- estimate normal for set of points ----------
+def residuals_normal(parameters, data_vectors):
+    # minimize projections to estimating axis
+    theta, phi = parameters
+    v = [np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)]
+    distances =  [np.abs(np.dot(v, [x, y, z])) for x, y, z in data_vectors]
+    return distances
+
+
+def fit_normal(data):
+    estimate = [-np.pi/2, np.pi/2]  # theta, phi
+    best_fit_values, ier = optimize.leastsq(residuals_normal, estimate, args=(data*1000))
+    tF, pF = best_fit_values
+
+    #print("Fit vec: Theta %s Phi %s" % (str(tF), str(pF)))
+    v = np.array([np.sin(tF) * np.cos(pF), np.sin(tF) * np.sin(pF), np.cos(tF)])
+
+    return v
+
+
+# ---------- extimate center and radius of points sphere within given plane
 def residuals_circle(parameters, points, s, r, point):
     r_, s_, Ri = parameters
     plane_point = s_ * s + r_ * r + np.array(point)
@@ -433,25 +533,6 @@ def fit_circle(point, normal, points):
     return center_point, R, [cxTupel, cyTupel, czTupel], RiF
 
 
-# --------- estimate rotation axis for set of rotated vectors ----------
-def residuals_rot_vec(parameters, data_vectors):
-    theta, phi = parameters
-    v = [np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)]
-    distances =  [np.dot(v, [x, y, z]) for x, y, z in data_vectors]
-    return distances
-
-
-def fit_rot_vec(data):
-    estimate = [-np.pi/2, np.pi/2]  # theta, phi
-    best_fit_values, ier = optimize.leastsq(residuals_rot_vec, estimate, args=(data))
-    tF, pF = best_fit_values
-
-    print("Fit vec: Theta %s Phi %s" % (str(tF), str(pF)))
-    v = np.array([np.sin(tF) * np.cos(pF), np.sin(tF) * np.sin(pF), np.cos(tF)])
-
-    return v
-
-
 # Finding optimal rotation and translation between corresponding 3D points
 # http://nghiaho.com/?page_id=671
 #
@@ -462,14 +543,15 @@ def fit_rot_vec(data):
 
 def rigid_transform_3D(A, B):
     assert len(A) == len(B)
-    print(A.shape)
-    print(B.shape)
+    #print(A.shape)
+    #print(A)
+    #print(B.shape)
     N = A.shape[0]; # total points
 
     centroid_A = np.mean(A, axis=0)
     centroid_B = np.mean(B, axis=0)
-    print(centroid_A)
-    print(centroid_B)
+    #print(centroid_A)
+    #print(centroid_B)
     
     # centre the points
     AA = A - np.tile(centroid_A, (N, 1))
@@ -490,7 +572,7 @@ def rigid_transform_3D(A, B):
 
     t = -np.matmul(R,centroid_A.T) + centroid_B.T
 
-    print t
+    #print t
 
     return R, t, centroid_A, centroid_B
 

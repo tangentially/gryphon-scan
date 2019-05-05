@@ -228,7 +228,7 @@ class ImageCapture(object):
         #    self.remove_background_subtract(images)
         #else:
         #    self.remove_background_hsv(images,self._mode.light[1])
-        #return images
+        return images
 
     def capture_all_lasers(self):
         image_background = None

@@ -291,7 +291,7 @@ class CiclopScan(Scan):
         # begin = time.time()
 #        u_offset = 2.8
 #        u_offset = 1.8
-        u_offset = 0
+#        u_offset = 0.0
         for i in xrange(2):
             if capture.lasers[i] is not None:
                 image = capture.lasers[i]
@@ -324,7 +324,7 @@ class CiclopScan(Scan):
 
 
                 # Compute point cloud from 2D points
-                points_2d[0][:] += u_offset
+                #points_2d[0][:] += u_offset
 
                 points_2d = self.point_cloud_generation.undistort_points(points_2d)
                 point_cloud = self.point_cloud_generation.compute_point_cloud(
