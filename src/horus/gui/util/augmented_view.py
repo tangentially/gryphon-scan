@@ -25,7 +25,7 @@ def init_platform_augmented_draw():
     rr = r * np.sin(np.deg2rad(45))
     platform_points = np.float32( [(0,0,0),(r,0,h),(-r,0,h),(0,r,h),(0,-r,h),(rr,rr,h),(rr,-rr,h),(-rr,rr,h),(-rr,-rr,h)])
 
-    h = profile.settings['machine_shape_z']
+    h = profile.settings['platform_border_z']
     polys = profile.get_machine_size_polygons()
     platform_border = []
     for p in polys[0]:
@@ -119,6 +119,8 @@ def augmented_draw_pattern(image, corners):
         cv2.polylines(image, np.int32([p[4:8]]), True, (255,0,0), 2)
         cv2.line(image, tuple(p[8]), tuple(p[9]), (255,0,0), 2)
         cv2.line(image, tuple(p[10]), tuple(p[11]), (255,0,0), 2)
+
+        cv2.putText(image, str(pose[1].T[0]), (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 0), lineType=cv2.LINE_AA)
     return image
 
 #pattern mask
