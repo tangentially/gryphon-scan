@@ -7,6 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import cv2
 import numpy as np
+from distutils.version import StrictVersion, LooseVersion
 
 from horus import Singleton
 from horus.engine.calibration.calibration import Calibration
@@ -67,6 +68,35 @@ class CameraIntrinsics(Calibration):
         ret, cmat, dvec, rvecs, tvecs = cv2.calibrateCamera(
             self.object_points, self.image_points, self.shape, None, None)
 
+        if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
+            newObjPoints = np.array([], dtype=np.float64)
+            #print(self.pattern.columns-1)
+            #print(np.array(self.object_points).shape)
+            #print( self.object_points)
+            #print(np.array(self.image_points).shape)
+            #print(self.shape)
+            #print(self.object_points.dtype)
+            #print(self.image_points.dtype)
+            '''
+            # https://github.com/opencv/opencv/issues/14469
+            print("-1-")
+            newObjPoints = np.float64(self.object_points)
+            ret, cmat1, dvec1, rvecs1, tvecs1, newObjPoints1 = cv2.calibrateCameraRO(
+                        self.object_points, self.image_points, self.shape, -1,
+                        cmat, dvec, rvecs, tvecs, None, cv2.CALIB_USE_INTRINSIC_GUESS, 
+                        (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30,  2.2204460492503131e-16)  );
+            print("-2-")
+            #self.object_points[s.boardSize.width - 1].x = self.object_points[0].x + grid_width;
+            ret, cmat2, dvec2, rvecs2, tvecs2, newObjPoints2 = cv2.calibrateCameraRO(
+                        self.pattern.object_points, self.image_points, self.shape[::-1], int(self.pattern.columns-1),
+                        cmat1, dvec1, rvecs1, tvecs1, newObjPoints1, cv2.CALIB_USE_INTRINSIC_GUESS | cv2.CALIB_USE_LU, 
+                        (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30,  2.2204460492503131e-16)  );
+#            ret, cmat2, dvec2, rvecs2, tvecs2, newObjPoints2 = cv2.calibrateCameraRO(
+#                        self.object_points, self.image_points, self.shape, self.pattern.columns-1,
+#                        cmat, dvec, rvecs=rvecs, tvecs=tvecs, newObjPoints= newObjPoints,
+#                        flags= cv2.CALIB_USE_INTRINSIC_GUESS,
+#                        criteria= (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30,  2.2204460492503131e-16) ); # | CALIB_USE_LU
+            '''
         if ret:
             # Compute calibration error
             for i in xrange(len(self.object_points)):
