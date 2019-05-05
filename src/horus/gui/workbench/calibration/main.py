@@ -142,6 +142,7 @@ class CalibrationWorkbench(Workbench):
         pattern.read_profile()
 
         calibration_data.read_profile_camera()
+        calibration_data.read_profile_calibration()
 
         laser_triangulation.read_profile()
         platform_extrinsics.read_profile()

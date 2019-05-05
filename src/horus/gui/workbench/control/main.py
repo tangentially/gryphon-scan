@@ -57,6 +57,7 @@ class ControlWorkbench(Workbench):
         image_capture.set_mode_texture()
 
         calibration_data.read_profile_camera()
+        calibration_data.read_profile_calibration()
 
         driver.board.motor_speed(profile.settings['motor_speed_control'])
         driver.board.motor_acceleration(profile.settings['motor_acceleration_control'])

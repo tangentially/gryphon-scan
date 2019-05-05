@@ -8,14 +8,17 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import wx._core
 
 from horus.util import resources
+import numpy as np
+import cv2
 
 from horus.gui.engine import image_capture, image_detection, scanner_autocheck, laser_triangulation, \
-    platform_extrinsics
+    platform_extrinsics, calibration_data
+
 from horus.gui.workbench.calibration.pages.page import Page
 from horus.gui.util.image_view import ImageView
 from horus.gui.util.video_view import VideoView
 from horus.gui.util.augmented_view import augmented_draw_platform, augmented_draw_lasers_on_platform, \
-    augmented_draw_lasers_on_pattern
+    augmented_draw_lasers_on_pattern, rotatePoint2Plane
 
 
 class VideoPage(Page):
@@ -96,6 +99,19 @@ class VideoPage(Page):
                 pose = image_detection.detect_pose_from_corners(corners)
                 augmented_draw_lasers_on_pattern(image, pose)
                 augmented_draw_lasers_on_platform(image)
+
+                if pose is not None:
+                    for i,laser in enumerate(calibration_data.laser_planes):
+                        if not laser.is_empty():
+                            #print(i)
+                            l = rotatePoint2Plane(pose[1].T[0], laser.normal, laser.distance)
+                            #print(l)
+                            if l is not None:
+                                cv2.putText(image, str(i)+": "+str(np.round(l,2)), (10,80+i*30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 0), lineType=cv2.LINE_AA)
+                    P = calibration_data.platform_translation # platform center
+                    M = calibration_data.platform_rotation    # platform to world matrix
+                    A = M.T.dot(pose[1].T[0] - P) # A in platform coords
+                    cv2.putText(image, "R: "+str(np.round(np.linalg.norm(A[0:2]),2)), (10,160), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 0), lineType=cv2.LINE_AA)
 
                 corners, ids = image_detection.aruco_detect(image)
                 if corners:

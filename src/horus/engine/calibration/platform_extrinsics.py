@@ -90,12 +90,16 @@ class MarkerData(object):
             #logger.info(" Rotation: " + str(self.R).replace('\n', ''))
             logger.info(" Normal: " + str(np.round(self.n,5)))
             logger.info(" Translation: " + str(np.round(self.t,5)))
+
             err = self.getError(self.R, self.t)
+            logger.info(" Error: " + str(np.round(err,6)) )
+
             d = self.getDelta(self.R, self.t)
             logger.info(" Delta: %s %s " % (str(np.round(np.linalg.norm(d),6)), str( np.round(d,3) )) )
-            logger.info(" Error: " + str(np.round(err,6)) )
-            err = self.getError(self.R, self.t-d)
-            logger.info(" Error: " + str(np.round(err,6)) )
+
+            self.t = self.t - d
+            err = self.getError(self.R, self.t)
+            logger.info(" New error: " + str(np.round(err,6)) )
 
             return True
         return False
@@ -337,7 +341,7 @@ class PlatformExtrinsics(MovingCalibration):
         R_avg = make_R(normal_avg)
         if t_avg_n>0:
             t_avg /= t_avg_n
-        logger.info(" --- AVG all --- ")
+        logger.info("\n --- AVG all --- ")
         logger.info(" Normal: " + str( normal_avg ))
         logger.info(" Translation: " + str(t_avg))
 
@@ -459,6 +463,7 @@ def fit_plane(data):
     return point, normal
 
 
+# ------------- fit plane with point = center of mass -------
 def fit_plane2(data):
     point = np.mean(data, axis=0)
     normal = fit_normal(data - point)
@@ -479,10 +484,7 @@ def fit_normal(data):
     estimate = [-np.pi/2, np.pi/2]  # theta, phi
     best_fit_values, ier = optimize.leastsq(residuals_normal, estimate, args=(data*1000))
     tF, pF = best_fit_values
-
-    #print("Fit vec: Theta %s Phi %s" % (str(tF), str(pF)))
     v = np.array([np.sin(tF) * np.cos(pF), np.sin(tF) * np.sin(pF), np.cos(tF)])
-
     return v
 
 
@@ -543,15 +545,10 @@ def fit_circle(point, normal, points):
 
 def rigid_transform_3D(A, B):
     assert len(A) == len(B)
-    #print(A.shape)
-    #print(A)
-    #print(B.shape)
     N = A.shape[0]; # total points
 
     centroid_A = np.mean(A, axis=0)
     centroid_B = np.mean(B, axis=0)
-    #print(centroid_A)
-    #print(centroid_B)
     
     # centre the points
     AA = A - np.tile(centroid_A, (N, 1))
@@ -572,8 +569,6 @@ def rigid_transform_3D(A, B):
 
     t = -np.matmul(R,centroid_A.T) + centroid_B.T
 
-    #print t
-
     return R, t, centroid_A, centroid_B
 
 # Point to line projection
@@ -583,4 +578,5 @@ def PointOntoLine(a, v, p):
     ap = p-a
     result = a + np.dot(ap,v)/np.dot(v,v) * v
     return result
+
 

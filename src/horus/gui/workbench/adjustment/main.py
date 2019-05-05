@@ -55,6 +55,7 @@ class AdjustmentWorkbench(Workbench):
         self.current_video.mode = profile.settings['current_video_mode_adjustment']
         pattern.read_profile()
         calibration_data.read_profile_camera()
+        calibration_data.read_profile_calibration()
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_adjustment']].on_title_clicked(None)
 

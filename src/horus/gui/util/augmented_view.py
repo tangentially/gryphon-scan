@@ -302,3 +302,56 @@ def line_cross_sphere(vec, pt, center, radius):
     p2 = pt + (pn-delta)*vec
     return p1, p2
 
+
+# find platform rotation angle to move point A to plane n,d
+# A - point of platform object in world coords
+# n,d - plane distance and normal in world coords
+# return - planform angle movement to rotate point on to plane
+def rotatePoint2Plane(A,n,d):
+    calibration_data = horus.gui.engine.platform_extrinsics.calibration_data
+    P = calibration_data.platform_translation # platform center
+    M = calibration_data.platform_rotation    # platform to world matrix
+
+    A3 = M.T.dot(A - P) # A in platform coords
+    n3 = M.T.dot(n) # plane in platform coords
+    d3 = d - np.dot(P, n)
+    # AA dot n3 = d3      - AA belongs to plane
+    # AA dot z = A dot z  - rotate around Z axis
+    # |AA| = |A|          - keep length
+    # cos l = AA[0,1] dot A[0,1]
+    # --------------
+    # K = (d - Az*nz) / ny
+    # Y = K - X * nx/ny
+    K = (d3 - A3[2]*n3[2])/n3[1]
+
+    # (1 + nx^2/ny^2) * X^2 - X * 2*K*nx/ny + K^2 - Ax^2 - Ay^2 = 0
+    # J = K^2 - Ax^2 - Ay^2
+    a = 1 + n3[0]**2/n3[1]**2
+    b = -2*K*n3[0]/n3[1]
+    c = K**2 - A3[0]**2 - A3[1]**2
+    discr = b**2 - 4*a*c
+    if discr >= 0:
+        x1 = (-b + math.sqrt(discr)) / (2 * a)
+        x2 = (-b - math.sqrt(discr)) / (2 * a)
+        #print("x1 = %.2f \nx2 = %.2f" % (x1, x2))
+
+        y1 = K - x1*n3[0]/n3[1]
+        y2 = K - x2*n3[0]/n3[1]
+    
+        AA1 = [x1, y1]
+        AA2 = [x2, y2]
+        A4 = A3[0:2]
+        #print('A1,2,4 '+str(np.round(AA1,3))+str(np.round(AA2,3))+str(np.round(A4,3))+" c1: "+str(np.cross(AA1,A4))+" c2: "+str(np.cross(AA1,A4)))
+
+        #l1 = np.rad2deg(np.arccos( np.dot(AA1,A4) / np.linalg.norm(AA1) / np.linalg.norm(A4) ))
+        #l2 = np.rad2deg(np.arccos( np.dot(AA2,A4) / np.linalg.norm(AA2) / np.linalg.norm(A4) ))
+        #l1 = np.rad2deg(np.arcsin( np.cross(AA1,A4) / np.linalg.norm(AA1) / np.linalg.norm(A4) ))
+        #l2 = np.rad2deg(np.arcsin( np.cross(AA2,A4) / np.linalg.norm(AA2) / np.linalg.norm(A4) ))
+
+        if np.linalg.norm(A4/np.linalg.norm(A4) - AA1/np.linalg.norm(AA1)) < np.linalg.norm(A4/np.linalg.norm(A4) - AA2/np.linalg.norm(AA2)):
+            return -np.rad2deg(np.arcsin( np.cross(AA1,A4) / np.linalg.norm(AA1) / np.linalg.norm(A4) ))
+        else:
+            return -np.rad2deg(np.arcsin( np.cross(AA2,A4) / np.linalg.norm(AA2) / np.linalg.norm(A4) ))
+
+    return None
+    
