@@ -36,11 +36,23 @@ class Settings(collections.MutableMapping):
         else:
             return self.get_default(key)
 
+    def setting_exists(self, key):
+        if key in self._settings_dict:
+            return True
+        else:
+            return False
+
     def get_setting(self, key):
-        return self._settings_dict[key]
+        if self.setting_exists(key):
+            return self._settings_dict[key]
+        else:
+            return None
 
     def get_label(self, key):
-        return self.get_setting(key)._label
+        if self.setting_exists(key):
+            return self.get_setting(key)._label
+        else:
+            return ''
 
     def get_default(self, key):
         if self.get_setting(key)._type == np.ndarray:
@@ -554,6 +566,21 @@ class Settings(collections.MutableMapping):
             Setting('distortion_vector', _('Distortion vector'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(5,),
                                            buffer=np.array([0.0, 0.0, 0.0, 0.0, 0.0]))))
+
+        # new camera calculator
+        self._add_setting(
+            Setting('new_camera_matrix', _('Initial new camera matrix'), 'no_settings',
+                    np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1430.0, 0.0, 480.0],
+                                                                          [0.0, 1430.0, 640.0],
+                                                                          [0.0, 0.0, 1.0]]))))
+        self._add_setting(
+            Setting('new_camera_ruler', _('Target length (mm)'), 'no_settings', float, 325.0))
+        self._add_setting(
+            Setting('new_camera_distance_h', _('Target horizontal distance (mm)'), 'no_settings', float, 480.0))
+        self._add_setting(
+            Setting('new_camera_distance_v', _('Target vertical distance (mm)'), 'no_settings', float, 265.0))
+        self._add_setting(
+            Setting('apply_new_camera_button', _('Apply calculated camera data'), 'no_settings', unicode, u''))
 
         self._add_setting(
             Setting('distance_left', _('Distance left (mm)'), 'calibration_settings', float, 0.0))

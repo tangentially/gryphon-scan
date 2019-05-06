@@ -46,6 +46,7 @@ Is there any 3D scanner project that superseeds Horus?
 - laser id saved as "Original_cloud_index" field at .ply export so point cloud can be separated by lasers and additionally aligned
 - some builtin constant values moved to settings or estimated automatically
 - movement toolbar
+- auto save/read camera calibration images (use 'r' to read previous image in current frame)
 - some bugs fixed
 
 

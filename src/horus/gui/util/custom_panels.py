@@ -365,6 +365,62 @@ class ControlPanel(wx.Panel):
             self.engine_callback(value)
 
 
+class Header(ControlPanel):
+
+    def __init__(self, parent, name, tooltip=None):
+        #ControlPanel.__init__(self, parent, name, engine_callback)
+        wx.Panel.__init__(self, parent)
+        self.name = name
+        if tooltip:
+            self.SetToolTip(wx.ToolTip(tooltip))
+
+        self.control = None
+        self.undo_values = []
+        self.engine_callback = None
+        self.append_undo_callback = None
+        self.release_undo_callback = None
+
+        # Elements
+        self.label = wx.StaticText(self, label=name)
+        font = self.label.GetFont()
+        font.SetWeight(wx.BOLD)
+        #font = wx.Font(18, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
+        self.label.SetFont(font)
+        self.line = wx.StaticLine(self)
+
+        # Layout
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(self.label, 0, wx.ALL ^ wx.TOP ^ wx.BOTTOM | wx.EXPAND, 10)
+        vbox.Add(self.line, 1, wx.ALL | wx.EXPAND, 8)
+        self.SetSizer(vbox)
+        self.Layout()
+
+    def append_undo(self):
+        pass
+
+    def release_undo(self):
+        pass
+
+    def release_restore(self):
+        pass
+
+    def undo(self):
+        pass
+
+    def reset_profile(self):
+        pass
+
+    def update_from_profile(self):
+        pass
+
+    def update_to_profile(self, value):
+        pass
+
+    def set_engine(self, value):
+        pass
+
+
+
 class Slider(ControlPanel):
 
     def __init__(self, parent, name, engine_callback=None):
