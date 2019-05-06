@@ -27,7 +27,7 @@ class ImageDetection(object):
     def __init__(self):
         self.pattern = Pattern()
         self.calibration_data = CalibrationData()
-        self.chessboard_mask = None
+        #self.chessboard_mask = None
 
         self._criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.0001)
 
@@ -97,16 +97,16 @@ class ImageDetection(object):
                 ret, corners = cv2.findChessboardCorners(
                     gray, (self.pattern.columns, self.pattern.rows), flags= fl)
                 if ret:
-                    self.chessboard_mask = cv2.threshold(
-                        gray, gray.max() / 2, 255, cv2.THRESH_BINARY)[1]
+#                    self.chessboard_mask = cv2.threshold(
+#                        gray, gray.max() / 2, 255, cv2.THRESH_BINARY)[1]
                     v1 = abs(corners[0][0] - corners[self.pattern.columns-1][0])/(self.pattern.columns-1)
                     v2 = abs(corners[0][0] - corners[self.pattern.columns*(self.pattern.rows-1)][0])/(self.pattern.rows-1)
                     w = int(max(v1[0], v2[0])*0.6)
                     h = int(max(v1[1], v2[1])*0.6)
                     cv2.cornerSubPix(gray, corners, (w, h), (1, 1), self._criteria) # (11,11), (-1,-1)
                     return corners
-                else:
-                    self.chessboard_mask = None
+#                else:
+#                    self.chessboard_mask = None
 
 
     def aruco_detect(self, image):

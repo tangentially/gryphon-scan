@@ -83,6 +83,15 @@ class CameraIntrinsics(Calibration):
             self.object_points, self.image_points, self.shape, cmat0, dvec0, 
             flags=flags)
 
+        # TODO More Accurate Camera Calibration with Imperfect Planar Target
+        # https://github.com/opencv/opencv/pull/12772
+        # https://github.com/xoox/calibrel/blob/master/test/test_calibrel.cpp
+        # https://docs.opencv.org/4.1.0/d9/d0c/group__calib3d.html#ggae515fd11d4c0e5b4162440eaf2094e02a5c59485f1b5391cb3d7b2bfb1b7079a7
+        # samples\cpp\calibration.cpp
+        # rms = calibrateCameraRO(objectPoints, imagePoints, imageSize, iFixedPoint,
+        #                    cameraMatrix, distCoeffs, rvecs, tvecs, newObjPoints,
+        #                    flags | CALIB_FIX_K3 | CALIB_USE_LU);
+
         if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
             newObjPoints = np.array([], dtype=np.float64)
             #print(self.pattern.columns-1)

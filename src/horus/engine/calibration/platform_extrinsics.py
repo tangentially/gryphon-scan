@@ -377,7 +377,16 @@ class PlatformExtrinsics(MovingCalibration):
             #print( self.data['c1'].getError(R_avg, t_avg) )
             print("Corrected: "+ str(np.round(t_avg-err0,4)) )
 
-            # estimate rotation
+            # Try to estimate rotation with SWD
+            # http://nghiaho.com/?page_id=671
+            # https://dxdy.ru/post1082674.html
+            # http://mathworld.wolfram.com/RodriguesRotationFormula.html
+            # https://docs.opencv.org/3.4.3/d9/d0c/group__calib3d.html#ga61585db663d9da06b68e70cfbf6a1eac
+            # http://www.liralab.it/teaching/SINA/slides-current/opencv.pdf
+            # https://docs.opencv.org/3.4.1/d4/d5e/decompose_homography_8cpp-example.html
+
+            # TODO Check missed during measurement points
+
             rsteps = 3
             data = zip( zip(self.data['c0'].x, self.data['c0'].y, self.data['c0'].z),
                         zip(self.data['c1'].x, self.data['c1'].y, self.data['c1'].z) )
