@@ -18,6 +18,9 @@ from horus.gui.workbench.calibration.pages.page import Page
 from horus.gui.util.image_view import ImageView
 from horus.gui.util.video_view import VideoView
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class CapturePage(Page):
 
@@ -105,7 +108,7 @@ class CapturePage(Page):
             self.video_view.stop()
             image = self.read_image_file(self.current_grid+1)
             if image is not None:
-                image = camera_intrinsics.capture()
+                image = camera_intrinsics.capture(image)
                 if image is not None:
                     self.add_frame_to_grid(image)
                     if self.current_grid <= self.rows * self.columns:
@@ -137,11 +140,11 @@ class CapturePage(Page):
 
 
     def read_image_file(self, id):
-        print("read")
         folder = os.path.join(get_base_path(), 'camera_intrisics')
         filename = os.path.join(folder, 'frame'+str(id)+'.png')
-        print(filename)
         if not os.path.exists(filename):
             return None
-        print("reading file")
-        return cv2.imread(filename, 0)
+        image = cv2.imread(filename, cv2.IMREAD_COLOR)
+        if image is None:
+            logger.info("Error loading image "+filename)
+        return image

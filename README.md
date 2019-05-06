@@ -29,7 +29,7 @@ Is there any 3D scanner project that superseeds Horus?
 
 ###### At the moment:
 - customizible camera height/angle/distance
-- support for autofocus cameras (camera driver has to support manual focus), autodetect camera resolution
+- support for autofocus cameras in calibration->video panel (camera driver has to support set focus), autodetect camera resolution
 - customizible scan area (turntable) size
 - photo lights control support at laser pins 3 and 4 (be aware that board hardware pins current is limited and you need extra hardware for powerful lights)
 - fixed turntable firmware hello string detection (horus-fw 2.0 support or any custom grbl based firmwares if same G-codes are supported)
