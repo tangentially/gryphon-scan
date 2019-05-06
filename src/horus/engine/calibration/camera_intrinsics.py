@@ -51,9 +51,10 @@ class CameraIntrinsics(Calibration):
         if self._after_callback is not None:
             self._after_callback(response)
 
-    def capture(self):
+    def capture(self, image = None):
         if self.driver.is_connected:
-            image = self.image_capture.capture_pattern()
+            if image is None:
+                image = self.image_capture.capture_pattern()
 
             self.shape = image[:, :, 0].shape
             corners = self.image_detection.detect_corners(image)
@@ -64,9 +65,23 @@ class CameraIntrinsics(Calibration):
                     return image
 
     def calibrate(self):
+        # https://www.cs.auckland.ac.nz/courses/compsci773s1c/lectures/camera%20distortion.pdf
         error = 0
+        #ret, cmat, dvec, rvecs, tvecs = cv2.calibrateCamera(
+        #    self.object_points, self.image_points, self.shape, None, None)
+
+        # use current values to start estimation
+        cmat0 = self.calibration_data.camera_matrix
+        dvec0 = self.calibration_data.distortion_vector
+        print(cmat0)
+        if LooseVersion(cv2.__version__) > LooseVersion("3.0.0"):
+            flags = cv2.CALIB_USE_INTRINSIC_GUESS
+        else:
+            flags = cv2.CV_CALIB_USE_INTRINSIC_GUESS
+
         ret, cmat, dvec, rvecs, tvecs = cv2.calibrateCamera(
-            self.object_points, self.image_points, self.shape, None, None)
+            self.object_points, self.image_points, self.shape, cmat0, dvec0, 
+            flags=flags)
 
         if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
             newObjPoints = np.array([], dtype=np.float64)

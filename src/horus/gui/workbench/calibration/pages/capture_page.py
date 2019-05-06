@@ -5,9 +5,13 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
+import os
 import wx._core
+import cv2
+from distutils.version import StrictVersion, LooseVersion
 
 from horus.util import resources
+from horus.util.profile import get_base_path
 
 from horus.gui.engine import image_capture, image_detection, camera_intrinsics
 from horus.gui.workbench.calibration.pages.page import Page
@@ -86,13 +90,26 @@ class CapturePage(Page):
         return chessboard
 
     def on_key_press(self, event):
-        if event.GetKeyCode() == 32:  # spacebar
+        key = event.GetKeyCode()
+        if key == 32:  # spacebar
             self.video_view.stop()
             image = camera_intrinsics.capture()
             if image is not None:
                 self.add_frame_to_grid(image)
+                image = self.save_image_file(image, self.current_grid)
                 if self.current_grid <= self.rows * self.columns:
                     self.gauge.SetValue(self.current_grid * 100.0 / self.rows / self.columns)
+            self.video_view.play()
+
+        elif key == 82: # 'R' 'r'
+            self.video_view.stop()
+            image = self.read_image_file(self.current_grid+1)
+            if image is not None:
+                image = camera_intrinsics.capture()
+                if image is not None:
+                    self.add_frame_to_grid(image)
+                    if self.current_grid <= self.rows * self.columns:
+                        self.gauge.SetValue(self.current_grid * 100.0 / self.rows / self.columns)
             self.video_view.play()
 
     def add_frame_to_grid(self, image):
@@ -100,6 +117,31 @@ class CapturePage(Page):
             self.panel_grid[self.current_grid].set_frame(image)
             self.current_grid += 1
         if self.current_grid is (self.columns * self.rows):
-            self.desc_text.SetLabel(_("Press space bar to continue"))
+            self.desc_text.SetLabel(_("Press space bar to capture or 'r' to read frame"))
             if self.button_right_callback is not None:
                 self.button_right_callback()
+
+    def save_image_file(self, image, id):
+        folder = os.path.join(get_base_path(), 'camera_intrisics')
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
+        filename = os.path.join(folder, 'frame'+str(id)+'.png')
+        #if os.path.exists(filename):
+        if LooseVersion(cv2.__version__) > LooseVersion("3.0.0"):
+            compression_params = [cv2.IMWRITE_PNG_COMPRESSION, 0]
+        else:
+            compression_params = [cv2.CV_IMWRITE_PNG_COMPRESSION, 0]
+
+        cv2.imwrite(filename, image, compression_params)
+
+
+    def read_image_file(self, id):
+        print("read")
+        folder = os.path.join(get_base_path(), 'camera_intrisics')
+        filename = os.path.join(folder, 'frame'+str(id)+'.png')
+        print(filename)
+        if not os.path.exists(filename):
+            return None
+        print("reading file")
+        return cv2.imread(filename, 0)
