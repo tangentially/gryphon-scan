@@ -71,7 +71,7 @@ class ComboCalibration(MovingCalibration):
                     image = self.image_detection.pattern_mask(image, corners)
                     self.image = image
                     points_2d, image = self.laser_segmentation.compute_2d_points(image)
-                    points_2d = self.point_cloud_generation.undistort_points(points_2d)
+                    #points_2d = self.point_cloud_generation.undistort_points(points_2d)
                     point_3d = self.point_cloud_generation.compute_camera_point_cloud(
                         points_2d, distance, normal)
                     if self._point_cloud[i] is None:

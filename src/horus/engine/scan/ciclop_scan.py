@@ -326,7 +326,7 @@ class CiclopScan(Scan):
                 # Compute point cloud from 2D points
                 #points_2d[0][:] += u_offset
 
-                points_2d = self.point_cloud_generation.undistort_points(points_2d)
+                #points_2d = self.point_cloud_generation.undistort_points(points_2d)
                 point_cloud = self.point_cloud_generation.compute_point_cloud(
                     capture.theta, points_2d, i)
 

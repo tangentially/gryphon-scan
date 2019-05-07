@@ -68,7 +68,7 @@ class PlatformByLasers(Calibration):
             for idx,image in enumerate(images):
                 image = apply_mask(image, mask)
                 points_2d, image = self.laser_segmentation.compute_2d_points(image)
-                points_2d = self.point_cloud_generation.undistort_points(points_2d)
+                #points_2d = self.point_cloud_generation.undistort_points(points_2d)
                 point_3d = self.point_cloud_generation.compute_camera_point_cloud(
                     points_2d, 
                     self.calibration_data.laser_planes[idx].distance, 

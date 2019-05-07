@@ -20,6 +20,9 @@ class PointCloudGeneration(object):
         self.calibration_data = CalibrationData()
 
     def compute_point_cloud(self, theta, points_2d, index):
+        # compute point cloud in model coords
+        #   points_2d = [u,v]
+
         # Load calibration values
         R = np.matrix(self.calibration_data.platform_rotation)
         t = np.matrix(self.calibration_data.platform_translation).T
@@ -36,6 +39,10 @@ class PointCloudGeneration(object):
             return None
 
     def compute_platform_point_cloud(self, points_2d, R, t, index):
+        # compute point cloud in platform coords
+        #   points_2d = [u,v]
+        #   R, t has to be np.matrix
+
         # Load calibration values
         n = self.calibration_data.laser_planes[index].normal
         d = self.calibration_data.laser_planes[index].distance
@@ -47,23 +54,22 @@ class PointCloudGeneration(object):
 
     def undistort_points(self, points_2d):
         # correct camera distortion
-        #print("---------- undistort_points ------------")
+        #   points_2d = [u,v]
+
         if points_2d[0].size == 0:
-            #print("  empty undistort_points")
             return points_2d
 
-	cam = self.calibration_data.camera_matrix #np.eye(3) #self.calibration_data.camera_matrix
+	cam = self.calibration_data.camera_matrix
         d = self.calibration_data.distortion_vector
 
-        pts = np.asarray(tuple(points_2d)).transpose()
-        pts = np.expand_dims(pts, axis=0)
+        pts = np.expand_dims(np.float32(points_2d).transpose(), axis=1)
 
-        rs = cv2.undistortPoints(pts, cam, d, P=cam)[0]
-        rs = tuple(rs.T)
+        rs = cv2.undistortPoints(pts, cam, d, P=cam)
+        rs = tuple(rs.reshape(-1,2).T)
         return rs
 
 
-    def compute_camera_point_cloud(self, points_2d, d, n):
+    def compute_camera_point_cloud_horus(self, points_2d, d, n):
         # Load calibration values
         fx = self.calibration_data.camera_matrix[0][0]
         fy = self.calibration_data.camera_matrix[1][1]
@@ -74,3 +80,21 @@ class PointCloudGeneration(object):
         x = np.concatenate( ((u - cx) / fx, (v - cy) / fy, np.ones(len(u))) ).reshape(3, len(u))
         # Compute laser intersection
         return d / np.dot(n, x) * x
+
+
+    def compute_camera_point_cloud(self, points_2d, d, n):
+        # compute point cloud in world coords
+        #   points_2d = [u,v]
+
+        # Load calibration values
+	cam = self.calibration_data.camera_matrix
+        d = self.calibration_data.distortion_vector
+
+        # Compute projection point
+        pts = np.expand_dims(np.float32(points_2d).transpose(), axis=1)
+        x = cv2.undistortPoints(pts, cam, d).reshape(-1,2).T # normalized results [u,v]  ( [[(x-cx)/fx], [(y-cy)/fy]] )
+
+        # Compute laser intersection
+        x = np.insert( x, 2, [1.], axis=0) # [u,v,1]
+        return d / np.dot(n, x).reshape(-1,1) * x # [X,Y,Z]
+
