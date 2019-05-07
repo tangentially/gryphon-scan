@@ -570,9 +570,9 @@ class Settings(collections.MutableMapping):
         # new camera calculator
         self._add_setting(
             Setting('new_camera_matrix', _('Initial new camera matrix'), 'no_settings',
-                    np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1430.0, 0.0, 480.0],
-                                                                          [0.0, 1430.0, 640.0],
-                                                                          [0.0, 0.0, 1.0]]))))
+                    np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[0.0, 0.0, 0.0],
+                                                                          [0.0, 0.0, 0.0],
+                                                                          [0.0, 0.0, 0.0]]))))
         self._add_setting(
             Setting('new_camera_ruler', _('Target length (mm)'), 'no_settings', float, 325.0))
         self._add_setting(

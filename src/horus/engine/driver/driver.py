@@ -40,7 +40,7 @@ class Driver(object):
         self.is_connected = False
         try:
             self.camera.connect()
-            #self.board.connect()
+            self.board.connect()
         except Exception as e:
             exception = e
             logger.error('Failed to connect: '+ str(e))

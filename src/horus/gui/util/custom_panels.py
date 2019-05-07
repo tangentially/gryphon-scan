@@ -947,6 +947,9 @@ class Button(ControlPanel):
         if self.engine_callback is not None:
             self.engine_callback()
 
+    def set_engine(self, value):
+        pass
+
 
 class CallbackButton(ControlPanel):
 

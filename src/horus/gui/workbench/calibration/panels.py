@@ -257,7 +257,10 @@ class CameraIntrinsics(ExpandablePanel):
         self.add_control('new_camera_distance_h', FloatTextBox, _("Min distance to view whole test target placed horizontally"))
         self.add_control('new_camera_distance_v', FloatTextBox, _("Min distance to view whole test target placed vertically"))
         self.add_control('apply_new_camera_button', Button)
+
+    def Enable(self):
         self._update_new_camera_matrix(0)
+        ExpandablePanel.Enable(self)
 
     def update_callbacks(self):
         self.update_callback('camera_matrix', lambda v: self._update_camera_matrix(v))
@@ -266,31 +269,28 @@ class CameraIntrinsics(ExpandablePanel):
         self.update_callback('new_camera_ruler', lambda v: self._update_new_camera_matrix(v))
         self.update_callback('new_camera_distance_h', lambda v: self._update_new_camera_matrix(v))
         self.update_callback('new_camera_distance_v', lambda v: self._update_new_camera_matrix(v))
-        self.update_callback('apply_new_camera_button', self._apply_new_camera_matrix())
+        self.update_callback('apply_new_camera_button', self._apply_new_camera_matrix )
 
     def _update_camera_matrix(self, value):
-        print("ucm")
         calibration_data.camera_matrix = value
 
     def _update_distortion_vector(self, value):
         calibration_data.distortion_vector = value
 
     def _update_new_camera_matrix(self, value):
-        res = driver.camera.get_resolution()
-        l = profile.settings['new_camera_ruler']
-        h = profile.settings['new_camera_distance_h']
-        v = profile.settings['new_camera_distance_v']
-        M = [ [res[0]*h/l, 0, res[0]/2],
-              [0, res[1]*v/l, res[1]/2],
-              [0,0,1] ]
-        profile.settings['new_camera_matrix'] = np.array(M)
-        self.content['new_camera_matrix'].update_from_profile()
+        if driver.is_connected:
+            res = driver.camera.get_resolution()
+            l = profile.settings['new_camera_ruler']
+            h = profile.settings['new_camera_distance_h']
+            v = profile.settings['new_camera_distance_v']
+            M = [ [res[0]*h/l, 0, res[0]/2],
+                  [0, res[1]*v/l, res[1]/2],
+                  [0,0,1] ]
+            profile.settings['new_camera_matrix'] = np.array(M)
+            self.content['new_camera_matrix'].update_from_profile()
         
     def _apply_new_camera_matrix(self):
         self._update_new_camera_matrix(0)
-        M = profile.settings['new_camera_matrix']
-        print(M)
-        #calibration_data.camera_matrix = np.array(M)
-        profile.settings['camera_matrix'] = np.array(M)
+        profile.settings['camera_matrix'] = np.array( profile.settings['new_camera_matrix'] ).copy()
         self.content['camera_matrix'].update_from_profile()
 
