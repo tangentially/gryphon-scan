@@ -582,17 +582,33 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('apply_new_camera_button', _('Apply calculated camera data'), 'no_settings', unicode, u''))
 
+        # --- Lasers
         self._add_setting(
             Setting('distance_left', _('Distance left (mm)'), 'calibration_settings', float, 0.0))
         self._add_setting(
             Setting('normal_left', _('Normal left'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
         self._add_setting(
+            Setting('cloud_correction_left', _('Correction matrix left'), 'calibration_settings',
+                    np.ndarray, np.ndarray(shape=(3, 4), buffer=np.array([[1.0, 0.0, 0.0, 0.0],
+                                                                          [0.0, 1.0, 0.0, 0.0],
+                                                                          [0.0, 0.0, 1.0, 0.0]]))))
+
+        self._add_setting(
             Setting('distance_right', _('Distance right (mm)'), 'calibration_settings', float, 0.0))
         self._add_setting(
             Setting('normal_right', _('Normal right'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
+        self._add_setting(
+            Setting('cloud_correction_right', _('Correction matrix right'), 'calibration_settings',
+                    np.ndarray, np.ndarray(shape=(3, 4), buffer=np.array([[1.0, 0.0, 0.0, 0.0],
+                                                                          [0.0, 1.0, 0.0, 0.0],
+                                                                          [0.0, 0.0, 1.0, 0.0]]))))
 
+        self._add_setting(
+            Setting('laser_triangulation_hash', '', 'calibration_settings', unicode, u''))
+
+        # --- Turntable
         self._add_setting(
             Setting('rotation_matrix', _('Rotation matrix'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[0.0, 0.0, 0.0],
@@ -607,9 +623,6 @@ class Settings(collections.MutableMapping):
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([-5.0, 90.0, 320.0]))))
 
         self._add_setting(
-            Setting('laser_triangulation_hash', '', 'calibration_settings', unicode, u''))
-
-        self._add_setting(
             Setting('platform_extrinsics_hash', '', 'calibration_settings', unicode, u''))
 
         self._add_setting(
@@ -618,7 +631,7 @@ class Settings(collections.MutableMapping):
                     possible_values=(u'pattern_settings', u'camera_intrinsics',
                                      u'scanner_autocheck', u'rotating_platform_settings',
                                      u'laser_triangulation', u'platform_extrinsics',
-                                     u'video_settings')))
+                                     u'video_settings', u'cloud_correction')))
 
         # -- Machine Settings
 

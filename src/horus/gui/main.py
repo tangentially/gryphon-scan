@@ -440,6 +440,7 @@ class MainWindow(wx.Frame):
             self.workbench['calibration'].pages_collection['laser_triangulation_pages'].video_page.info_panel.Hide()
             self.workbench['calibration'].pages_collection['platform_extrinsics_pages'].video_page.info_panel.Hide()
             self.workbench['calibration'].pages_collection['pattern_settings_pages'].info_panel.Hide()
+            self.workbench['calibration'].pages_collection['cloud_correction_pages'].video_page.info_panel.Hide()
         else:
             #self.workbench['calibration'].pages_collection['video_view'].info_panel.Show()
             #self.workbench['calibration'].pages_collection['camera_intrinsics_pages'].info_panel.Show()
@@ -447,6 +448,7 @@ class MainWindow(wx.Frame):
             self.workbench['calibration'].pages_collection['laser_triangulation_pages'].video_page.info_panel.Show()
             self.workbench['calibration'].pages_collection['platform_extrinsics_pages'].video_page.info_panel.Show()
             self.workbench['calibration'].pages_collection['pattern_settings_pages'].info_panel.Show()
+            self.workbench['calibration'].pages_collection['cloud_correction_pages'].video_page.info_panel.Show()
 
         self.workbench['calibration'].Layout()
         self.Layout()

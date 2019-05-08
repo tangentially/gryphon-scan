@@ -130,7 +130,7 @@ class RotatingPlatform(ExpandablePanel):
         platform_extrinsics.final_move = value
         combo_calibration.final_move = value
 
-class LaserTriangulation(ExpandablePanel):
+class LaserTriangulationPanel(ExpandablePanel):
 
     def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(self, parent, _("Laser triangulation"),
@@ -141,6 +141,17 @@ class LaserTriangulation(ExpandablePanel):
         self.add_control('normal_left', FloatLabelArray)
         self.add_control('distance_right', FloatLabel)
         self.add_control('normal_right', FloatLabelArray)
+
+
+class CloudCorrectionPanel(ExpandablePanel):
+
+    def __init__(self, parent, on_selected_callback):
+        ExpandablePanel.__init__(self, parent, _("Cloud correction"),
+                                 selected_callback=on_selected_callback, has_undo=False)
+
+    def add_controls(self):
+        self.add_control('cloud_correction_left', FloatLabelArray)
+        self.add_control('cloud_correction_right', FloatLabelArray)
 
 
 class PlatformExtrinsics(ExpandablePanel):

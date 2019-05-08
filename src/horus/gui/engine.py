@@ -15,6 +15,8 @@ from horus.engine.calibration.autocheck import Autocheck
 from horus.engine.calibration.laser_triangulation import LaserTriangulation
 from horus.engine.calibration.platform_extrinsics import PlatformExtrinsics
 from horus.engine.calibration.combo_calibration import ComboCalibration
+from horus.engine.calibration.cloud_correction import CloudCorrection
+
 from horus.engine.algorithms.image_capture import ImageCapture
 from horus.engine.algorithms.image_detection import ImageDetection
 from horus.engine.algorithms.laser_segmentation import LaserSegmentation
@@ -39,4 +41,4 @@ image_detection = ImageDetection() # no params
 laser_segmentation = LaserSegmentation()
 point_cloud_generation = PointCloudGeneration() # no params
 point_cloud_roi = PointCloudROI()
-
+cloud_correction = CloudCorrection()

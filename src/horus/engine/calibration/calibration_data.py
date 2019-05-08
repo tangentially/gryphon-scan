@@ -20,6 +20,9 @@ class LaserPlane(object):
     def __init__(self):
         self.normal = None
         self.distance = None
+        self.correction = np.array([[1.0, 0.0, 0.0, 0.0],
+                                    [0.0, 1.0, 0.0, 0.0],
+                                    [0.0, 0.0, 1.0, 0.0]])
 
     def is_empty(self):
         if self.distance is None or self.normal is None:
@@ -59,8 +62,12 @@ class CalibrationData(object):
     def read_profile_calibration(self):
         self.laser_planes[0].distance = profile.settings['distance_left']
         self.laser_planes[0].normal = profile.settings['normal_left']
+        self.laser_planes[0].correction = profile.settings['cloud_correction_left']
+
         self.laser_planes[1].distance = profile.settings['distance_right']
         self.laser_planes[1].normal = profile.settings['normal_right']
+        self.laser_planes[1].correction = profile.settings['cloud_correction_right']
+
         self.platform_rotation = profile.settings['rotation_matrix']
         self.platform_translation = profile.settings['translation_vector']
 

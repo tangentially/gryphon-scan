@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# This file is part of the Horus Project
+# This file is part of the Gryphon Scan Project
 
 __author__ = 'Mikhail N Klimushin aka Night Gryphon <ngryph@gmail.com>'
 __copyright__ = 'Copyright (C) 2018 Night Gryphon'
