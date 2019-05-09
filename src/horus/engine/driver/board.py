@@ -175,8 +175,9 @@ class Board(object):
 
     def motor_move(self, step=0, nonblocking=False, callback=None):
         if self._is_connected:
+            #print("Move: "+str(step))
             self._motor_position += step * self._motor_direction
-            self.send_command("G1X{0}".format(self._motor_position), nonblocking, callback)
+            self.send_command("G1X{0:f}".format(self._motor_position), nonblocking, callback)
 
     def laser_on(self, index):
         if self._is_connected:
@@ -220,7 +221,7 @@ class Board(object):
                 try:
                     self._serial_port.flushInput()
                     self._serial_port.flushOutput()
-                    #print(req)
+                    #print("Cmd: "+req)
                     self._serial_port.write(req + "\r\n")
                     while req != '~' and req != '!' and ret == '':
                         ret = self.read(read_lines)
@@ -234,6 +235,7 @@ class Board(object):
                         self._fail()
         if callback is not None:
             callback(ret)
+        #print("Cmd DONE: "+ret)
         return ret
 
     def read(self, read_lines=False):

@@ -87,6 +87,8 @@ class CameraIntrinsics(Calibration):
         # https://github.com/opencv/opencv/pull/12772
         # https://github.com/xoox/calibrel/blob/master/test/test_calibrel.cpp
         # https://docs.opencv.org/4.1.0/d9/d0c/group__calib3d.html#ggae515fd11d4c0e5b4162440eaf2094e02a5c59485f1b5391cb3d7b2bfb1b7079a7
+        # Distortion
+        # https://www.cs.auckland.ac.nz/courses/compsci773s1c/lectures/camera%20distortion.pdf
         # samples\cpp\calibration.cpp
         # rms = calibrateCameraRO(objectPoints, imagePoints, imageSize, iFixedPoint,
         #                    cameraMatrix, distCoeffs, rvecs, tvecs, newObjPoints,

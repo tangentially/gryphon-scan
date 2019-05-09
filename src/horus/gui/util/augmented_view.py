@@ -306,7 +306,7 @@ def line_cross_sphere(vec, pt, center, radius):
 # find platform rotation angle to move point A to plane n,d
 # A - point of platform object in world coords
 # n,d - plane distance and normal in world coords
-# return - planform angle movement to rotate point on to plane
+# return - platform angle movement to rotate point on to plane
 def rotatePoint2Plane(A,n,d):
     calibration_data = horus.gui.engine.platform_extrinsics.calibration_data
     P = calibration_data.platform_translation # platform center

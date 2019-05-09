@@ -19,16 +19,15 @@ class PointCloudGeneration(object):
     def __init__(self):
         self.calibration_data = CalibrationData()
 
-    def compute_point_cloud(self, theta, points_2d, index):
+    def compute_point_cloud(self, theta, points_2d, index, d = None, n = None):
         # compute point cloud in model coords
+        #   theta - rad, platform position
         #   points_2d = [u,v]
 
-        # Load calibration values
-        R = np.matrix(self.calibration_data.platform_rotation)
-        t = np.matrix(self.calibration_data.platform_translation).T
-        # Compute platform transformation
-        Xwo = self.compute_platform_point_cloud(points_2d, R, t, index)
-        # Rotate to world coordinates
+        # Compute in turntable coords
+        Xwo = self.compute_platform_point_cloud(points_2d, index, d, n)
+
+        # Rotate to model coordinates
         c, s = np.cos(-theta), np.sin(-theta)
         Rz = np.matrix([[c, -s, 0], [s, c, 0], [0, 0, 1]])
         Xw = Rz * Xwo
@@ -38,14 +37,21 @@ class PointCloudGeneration(object):
         else:
             return None
 
-    def compute_platform_point_cloud(self, points_2d, R, t, index):
+    def compute_platform_point_cloud(self, points_2d, index, d = None, n = None):
         # compute point cloud in platform coords
         #   points_2d = [u,v]
         #   R, t has to be np.matrix
 
+        # Load laser plane position
+        if n is None:
+            n = self.calibration_data.laser_planes[index].normal
+        if d is None:
+            d = self.calibration_data.laser_planes[index].distance
+
         # Load calibration values
-        n = self.calibration_data.laser_planes[index].normal
-        d = self.calibration_data.laser_planes[index].distance
+        R = np.matrix(self.calibration_data.platform_rotation)
+        t = np.matrix(self.calibration_data.platform_translation).T
+
         # Camera system
         Xc = self.compute_camera_point_cloud(points_2d, d, n)
         # Compute platform transformation
@@ -56,7 +62,7 @@ class PointCloudGeneration(object):
         # correct camera distortion
         #   points_2d = [u,v]
 
-        if points_2d[0].size == 0:
+        if len(points_2d[0]) == 0:
             return points_2d
 
 	cam = self.calibration_data.camera_matrix
@@ -86,15 +92,24 @@ class PointCloudGeneration(object):
         # compute point cloud in world coords
         #   points_2d = [u,v]
 
+        points_2d = np.float32(points_2d)
+        assert points_2d.shape[0] == 2, "points_2d should be [u,v] array!!!"
+
+        if len(points_2d[0]) == 0:
+            return np.empty( (3,0), dtype=np.float32 )
+
+        n = np.float32(n)
+        assert n.shape == (3,), "n should be (3,) vector!!!" 
+
         # Load calibration values
 	cam = self.calibration_data.camera_matrix
-        d = self.calibration_data.distortion_vector
+        dist = self.calibration_data.distortion_vector
 
         # Compute projection point
         pts = np.expand_dims(np.float32(points_2d).transpose(), axis=1)
-        x = cv2.undistortPoints(pts, cam, d).reshape(-1,2).T # normalized results [u,v]  ( [[(x-cx)/fx], [(y-cy)/fy]] )
+        x = cv2.undistortPoints(pts, cam, dist).reshape(-1,2).T # normalized results [u,v]  ( [[(x-cx)/fx], [(y-cy)/fy]] )
 
         # Compute laser intersection
         x = np.insert( x, 2, [1.], axis=0) # [u,v,1]
-        return d / np.dot(n, x).reshape(-1,1) * x # [X,Y,Z]
+        return d / np.dot(n, x).reshape(1,-1) * x # [X,Y,Z]
 
