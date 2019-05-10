@@ -20,9 +20,10 @@ class LaserPlane(object):
     def __init__(self):
         self.normal = None
         self.distance = None
-        self.correction = np.array([[1.0, 0.0, 0.0, 0.0],
-                                    [0.0, 1.0, 0.0, 0.0],
-                                    [0.0, 0.0, 1.0, 0.0]])
+        self.correction = None
+#        self.correction = np.array([[1.0, 0.0, 0.0, 0.0],
+#                                    [0.0, 1.0, 0.0, 0.0],
+#                                    [0.0, 0.0, 1.0, 0.0]])
 
     def is_empty(self):
         if self.distance is None or self.normal is None:

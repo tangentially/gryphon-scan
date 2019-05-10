@@ -151,29 +151,25 @@ class ResultPage(Page):
         self.plot_panel.clear()
 
     def process_calibration(self, response):
+        # self.corrections, err, self.p0_3d, self.angles, self.clouds
         ret, result = response
 
         if ret:
-            ML = result[0]
-            MR = result[1]
-            dl = result[2]
-            dr = result[3]
-            ll = result[4]
-            lr = result[5]
-            p_center = result[6]
-            p_l = result[7]
-            p_r = result[8]
+            ML = result[0][0]
+            MR = result[0][1]
+            dl = result[1][0]
+            dr = result[1][1]
 
             self.result = (ML, MR)
 
             np.set_printoptions(formatter={'float': '{:g}'.format})
-            text = ' L: {0}  R: {1}'.format(
+            text = 'Mean displacement (mm) L: {0}  R: {1}'.format(
                    round(dl, 3), np.round(dr, 3))
             np.set_printoptions()
             self.desc_text.SetLabel(text)
 
             self.plot_panel.clear()
-            self.plot_panel.add((ML, MR, dl, dr, ll, lr, p_center, p_l, p_r))
+            self.plot_panel.add(result)
             self.plot_panel.Show()
             self.Layout()
             dlg = wx.MessageDialog(
@@ -217,14 +213,27 @@ class CloudCorrection3DPlot(wx.Panel):
         self.Layout()
 
     def add(self, args):
-        ML, MR, dl, dr, ll, lr, p_center, p_l, p_r = args
+        # self.corrections, err, self.p0_3d, self.angles, self.clouds
+        M, err, p_center, angles, clouds = args
 
-        self.ax.scatter(p_center[:,0], p_center[:,2], p_center[:,1], c='r', marker='o')
-        self.ax.scatter(p_l[:,0], p_l[:,2], p_l[:,1], c='r', marker='o')
-        self.ax.scatter(p_r[:,0], p_r[:,2], p_r[:,1], c='r', marker='o')
+        print(p_center[0].tolist())
+        print(p_center.shape)
+        self.ax.scatter(p_center[0].tolist(), p_center[2].tolist(), p_center[1].tolist(), c='g', marker='o')
 
-        self.ax.text(-100, 0, 0, str(round(dl, 5)), fontsize=15)
-        self.ax.text(100, 0, 0, str(round(dr, 5)), fontsize=15)
+        for index, l in enumerate(angles):
+            cloud = np.mean(clouds[index], axis = 0)
+            print(cloud[0])
+            self.ax.scatter(cloud[0].tolist(), cloud[2].tolist(), cloud[1].tolist(), c='r', marker='.')
+        
+            # Rotate p_center to angle
+            c, s = np.cos(-np.deg2rad(-l)), np.sin(-np.deg2rad(-l))
+            Rz = np.matrix([[c, -s, 0], [s, c, 0], [0, 0, 1]])
+            perfect_points = Rz * p_center
+
+            self.ax.scatter(perfect_points[0].tolist(), perfect_points[2].tolist(), perfect_points[1].tolist(), c='g', marker='.')
+
+        self.ax.text(-100, 0, 0, str(round(err[0], 5)), fontsize=15)
+        self.ax.text(100, 0, 0, str(round(err[1], 5)), fontsize=15)
 
         # camera vectors
         self.ax.plot([0, 50], [0, 0], [0, 0], linewidth=2.0, color='red')

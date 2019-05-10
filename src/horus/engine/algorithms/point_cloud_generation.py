@@ -19,10 +19,12 @@ class PointCloudGeneration(object):
     def __init__(self):
         self.calibration_data = CalibrationData()
 
-    def compute_point_cloud(self, theta, points_2d, index, d = None, n = None):
+    def compute_point_cloud(self, theta, points_2d, index, d = None, n = None, M = None):
         # compute point cloud in model coords
         #   theta - rad, platform position
         #   points_2d = [u,v]
+        #   d,n - projection plane
+        #   M - cloud correction matrix
 
         # Compute in turntable coords
         Xwo = self.compute_platform_point_cloud(points_2d, index, d, n)
@@ -31,6 +33,20 @@ class PointCloudGeneration(object):
         c, s = np.cos(-theta), np.sin(-theta)
         Rz = np.matrix([[c, -s, 0], [s, c, 0], [0, 0, 1]])
         Xw = Rz * Xwo
+
+        # Correction
+        if M is None and index is not None:
+            M = self.calibration_data.laser_planes[index].correction
+        if M is not None:
+            M = np.matrix(M)
+            print("------------")
+            print(Xw.shape)
+            Xw = np.insert( Xw, 3, [1.], axis=0)
+            print(Xw.T[0])
+            Xw = (M * Xw)
+            print(Xw.shape)
+            print(Xw.T[0])
+
         # Return point cloud
         if Xw.size > 0:
             return np.array(Xw)
@@ -43,10 +59,13 @@ class PointCloudGeneration(object):
         #   R, t has to be np.matrix
 
         # Load laser plane position
-        if n is None:
+        if n is None and index is not None:
             n = self.calibration_data.laser_planes[index].normal
-        if d is None:
+        assert n is not None, "Plane normal not defined"
+
+        if d is None and index is not None:
             d = self.calibration_data.laser_planes[index].distance
+        assert n is not None, "Plane distance not defined"
 
         # Load calibration values
         R = np.matrix(self.calibration_data.platform_rotation)
