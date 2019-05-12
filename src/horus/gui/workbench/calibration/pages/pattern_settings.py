@@ -77,6 +77,7 @@ class PatternSettingsPages(wx.Panel):
         self.video_view.reset()
 
     def get_image(self):
+        image_capture.stream = True
         image = image_capture.capture_pattern()
         corners = image_detection.detect_corners(image)
 

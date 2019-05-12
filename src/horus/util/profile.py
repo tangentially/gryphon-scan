@@ -709,6 +709,7 @@ class Settings(collections.MutableMapping):
                               'Switching language will require a program restart')))
 
         # Video flush values
+        # [ texture, laser, pattern, change mode ]
         # - Linux
         self._add_setting(
             Setting('flush_linux', 'Flush Linux', 'preferences',

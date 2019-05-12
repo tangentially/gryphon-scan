@@ -7,6 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import cv2
 import numpy as np
+import time
 
 from horus.util import profile
 
@@ -133,9 +134,11 @@ class ImageCapture(object):
             self._mode.send_all_settings()
             # wait for camera to adjust to new settings
             if self.stream:
-                self.capture_image(flush=self._flush_stream_mode)
+                if self._flush_stream_mode != 0:
+                    self.capture_image(flush=self._flush_stream_mode-1)
             else:
-                self.capture_image(flush=self._flush_mode)
+                if self._flush_mode != 0:
+                    self.capture_image(flush=self._flush_mode-1)
             self._updating = False
 
     def set_mode_texture(self):
@@ -207,6 +210,8 @@ class ImageCapture(object):
         return [image, image_background]
 
     def capture_lasers(self):
+        #tbegin = time.time()
+
         # Capture background
         image_background = None
         self.set_mode(self.laser_mode)
@@ -222,12 +227,17 @@ class ImageCapture(object):
         images[0] = self._capture_laser(0)
         images[1] = self._capture_laser(1)
 
+        #print "capture lasers capture: {0} ms".format(int((time.time() - tbegin) * 1000))
+        #tbegin = time.time()
+
         self.remove_background_subtract(images)
         # test hsV based BG removal
         #if self._mode.light[1] > 2:
         #    self.remove_background_subtract(images)
         #else:
         #    self.remove_background_hsv(images,self._mode.light[1])
+
+        #print "capture lasers bg subtract: {0} ms".format(int((time.time() - tbegin) * 1000))
         return images
 
     def capture_all_lasers(self):

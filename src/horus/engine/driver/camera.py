@@ -87,7 +87,11 @@ class Camera(object):
     def set_unplug_callback(self, value):
         self.unplug_callback = value
 
-    def capture_image(self, flush=0, auto=False):
+    def capture_image(self, flush=0):
+        # flush buffered frames
+        # 0 - no flush
+        # -1 - auto flush
+        # n - flush exactly n frames
         raise NotImplementedError
 
     def save_image(self, filename, image):

@@ -198,26 +198,42 @@ class Camera_usb(Camera):
             if mean > 200:
                 raise WrongDriver()
 
-    def capture_image(self, flush=0, auto=False):
+    def capture_image(self, flush=0):
         """Capture image from camera"""
+        # flush buffered frames
+        # 0 - no flush
+        # -1 - auto flush
+        # n - flush exactly n frames
         if self._is_connected:
+            #tbegin = time.time()
             if self._updating:
                 return self._last_image
             else:
                 self._reading = True
-                if auto:
+                # Note: Windows needs read() to perform
+                #       the flush instead of grab()
+                if flush < 0:
                     b, e = 0, 0
-                    while e - b < (0.030):
+                    c = 0
+                    # max time for buffered frame
+                    # max flushed frames count
+                    while e - b < (0.03) and c < 4:
                         b = time.time()
-                        self._capture.grab()
+                        #self._capture.grab()
+                        ret, image = self._capture.read()
                         e = time.time()
+                        c += 1
+                        #print "     frame {1}: {0} ms".format(int((e - b) * 1000), c)
                 else:
-                    if flush > 0:
-                        for i in xrange(flush):
-                            self._capture.read()
-                            # Note: Windows needs read() to perform
-                            #       the flush instead of grab()
-                ret, image = self._capture.read()
+                    for i in xrange(flush+1):
+                        #b = time.time()
+                        ret, image = self._capture.read()
+                        #e = time.time()
+                        #print "     frame: {0} ms".format(int((e - b) * 1000))
+
+                #print "   driver capture: {0} ms, flush {1}".format(int((time.time() - tbegin) * 1000),flush)
+                #tbegin = time.time()
+
                 self._reading = False
                 if ret:
                     if self._rotate:
@@ -229,6 +245,7 @@ class Camera_usb(Camera):
                     self._success()
                     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                     self._last_image = image
+                    #print "   driver capture process: {0} ms".format(int((time.time() - tbegin) * 1000))
                     return image
                 else:
                     self._fail()

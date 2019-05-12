@@ -64,6 +64,7 @@ class LaserTriangulation(MovingCalibration):
         self.laser_calibration_angles = profile.settings['laser_calibration_angles']
         
     def _capture(self, angle):
+        self.image_capture.stream = False
         image = self.image_capture.capture_pattern()
         pose = self.image_detection.detect_pose(image, False)
         plane = self.image_detection.detect_pattern_plane(pose)
