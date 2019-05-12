@@ -70,7 +70,14 @@ http://vk.com/wingcatlab
 ## Calibration
 Do not use wizard. It is not ready at the moment.  
 
-General calibration process is:  
+__!!! WARNING !!!__ Current machine defaults are set for my custom hardware. 
+To use with Ciclop hardware you need to adjust 'settings.json'. 
+At least: platform diameter=200, all offsets = 0, machine_model_path=ciclop_platform.stl
+Take a look at README_custom_machine.md  
+  
+
+
+#### General calibration process is:  
 
 - if needed set machine custom parameters (turntable geometry, board init string, etc...) in 'settings.json' file.
 It is created automatically after first run with default values. Check README_custom_machine.md  
