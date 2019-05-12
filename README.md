@@ -160,6 +160,25 @@ Still investigating. As workaround try to keep things symmetrical:
 - platform center should be in the middle of horizontal axis of camera image  
 - platform rotation axis should be vertical in camera image and parallel to image plane  
 
+
+------------------------------------------
+
+# Capture performance and video flush values
+Most web cam drivers use buffer of few captured frames to enchance performance. 
+But in case of scanning we need _current_ frame not the buffered one.
+To flush the buffer and get the current frame the specified amount of frames are pre-read from camera driver. 
+But this also slowdown the image capture because there is no way to surely detect which frame is actual not the buffered one.  
+
+You can adjust the number of flushed frames in 'settings.json' to optimize performance or to fix 'jump' artifacts in scan.
+The parameters are: flush_stream_* flush_*  
+The 'flush_stream_' if values for user interface preview mode. The 'flush_' is for calibrating/scanning mode.  
+Values are:  
+          texture capture flush,  
+          laser capture flush,  
+          pattern capture flush,  
+          change mode flush  
+
+
 ------------------------------------------
 ### Installing Python 2.7.16 (latest 2.7) for Gryphon Scan
 This notes can be incomplete. This is my experience for my environment (Win 8.1)
