@@ -112,6 +112,35 @@ pip install -U pyserial numpy scipy matplotlib==1.4.0
 ```
 
 
+### Camera calibration
+To get better scanning results you has to calibrate your camera using "Calibration"->"Camera intrinsics".  
+There is two steps to calibrate camera:
+
+1. Measure rough initial camera intrinsics.
+For Logitech C270 you can use the default initial values ans skip to next step.  
+If your camera is not Logitech C270 it is better to estimate rough focal length using ruler and some linear target. 
+You can use another ruler or just something straight as target. 
+- Measure your target length and fill in "Targrt length" field
+- Put target horosontally and parallel to camera. Move target back/front so it exactly fit in to camera frame.
+Measure distance from camera to target and fill "Target horisontal dist" field
+- Do the same for vertical target and fill "Target vertical dist" field
+Check the calculated camera matrix and if it look good than apply with "Apply calculated camera data" button.  
+
+2. Using your chessboard pattern calibrate precise camera matrix and distortion.  
+The chessboard pattern has to be flat and rigid as possible.
+Capture 15 frames of calibration data moving pattern all around the camera view. 
+Keep patten parallel to camera. To capture frame press \[space\]. 
+Frames are only captured if pattern is detected within in frame.  
+
+##### Some reading
+The Intrinsic Matrix:  
+http://ksimek.github.io/2013/08/13/intrinsic/  
+  
+The distortion vector:  
+https://docs.opencv.org/3.1.0/dc/dbb/tutorial_py_calibration.html  
+https://www.cs.auckland.ac.nz/courses/compsci773s1c/lectures/camera%20distortion.pdf  
+
+
 
 ------------------------------------------
 # Horus
