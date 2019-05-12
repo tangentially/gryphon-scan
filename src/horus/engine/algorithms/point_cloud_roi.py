@@ -73,8 +73,8 @@ class PointCloudROI(object):
                 mask[self._vmin:self._vmax, self._umin:self._umax] = image[
                     self._vmin:self._vmax, self._umin:self._umax]
                 return mask
-        else:
-            return image
+
+        return image
 
     def mask_point_cloud(self, point_cloud, texture, index=None):
         if point_cloud is not None and texture is not None and len(point_cloud) > 0:

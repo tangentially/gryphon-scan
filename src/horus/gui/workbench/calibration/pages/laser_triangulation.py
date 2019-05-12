@@ -228,10 +228,10 @@ class LaserTriangulation3DPlot(wx.Panel):
         dL, nL, stdL, dR, nR, stdR, points = args
 
         p = points[0][np.random.randint(points[0].shape[0], size=100), :]
-        self.ax.scatter(p[:,0], p[:,2], p[:,1], c='r', marker='o')
+        self.ax.scatter(p[:,0], p[:,2], p[:,1], c='r', marker='.')
 
         p = points[1][np.random.randint(points[1].shape[0], size=100), :]
-        self.ax.scatter(p[:,0], p[:,2], p[:,1], c='b', marker='o')
+        self.ax.scatter(p[:,0], p[:,2], p[:,1], c='b', marker='.')
 
         rL = np.cross(np.array([0, 0, 1]), nL)
         sL = np.cross(rL, nL)
