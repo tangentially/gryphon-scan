@@ -39,13 +39,8 @@ class PointCloudGeneration(object):
             M = self.calibration_data.laser_planes[index].correction
         if M is not None:
             M = np.matrix(M)
-            print("------------")
-            print(Xw.shape)
             Xw = np.insert( Xw, 3, [1.], axis=0)
-            print(Xw.T[0])
             Xw = (M * Xw)
-            print(Xw.shape)
-            print(Xw.T[0])
 
         # Return point cloud
         if Xw.size > 0:
