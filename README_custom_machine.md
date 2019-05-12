@@ -1,9 +1,9 @@
 Most of settings can be customized within "src/horus/settings.json". 
 This file will be created after first run.
 
-###### Turntable controller hello string
+###### Turntable controller hello string and initialization
         "firmware_string": {
-
+        "init_string": {
 
 #### Visualization and GUI settings: 
 ###### For the circular platform

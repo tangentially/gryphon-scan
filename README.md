@@ -41,6 +41,8 @@ Is there any 3D scanner project that superseeds Horus?
     - draw trace of detected laser lines during laser triangulation
     - multipass calibration mode for laser triangulation to increase accuracy
     - more informative calibration directions pages
+    - reworked platform calibration
+    - save/read camera calibration frames (autosave to 'camera_intrisics' folder. read with 'r' button in "Camera Intrinsics")
 - HSV laser line detection method, Green and Blue laser colors support
 - experimental "Laser background" filter to remove laser line detected at background objects
 - laser id saved as "Original_cloud_index" field at .ply export so point cloud can be separated by lasers and additionally aligned
@@ -48,15 +50,10 @@ Is there any 3D scanner project that superseeds Horus?
 - movement toolbar
 - auto save/read camera calibration images (use 'r' to read previous image in current frame)
 - some bugs fixed
+- support for OpenCV 4.x
 
 
-###### Notes
-
-1. Do not oversharp/overtight images in laser capture adjustments. 
-A bit blurry laser line before segmentation filters provide subpixel position information.
-Oversharped image create wobbly "pixel stairs" style artifacts at the 3D scan.
-
-2. Using ROI increase overall scan precision by removing noisy surroundings from laser point detection input
+P.S. Project is work in progress so at some moments letest commits can be non functional or contain some debug console output.
 
 
 Discussion board:  
@@ -76,7 +73,7 @@ Do not use wizard. It is not ready at the moment.
 General calibration process is:  
 
 - if needed set machine custom parameters (turntable geometry, board init string, etc...) in 'settings.json' file.
-It is created automatically after first run with default values.  
+It is created automatically after first run with default values. Check README_custom_machine.md  
 - make sure you can turn on/off lasers and move platform in correct direction with toolbar buttons. Use "Control workbench"  
 - check camera resolution and set focus for autofocus cameras at "Calibration"->"Video settings"  
 - using "Calibration"->"Pattern settings" setup pattern cols/rows/dimensions  
@@ -86,6 +83,16 @@ It is created automatically after first run with default values.
 - using "Calibration"->"Laser triangulation" detect the laser planes position  
 - using "Calibration"->"Platform extrinsics" calibrate platform position  
 - check calibration quality by calibration visualization for pattern/platform/laser lines positions  
+
+###### Notes
+
+1. Do not oversharp/overtight images in laser capture adjustments. 
+A bit blurry laser line before segmentation filters provide subpixel position information.
+Oversharped image create wobbly "pixel stairs" style artifacts at the 3D scan.
+
+2. Using ROI increase overall scan precision by removing noisy surroundings from laser point detection input
+
+3. If you wish to use segmentation equival to Horus 0.1 than set: YCrCb filter, blur and window filters off, refinement off  
 
 
 ------------------------------------------
@@ -141,7 +148,7 @@ This will make calibration more precise by using larger lasers point cloud area.
 Still investigating. As workaround try to keep things symmetrical:  
 
 - laser to camera distance should be equival  
-- laser lines shoul be vertical  
+- laser lines should be vertical  
 - laser lines should cross at platform center  
 - platform center should be in the middle of horizontal axis of camera image  
 - platform rotation axis should be vertical in camera image and parallel to image plane  
