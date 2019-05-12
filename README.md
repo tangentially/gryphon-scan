@@ -69,6 +69,84 @@ http://vk.com/wingcatlab
 
 
 ------------------------------------------
+
+## Calibration
+Do not use wizard. It is not ready at the moment.  
+
+General calibration process is:  
+
+- if needed set machine custom parameters (turntable geometry, board init string, etc...) in 'settings.json' file.
+It is created automatically after first run with default values.  
+- make sure you can turn on/off lasers and move platform in correct direction with toolbar buttons. Use "Control workbench"  
+- check camera resolution and set focus for autofocus cameras at "Calibration"->"Video settings"  
+- using "Calibration"->"Pattern settings" setup pattern cols/rows/dimensions  
+- using "Adjustment" workbench adjust camera exposure/brightness/contrast to clearly capture pattern and lasers  
+- using "Adjustment" workbench adjust segmentation parameters to detect laser lines with minimum noise  
+- using "Calibration"->"Camera intrinsics" calibrate your camera focal length and distortion  
+- using "Calibration"->"Laser triangulation" detect the laser planes position  
+- using "Calibration"->"Platform extrinsics" calibrate platform position  
+- check calibration quality by calibration visualization for pattern/platform/laser lines positions  
+
+
+------------------------------------------
+
+### Camera calibration
+To get better scanning results you has to calibrate your camera using "Calibration"->"Camera intrinsics".  
+There is two steps to calibrate camera:
+
+1. Measure rough initial camera intrinsics.
+For Logitech C270 you can use the default initial values ans skip to next step.  
+If your camera is not Logitech C270 it is better to estimate rough focal length using ruler and some linear target. 
+You can use another ruler or just something straight as target. 
+- Measure your target length and fill in "Targrt length" field
+- Put target horosontally and parallel to camera. Move target back/front so it exactly fit in to camera frame.
+Measure distance from camera to target and fill "Target horisontal dist" field
+- Do the same for vertical target and fill "Target vertical dist" field
+- Check the calculated camera matrix and if it look good than apply with "Apply calculated camera data" button.  
+
+2. Using your chessboard pattern calibrate precise camera matrix and distortion.  
+The chessboard pattern has to be flat and rigid as possible.
+Capture 15 frames of calibration data moving pattern all around the camera view. 
+Keep patten parallel to camera. To capture frame press \[space\]. 
+Frames are only captured if pattern is detected within frame.  
+
+##### Some reading
+The Intrinsic Matrix:  
+http://ksimek.github.io/2013/08/13/intrinsic/  
+  
+The distortion vector:  
+https://docs.opencv.org/3.1.0/dc/dbb/tutorial_py_calibration.html  
+https://www.cs.auckland.ac.nz/courses/compsci773s1c/lectures/camera%20distortion.pdf  
+
+
+------------------------------------------
+
+### Laser calibration
+Using "Calibration"->"Laser triangulation" make two calibration sequences with different chessboard pattern positions.  
+
+- Put the pattern slightly in front of platform center. 
+Run first calibration. 
+You should see laser traces forming two planes during calibration.  
+
+- Put the pattern slightly below of platform center. 
+Run second calibration choosing to continue previous calibration.
+You should see laser traces append to previous ones forming cross of planes.  
+
+This will make calibration more precise by using larger lasers point cloud area.
+
+
+------------------------------------------
+
+### Pont clouds misalignment
+Still investigating. As workaround try to keep things symmetrical:  
+
+- laser to camera distance should be equival  
+- laser lines shoul be vertical  
+- laser lines should cross at platform center  
+- platform center should be in the middle of horizontal axis of camera image  
+- platform rotation axis should be vertical in camera image and parallel to image plane  
+
+------------------------------------------
 ### Installing Python 2.7.16 (latest 2.7) for Gryphon Scan
 This notes can be incomplete. This is my experience for my environment (Win 8.1)
 Yes, there is bundler scripts in Horus but there is a lot of broken download links and old software versions.
@@ -110,35 +188,6 @@ For 64 bit python you need to rename DLL to freeglut64.dll
 ```
 pip install -U pyserial numpy scipy matplotlib==1.4.0
 ```
-
-
-### Camera calibration
-To get better scanning results you has to calibrate your camera using "Calibration"->"Camera intrinsics".  
-There is two steps to calibrate camera:
-
-1. Measure rough initial camera intrinsics.
-For Logitech C270 you can use the default initial values ans skip to next step.  
-If your camera is not Logitech C270 it is better to estimate rough focal length using ruler and some linear target. 
-You can use another ruler or just something straight as target. 
-- Measure your target length and fill in "Targrt length" field
-- Put target horosontally and parallel to camera. Move target back/front so it exactly fit in to camera frame.
-Measure distance from camera to target and fill "Target horisontal dist" field
-- Do the same for vertical target and fill "Target vertical dist" field
-Check the calculated camera matrix and if it look good than apply with "Apply calculated camera data" button.  
-
-2. Using your chessboard pattern calibrate precise camera matrix and distortion.  
-The chessboard pattern has to be flat and rigid as possible.
-Capture 15 frames of calibration data moving pattern all around the camera view. 
-Keep patten parallel to camera. To capture frame press \[space\]. 
-Frames are only captured if pattern is detected within in frame.  
-
-##### Some reading
-The Intrinsic Matrix:  
-http://ksimek.github.io/2013/08/13/intrinsic/  
-  
-The distortion vector:  
-https://docs.opencv.org/3.1.0/dc/dbb/tutorial_py_calibration.html  
-https://www.cs.auckland.ac.nz/courses/compsci773s1c/lectures/camera%20distortion.pdf  
 
 
 

@@ -769,7 +769,7 @@ class Settings(collections.MutableMapping):
             Setting('view_scanning_scene', _('View scanning scene'), 'preferences', bool, True))
 
         self._add_setting(
-            Setting('view_mode_advanced', _('Advanced mode'), 'preferences', bool, False))
+            Setting('view_mode_advanced', _('Advanced mode'), 'preferences', bool, True))
         self._add_setting(
             Setting('view_hide_help', _('Hide directions'), 'preferences', bool, False))
 
