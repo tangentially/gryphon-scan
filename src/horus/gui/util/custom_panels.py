@@ -605,6 +605,7 @@ class TextBox(ControlPanel):
         self.update_to_profile(value)
         self.set_engine(value)
         self.release_restore()
+        event.Skip(True)
 
 
 class DirPicker(ControlPanel):
@@ -720,6 +721,7 @@ class IntTextBox(ControlPanel):
         value = self.GetValue()
         self.SetValue(value)
         self.release_restore()
+        event.Skip(True)
 
 
 class FloatBox(wx.TextCtrl):
@@ -771,6 +773,7 @@ class FloatTextBox(ControlPanel):
         self.update_to_profile(value)
         self.set_engine(value)
         self.release_restore()
+        event.Skip(True)
 
 
 class FloatBoxArray(wx.Panel):
@@ -795,7 +798,7 @@ class FloatBoxArray(wx.Panel):
                     self.texts[i][j].SetValue(self.value[j])
                 else:
                     self.texts[i][j].SetValue(self.value[i][j])
-                self.texts[i][j].Bind(wx.EVT_KILL_FOCUS, self.onedit_callback)
+                self.texts[i][j].Bind(wx.EVT_KILL_FOCUS, self._on_edit_lost_focus)
                 # self.texts[i][j].SetEditable(False)
                 # self.texts[i][j].Disable()
                 jbox.Add(self.texts[i][j], 1, wx.ALL | wx.EXPAND, 2)
@@ -820,6 +823,11 @@ class FloatBoxArray(wx.Panel):
                 else:
                     self.value[i][j] = self.texts[i][j].GetValue()
         return self.value
+
+    def _on_edit_lost_focus(self, event):
+        if self.onedit_callback is not None:
+            self.onedit_callback(event)
+        event.Skip(True)
 
 
 class FloatTextBoxArray(ControlPanel):
@@ -848,6 +856,7 @@ class FloatTextBoxArray(ControlPanel):
         self.update_to_profile(value)
         self.set_engine(value)
         self.release_restore()
+        event.Skip(True)
 
 
 class FloatLabel(ControlPanel):
