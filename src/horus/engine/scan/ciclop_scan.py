@@ -66,6 +66,8 @@ class CiclopScan(Scan):
         self.ph_save_folder = 'photo/'
         self.ph_save_divider = 1
 
+        self.capturing = False
+
     def read_profile(self):
         self.capture_texture = profile.settings['capture_texture']
         use_laser = profile.settings['use_laser']
@@ -116,6 +118,7 @@ class CiclopScan(Scan):
         self._count = 0
         self._progress = 0
         self._captures_queue.queue.clear()
+        self.capturing = False
         self._begin = time.time()
 
         # Setup console
@@ -147,6 +150,7 @@ class CiclopScan(Scan):
 
     def _capture(self):
         # Flush buffer of texture captures
+        self.capturing = True
         self.image_capture.flush_laser()
         while self.is_scanning:
             if self._inactive:
@@ -162,8 +166,10 @@ class CiclopScan(Scan):
                         # Capture images
                         capture = self._capture_images()
                         # Put images into queue
+                        #print("Put: {0:f}".format(np.rad2deg(capture.theta)))
                         self._captures_queue.put(capture)
                     except Exception as e:
+                        logger.info("Capture error: "+str(e))
                         self.is_scanning = False
                         response = (False, e)
                         if self._after_callback is not None:
@@ -171,6 +177,7 @@ class CiclopScan(Scan):
                         break
 
                     # Move motor
+                    #print("Move start from: {0:f}".format(self._theta))
                     if self.move_motor:
                         self.driver.board.motor_move(self.motor_step)
                     else:
@@ -179,6 +186,7 @@ class CiclopScan(Scan):
                     # Update theta
                     self._theta += self.motor_step
                     self._count += 1
+                    #print("Move done. Theta update: {0:f}".format(self._theta))
                     # Refresh progress
                     if self.motor_step != 0:
                         self._progress = abs(self._theta / self.motor_step)
@@ -186,9 +194,11 @@ class CiclopScan(Scan):
 
                     # Print info
                     self._end = time.time()
-                    string_time = str(datetime.datetime.now())[:-3] + " - "
+                    print "capture: {0} ms".format(
+                        int((self._end - begin) * 1000))
 
                     if self._debug and system == 'Linux':
+                        string_time = str(datetime.datetime.now())[:-3] + " - "
                         # Cursor up + remove lines
                         print "\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[2K\x1b[1A"
                         print string_time + " elapsed progress: {0} %".format(
@@ -200,14 +210,17 @@ class CiclopScan(Scan):
                         print string_time + " capture: {0} ms".format(
                             int((self._end - begin) * 1000))
             # Sleep
-            time.sleep(self._scan_sleep)
+            #time.sleep(self._scan_sleep)
 
         self.driver.board.lasers_off()
         self.driver.board.motor_disable()
+        self.capturing = False
+        self.image_capture.stream = True
 
     def _capture_images(self):
         capture = ScanCapture()
         capture.theta = np.deg2rad(self._theta)
+        #print("Capture start: {0:f}".format(np.rad2deg(capture.theta)))
         capture.count = self._count
 
         capture.texture = None
@@ -233,10 +246,11 @@ class CiclopScan(Scan):
                 if self.laser[i]:
                     capture.lasers[i],capture.lasers[2] = self.image_capture.capture_laser(i)
 
+        #print("Capture: {0:f} [done]".format(np.rad2deg(capture.theta)))
+
         # Set current video images
         self.current_video.set_texture(capture.texture)
         self.current_video.set_laser(capture.lasers)
-
         return capture
 
     def _process(self):
@@ -247,19 +261,28 @@ class CiclopScan(Scan):
                 time.sleep(0.1)
             else:
                 self.image_detection.stream = False
-                if self._theta >= 360.0:
-                    self.is_scanning = False
-                    ret = True
-                    break
+                if not self._captures_queue.empty():
+                    # Get capture from queue
+                    capture = self._captures_queue.get(timeout=0.1)
+                    self._captures_queue.task_done()
+                    # Process capture
+                    self._process_capture(capture)
+
+                    # if last data processed
+                    if capture.theta >= 2*np.pi: # 360.0:
+                        print("Final angle processed. Shutdown processing thread.")
+                        self.is_scanning = False
+                        ret = True
+                        break
                 else:
-                    if not self._captures_queue.empty():
-                        # Get capture from queue
-                        capture = self._captures_queue.get(timeout=0.1)
-                        self._captures_queue.task_done()
-                        # Process capture
-                        self._process_capture(capture)
-            # Sleep
-            time.sleep(self._scan_sleep)
+                    if self.capturing:
+                        # Wait for more data
+                        time.sleep(self._scan_sleep)
+                    else:
+                        print("No more data expected. Shutdown processing thread.")
+                        self.is_scanning = False
+                        ret = True
+                        break
 
         if ret:
             response = (True, None)
@@ -275,6 +298,8 @@ class CiclopScan(Scan):
         progress = 0
         if self._range > 0:
             progress = int(100 * self._progress / self._range)
+
+        self._end = time.time()
         logger.info("Finish scan {0} %  Time {1}".format(
             progress,
             time.strftime("%M' %S\"", time.gmtime(self._end - self._begin))))
@@ -288,6 +313,7 @@ class CiclopScan(Scan):
         images = [None, None]
         points = [None, None]
 
+        #print("Process start: {0:f}".format(np.rad2deg(capture.theta)))
         # begin = time.time()
 #        u_offset = 2.8
 #        u_offset = 1.8
@@ -329,6 +355,7 @@ class CiclopScan(Scan):
                 #points_2d = self.point_cloud_generation.undistort_points(points_2d)
                 point_cloud = self.point_cloud_generation.compute_point_cloud(
                     capture.theta, points_2d, i)
+                #print("Processed: {0:f} - {1}".format(np.rad2deg(capture.theta),i))
 
                 if self.point_cloud_callback:
                     self.point_cloud_callback(self._range, self._progress,
@@ -348,6 +375,7 @@ class CiclopScan(Scan):
         self.current_video.set_line(points, image)
 
         # Print info
+        #print("Process end: {0:f}".format(np.rad2deg(capture.theta)))
         """if self._debug and system == 'Linux':
             print string_time + " process: {0} ms".format(
                 int((time.time() - begin) * 1000))"""
