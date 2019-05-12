@@ -354,4 +354,79 @@ def rotatePoint2Plane(A,n,d):
             return -np.rad2deg(np.arcsin( np.cross(AA2,A4) / np.linalg.norm(AA2) / np.linalg.norm(A4) ))
 
     return None
+
     
+# Finding optimal rotation and translation between corresponding 3D points
+# http://nghiaho.com/?page_id=671
+#
+# Input: expects Nx3 matrix of points
+# Returns R,t
+# R = 3x3 rotation matrix
+# t = 3x1 column vector
+
+def rigid_transform_3D(A, B):
+    assert len(A) == len(B)
+    N = A.shape[0]; # total points
+    print("Arr len: "+str(N))
+    centroid_A = np.mean(A, axis=0)
+    centroid_B = np.mean(B, axis=0)
+    print(centroid_A)
+    print(centroid_B)
+    
+    # centre the points
+    AA = A - np.tile(centroid_A, (N, 1))
+    BB = B - np.tile(centroid_B, (N, 1))
+
+    # dot is matrix multiplication for array
+    H = np.matmul(np.transpose(AA), BB)
+
+    U, S, Vt = np.linalg.svd(H)
+
+    R = np.matmul(Vt.T, U.T)
+
+    # special reflection case
+    if np.linalg.det(R) < 0:
+       print "Reflection detected"
+       Vt[2,:] *= -1
+       R = np.matmul(Vt.T, U.T)
+
+    t = -np.matmul(R,centroid_A.T) + centroid_B.T
+
+    return R, t, centroid_A, centroid_B
+
+# Point to line projection
+#  a, v - line point and vector 
+#  p - point to project
+def PointOntoLine(a, v, p):
+    ap = p-a
+    result = a + np.dot(ap,v)/np.dot(v,v) * v
+    return result
+
+
+# find best fit line for 3D point set
+# https://stackoverflow.com/questions/2298390/fitting-a-line-in-3d
+# points - [X,Y,Z]
+def FitLine3D(points):
+    # Generate some data that lies along a line
+    '''
+    x = np.mgrid[-2:5:120j]
+    y = np.mgrid[1:9:120j]
+    z = np.mgrid[-5:3:120j]
+    
+    data = np.concatenate((x[:, np.newaxis], 
+                           y[:, np.newaxis], 
+                           z[:, np.newaxis]), 
+                          axis=1)
+    '''
+    # Calculate the mean of the points, i.e. the 'center' of the cloud
+    datamean = points.mean(axis=0)
+    
+    # Do an SVD on the mean-centered data.
+    uu, dd, vv = np.linalg.svd(points - datamean)
+    
+    # Now vv[0] contains the first principal component, i.e. the direction
+    # vector of the 'best fit' line in the least squares sense.
+    
+    # shift by the mean to get the line in the right place
+    return datamean, vv[0]
+

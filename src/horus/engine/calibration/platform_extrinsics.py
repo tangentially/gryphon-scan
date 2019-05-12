@@ -12,7 +12,7 @@ import cv2
 from horus import Singleton
 from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
-from horus.gui.util.augmented_view import augmented_draw_pattern
+from horus.gui.util.augmented_view import augmented_draw_pattern, rigid_transform_3D, PointOntoLine
 
 import logging
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class PlatformExtrinsicsError(Exception):
 
 class MarkerData(object):
 
-    def __init__(self, name, h = None):
+    def __init__(self, name, h = None, motor_step = None):
         self.name = name
         self.h = h
 
@@ -46,6 +46,8 @@ class MarkerData(object):
         self.R = None
         self.t = None
         self.n = None
+
+        self.motor_step = motor_step
 
     def is_calibrated(self):
         return self.R is not None and \
@@ -101,6 +103,26 @@ class MarkerData(object):
             err = self.getError(self.R, self.t)
             logger.info(" New error: " + str(np.round(err,6)) )
 
+            logger.info("--- Fit with radius from angle ---" )
+            if self.motor_step is not None:
+                ll = 0
+                for p1,p2 in zip(points[:-2], points[2:]):
+                     ll += np.linalg.norm(np.float32(p2)-np.float32(p1))
+                ll /= len(points)-2
+                r = ll/2/np.sin(np.deg2rad(self.motor_step)) # get points with 2 step distance
+                print("R by fit: {0:f} R from angle: {1:f}".format(self.radius, r))
+                c, _, _ = fit_circle_R(point, normal, points, r)
+
+                err = self.getError(self.R, c)
+                logger.info(" Error: " + str(np.round(err,6)) )
+        
+                d = self.getDelta(self.R, c, radius=r)
+                logger.info(" Delta: %s %s " % (str(np.round(np.linalg.norm(d),6)), str( np.round(d,3) )) )
+        
+                c = c - d
+                err = self.getError(self.R, c)
+                logger.info(" New error: " + str(np.round(err,6)) )
+
             return True
         return False
 
@@ -116,14 +138,19 @@ class MarkerData(object):
             return [dz,dr,r]
 
     # average displacement of measured points against perfect positions
-    def getDelta(self, R, t, bestIndex=0):
+    def getDelta(self, R, t, bestIndex=0, radius = None):
         if len(self.x) > 2:
+            # v - data points in R,t coords system
             v = zip( self.x, self.y, self.z ) - t
             v = np.dot(R.T, v.T)
-            # build first vector for average radius/average height cylinder
-            r = np.mean( np.linalg.norm(zip(v[0], v[1]), axis=1) )
+
+            # if not specified set radius to mean distance
+            if radius is None:
+                radius = np.mean( np.linalg.norm(zip(v[0], v[1]), axis=1) )
+
+            # build first vector for average height cylinder with radius 'r'
             v0 = [v[0][bestIndex], v[1][bestIndex]] # Best data point on XY plane vector
-            v0 = np.array(v0) * r / np.linalg.norm(v0) # scale to cylinder radius
+            v0 = np.array(v0) * radius / np.linalg.norm(v0) # scale to cylinder radius
             v0 = np.append(v0,[np.mean(v[2])]) # add Z
 
             l = np.deg2rad(np.array(self.l) - self.l[bestIndex])
@@ -180,13 +207,13 @@ class PlatformExtrinsics(MovingCalibration):
         self.image_capture.stream = False
 
         self.data = { 'c0': MarkerData('Chessboard pose: platform',
-                                0), 
+                                0, self.motor_step), 
                       'c1': MarkerData('Chessboard pose: origin', 
-                                self.pattern.square_width * (self.pattern.rows-1) + self.pattern.origin_distance), 
+                                self.pattern.square_width * (self.pattern.rows-1) + self.pattern.origin_distance, self.motor_step), 
                       'c2': MarkerData('Chessboard projection: distorted',
-                                self.pattern.origin_distance), # from bottom corner projection distorted
+                                self.pattern.origin_distance, self.motor_step), # from bottom corner projection distorted
                       'c3': MarkerData('Chessboard projection: undistorted',
-                                self.pattern.origin_distance), # from bottom corner projection distorted
+                                self.pattern.origin_distance, self.motor_step), # from bottom corner projection distorted
                       'n':  NormalData('Chessboard normals', None),
                     } 
 
@@ -497,7 +524,7 @@ def fit_normal(data):
     return v
 
 
-# ---------- extimate center and radius of points sphere within given plane
+# ---------- estimate center and radius of points sphere within given plane
 def residuals_circle(parameters, points, s, r, point):
     r_, s_, Ri = parameters
     plane_point = s_ * s + r_ * r + np.array(point)
@@ -544,48 +571,40 @@ def fit_circle(point, normal, points):
     return center_point, R, [cxTupel, cyTupel, czTupel], RiF
 
 
-# Finding optimal rotation and translation between corresponding 3D points
-# http://nghiaho.com/?page_id=671
-#
-# Input: expects Nx3 matrix of points
-# Returns R,t
-# R = 3x3 rotation matrix
-# t = 3x1 column vector
+# ---------- estimate center for known radius points sphere within given plane
+def residuals_circle_R(parameters, points, s, r, point, radius):
+    r_, s_ = parameters
+    plane_point = s_ * s + r_ * r + np.array(point)
+    distance = [np.linalg.norm(plane_point - np.array([x, y, z])) for x, y, z in points]
+    res = [(radius - dist) for dist in distance]
+    return res
 
-def rigid_transform_3D(A, B):
-    assert len(A) == len(B)
-    N = A.shape[0]; # total points
 
-    centroid_A = np.mean(A, axis=0)
-    centroid_B = np.mean(B, axis=0)
-    
-    # centre the points
-    AA = A - np.tile(centroid_A, (N, 1))
-    BB = B - np.tile(centroid_B, (N, 1))
+def fit_circle_R(point, normal, points, radius):
+    # creating two inplane vectors
+    # assuming that normal not parallel x!
+    s = np.cross(np.array([1, 0, 0]), np.array(normal))
+    s = s / np.linalg.norm(s)
+    r = np.cross(np.array(normal), s)
+    r = r / np.linalg.norm(r)  # should be normalized already, but anyhow
 
-    # dot is matrix multiplication for array
-    H = np.matmul(np.transpose(AA), BB)
+    # Define rotation
+    R = np.array([s, r, normal]).T
 
-    U, S, Vt = np.linalg.svd(H)
+    estimate_circle = [0, 0]  # px,py
+    best_circle_fit_values, ier = optimize.leastsq(
+        residuals_circle_R, estimate_circle, args=(points, s, r, point, radius))
 
-    R = np.matmul(Vt.T, U.T)
+    rF, sF = best_circle_fit_values
 
-    # special reflection case
-    if np.linalg.det(R) < 0:
-       print "Reflection detected"
-       Vt[2,:] *= -1
-       R = np.matmul(Vt.T, U.T)
+    # Synthetic Data
+    center_point = sF * s + rF * r + np.array(point)
+    synthetic = [list(center_point + radius * np.cos(phi) * r + radius * np.sin(phi) * s)
+                 for phi in np.linspace(0, 2 * np.pi, 50)]
+    [cxTupel, cyTupel, czTupel] = [x for x in zip(*synthetic)]
 
-    t = -np.matmul(R,centroid_A.T) + centroid_B.T
+    return center_point, R, [cxTupel, cyTupel, czTupel]
 
-    return R, t, centroid_A, centroid_B
 
-# Point to line projection
-#  a, v - line point and vector 
-#  p - point to project
-def PointOntoLine(a, v, p):
-    ap = p-a
-    result = a + np.dot(ap,v)/np.dot(v,v) * v
-    return result
 
 
