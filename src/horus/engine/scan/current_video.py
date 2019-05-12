@@ -31,8 +31,10 @@ class CurrentVideo(object):
         self.images['Laser'] = image
 
     def set_gray(self, images):
-        image = self._combine_images(images)
-        image = cv2.merge((image, image, image))
+        if images is not None:
+            image = self._combine_images(images)
+            if image is not None:
+                image = cv2.merge((image, image, image))
         self.images['Gray'] = image
 
     def set_line(self, points, image):
@@ -41,8 +43,9 @@ class CurrentVideo(object):
             for i in xrange(2):
                 if points[i]:
                     images[i] = self._compute_line_image(points[i], image)
-            image = self._combine_images(images)
-            image = cv2.merge((image, image, image))
+            #image = self._combine_images(images)
+            #image = cv2.merge((image, image, image))
+            image = cv2.merge((images[0], images[1], images[1]))
             self.images['Line'] = image
 
     def _combine_images(self, images):
@@ -54,6 +57,8 @@ class CurrentVideo(object):
 
         if images[1] is not None:
             return images[1]
+
+        return None
 
     def _compute_line_image(self, points, image):
         if points is not None:
