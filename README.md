@@ -228,12 +228,14 @@ pip install -U pyserial numpy scipy matplotlib==1.4.0
 I'm not MAC user but this make Gryphon Scan to start on MAC. Please correct me if i miss something.  
 
 1. Mac OS already have python 2.7 installed
+
 2. Install package managers and stuff
 ```
 sudo easy_install pip
 sudo pip install tornado   <- this will ask to install developers tools which is ok
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
+
 3. Install wxPython 3.0 (Yes, the 3.0.x version required)
 Download package from  
 https://wxpython.org/snapshots/  
@@ -249,10 +251,16 @@ sudo pip install opencv-contrib-python
 sudo pip install pyopengl pyopengl-accelerate
 sudo pip install -U pyserial scipy 
 ```
+
 5. Setup matplotlib 1.4.0
 ```
 brew install freetype
 easy_install -U matplotlib==1.4.0
+```
+
+6. Download Gryphon Scan
+```
+git clone https://github.com/nightgryphon/gryphon-scan.git
 ```
 
 ------------------------------------------
