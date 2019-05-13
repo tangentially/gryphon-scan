@@ -224,4 +224,36 @@ pip install -U pyserial numpy scipy matplotlib==1.4.0
 
 
 ------------------------------------------
+### MacOS: Setting Python for Gryphon Scan
+I'm not MAC user but this make Gryphon Scan to start on MAC. Please correct me if i miss something.  
+
+1. Mac OS already have python 2.7 installed
+2. Install package managers and stuff
+```
+sudo easy_install pip
+sudo pip install tornado   <- this will ask to install developers tools which is ok
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+```
+3. Install wxPython 3.0 (Yes, the 3.0.x version required)
+Download package from  
+https://wxpython.org/snapshots/  
+Unpack and install with (you can install with command line or turn off Gatekeeper as package have no digital signature)
+```
+sudo installer -pkg /path/to/wxPython.pkg -target /
+```
+
+4. Install packages
+```
+sudo easy_install -U numpy <- i've got a huge bunch of warnings and few errors during compile but it seems OK in the final
+sudo pip install opencv-contrib-python
+sudo pip install pyopengl pyopengl-accelerate
+sudo pip install -U pyserial scipy 
+```
+5. Setup matplotlib 1.4.0
+```
+brew install freetype
+easy_install -U matplotlib==1.4.0
+```
+
+------------------------------------------
 For the original Horus README look at README_Horus.md  
