@@ -10,7 +10,7 @@ import numpy as np
 
 from horus import Singleton
 from horus.engine.calibration.calibration import Calibration
-
+from horus.util.gryphon_util import apply_mask
 
 class PlatformByLasersError(Exception):
 

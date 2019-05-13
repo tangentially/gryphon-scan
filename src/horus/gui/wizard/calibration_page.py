@@ -16,7 +16,7 @@ from horus.gui.util.image_view import ImageView
 from horus.gui.util.pattern_distance_window import PatternDistanceWindow
 from horus.gui.wizard.wizard_page import WizardPage
 
-from horus.gui.util.augmented_view import estimate_platform_angle_from_pattern
+from horus.util.gryphon_util import estimate_platform_angle_from_pattern
 
 
 class CalibrationPage(WizardPage):

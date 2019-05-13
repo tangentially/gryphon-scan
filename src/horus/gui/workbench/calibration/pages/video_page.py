@@ -18,7 +18,8 @@ from horus.gui.workbench.calibration.pages.page import Page
 from horus.gui.util.image_view import ImageView
 from horus.gui.util.video_view import VideoView
 from horus.gui.util.augmented_view import augmented_draw_platform, augmented_draw_lasers_on_platform, \
-    augmented_draw_lasers_on_pattern, rotatePoint2Plane
+    augmented_draw_lasers_on_pattern
+from horus.util.gryphon_util  import rotatePoint2Plane
 
 
 class VideoPage(Page):

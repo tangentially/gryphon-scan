@@ -12,7 +12,9 @@ import cv2
 from horus import Singleton
 from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
-from horus.gui.util.augmented_view import augmented_draw_pattern, rigid_transform_3D, PointOntoLine
+from horus.gui.util.augmented_view import augmented_draw_pattern
+from horus.util.gryphon_util import rigid_transform_3D, PointOntoLine, capture_precise_corners
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -75,10 +77,10 @@ class MarkerData(object):
 
         if len(points) > 4:
             # Fitting a plane
-            point, normal = fit_plane(points)
-            print("Err plane: "+str( np.abs((np.float32(points)-point).dot(np.float32(normal))).mean() ))
+            #point, normal = fit_plane(points)
+            #print("Err plane: "+str( np.abs((np.float32(points)-point).dot(np.float32(normal))).mean() ))
             point, normal = fit_plane2(points)
-            print("Err plane2: "+str( np.abs((np.float32(points)-point).dot(np.float32(normal))).mean() ))
+            #print("Err plane2: "+str( np.abs((np.float32(points)-point).dot(np.float32(normal))).mean() ))
             if normal[1] > 0:
                 normal = -normal
             self.n = normal
@@ -88,20 +90,21 @@ class MarkerData(object):
             if self.h is not None:
                 self.t = self.center - self.h * np.array(normal)
 
-            logger.info("\nMarker calibration (" + self.name + ')')
+            logger.info("\n --- Marker calibration (" + self.name + ')')
             #logger.info(" Rotation: " + str(self.R).replace('\n', ''))
             logger.info(" Normal: " + str(np.round(self.n,5)))
             logger.info(" Translation: " + str(np.round(self.t,5)))
 
             err = self.getError(self.R, self.t)
-            logger.info(" Error: " + str(np.round(err,6)) )
+            logger.info(" Error: {0}".format(np.round(err,5)) )
 
-            d = self.getDelta(self.R, self.t)
-            logger.info(" Delta: %s %s " % (str(np.round(np.linalg.norm(d),6)), str( np.round(d,3) )) )
+            d = self.getDelta(self.R, self.t, bestIndex=int(len(self.x)/2))
+            logger.info(" Delta: {0:f} {1} ".format(np.round(np.linalg.norm(d),3), np.round(d,5) ) )
 
             self.t = self.t - d
             err = self.getError(self.R, self.t)
-            logger.info(" New error: " + str(np.round(err,6)) )
+            logger.info(" New Translation: " + str(np.round(self.t,5)))
+            logger.info(" New error: " + str(np.round(err,5)) )
 
             logger.info("--- Fit with radius from angle ---" )
             if self.motor_step is not None:
@@ -110,18 +113,20 @@ class MarkerData(object):
                      ll += np.linalg.norm(np.float32(p2)-np.float32(p1))
                 ll /= len(points)-2
                 r = ll/2/np.sin(np.deg2rad(self.motor_step)) # get points with 2 step distance
-                print("R by fit: {0:f} R from angle: {1:f}".format(self.radius, r))
+                logger.info("R by fit: {0:f} R by angle: {1:f}".format(self.radius, r))
                 c, _, _ = fit_circle_R(point, normal, points, r)
+                logger.info(" Translation: " + str(np.round(c,5)))
 
                 err = self.getError(self.R, c)
-                logger.info(" Error: " + str(np.round(err,6)) )
+                logger.info(" Error: " + str(np.round(err,5)) )
         
-                d = self.getDelta(self.R, c, radius=r)
-                logger.info(" Delta: %s %s " % (str(np.round(np.linalg.norm(d),6)), str( np.round(d,3) )) )
+                d = self.getDelta(self.R, c, bestIndex=int(len(self.x)/2), radius=r)
+                logger.info(" Delta: %s %s " % (str(np.round(np.linalg.norm(d),5)), str( np.round(d,3) )) )
         
                 c = c - d
                 err = self.getError(self.R, c)
-                logger.info(" New error: " + str(np.round(err,6)) )
+                logger.info(" New Translation: " + str(np.round(c,5)))
+                logger.info(" New error: " + str(np.round(err,5)) )
 
             return True
         return False
@@ -130,7 +135,6 @@ class MarkerData(object):
         if len(self.x) > 2:
             v = zip( self.x, self.y, self.z ) - t
             v = np.dot(R.T, v.T)
-            print(len(v[0]))
             dz = np.mean(np.abs(v[2] - np.mean(v[2])))
             dr = np.linalg.norm(zip(v[0], v[1]), axis=1)
             r = np.mean(dr)
@@ -208,7 +212,7 @@ class PlatformExtrinsics(MovingCalibration):
 
         self.data = { 'c0': MarkerData('Chessboard pose: platform',
                                 0, self.motor_step), 
-                      'c1': MarkerData('Chessboard pose: origin', 
+                      'c1': MarkerData('Chessboard pose: pattern origin', 
                                 self.pattern.square_width * (self.pattern.rows-1) + self.pattern.origin_distance, self.motor_step), 
                       'c2': MarkerData('Chessboard projection: distorted',
                                 self.pattern.origin_distance, self.motor_step), # from bottom corner projection distorted
@@ -232,15 +236,19 @@ class PlatformExtrinsics(MovingCalibration):
         self.points_image = None
 
     def _capture(self, angle):
-        image = self.image_capture.capture_pattern()
+        pose = None
+        if self.use_chessboard:
+            #image = self.image_capture.capture_pattern()
+            #corners = self.image_detection.detect_corners(image, False)
+            image, corners, _ = capture_precise_corners(13)
+            if corners is not None:
+                pose = self.image_detection.detect_pose_from_corners(np.float32(corners))
+        else:
+            image = self.image_capture.capture_pattern()
 
         if self.points_image is None:
             self.points_image = np.zeros(image.shape, dtype = "uint8")
         # ============ chessboard pattern ===========
-        pose = None
-        if self.use_chessboard:
-            corners = self.image_detection.detect_corners(image, False)
-            pose = self.image_detection.detect_pose_from_corners(corners)
         if pose is not None:
             #image = self.image_detection.draw_pattern(image, corners)
             # TODO: Move all visualizaton AFTER detection
@@ -394,15 +402,17 @@ class PlatformExtrinsics(MovingCalibration):
             logger.info(" Normal: " + str( normal_avg ))
             logger.info(" Translation: " + str(t_avg))
 
-            err0 = self.data['c0'].getDelta(R_avg, t_avg, int(len(self.data['c0'].x))/2)
-            print("Error c0: "+ str( err0 )+str(self.data['c0'].getDelta(R_avg, t_avg-err0)) )
+            err0 = self.data['c0'].getDelta(R_avg, t_avg, bestIndex=int(len(self.data['c0'].x)/2) )
+            print("Delta c0: "+ str( err0 ) )
             t_avg = t_avg-err0
-            err0 = self.data['c0'].getDelta(R_avg, t_avg,0)
-            print("Error c0: "+ str( err0 )+str(self.data['c0'].getDelta(R_avg, t_avg-err0)) )
-            err1 = self.data['c1'].getDelta(R_avg, t_avg,0)
-            print("Error c1: "+ str( err1 )+str(self.data['c1'].getDelta(R_avg, t_avg-err0)) )
+            err0 = self.data['c0'].getDelta(R_avg, t_avg, bestIndex=int(len(self.data['c0'].x)/2))
+            print("New Translation: "+ str(np.round(t_avg,4)) )
+            print("New Delta c0: "+ str( err0 ) )
+
+            err1 = self.data['c1'].getDelta(R_avg, t_avg, bestIndex=int(len(self.data['c0'].x)/2))
+            print("Delta c1: "+ str( err1 ) )
+            print("New Delta c1: "+ str(self.data['c1'].getDelta(R_avg, t_avg-err0)) )
             #print( self.data['c1'].getError(R_avg, t_avg) )
-            print("Corrected: "+ str(np.round(t_avg-err0,4)) )
 
             # Try to estimate rotation with SWD
             # http://nghiaho.com/?page_id=671

@@ -20,7 +20,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 from horus.gui.workbench.calibration.pages.page import Page
 from horus.gui.workbench.calibration.pages.video_page import VideoPage
 
-from horus.gui.util.augmented_view import estimate_platform_angle_from_pattern
+from horus.util.gryphon_util import estimate_platform_angle_from_pattern
 
 class CloudCorrectionPages(wx.Panel):
 

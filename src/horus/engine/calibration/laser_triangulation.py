@@ -17,7 +17,8 @@ from horus import Singleton
 from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
 
-from horus.gui.util.augmented_view import apply_mask, augmented_pattern_mask
+from horus.gui.util.augmented_view import augmented_pattern_mask
+from horus.util.gryphon_util import apply_mask
 
 from horus.util import profile
 
@@ -184,6 +185,8 @@ def compute_plane(index, X):
         return None, None, None
 
 
+# ========================================================
+
 class PlaneDetection(object):
 
     def fit(self, X):
@@ -221,6 +224,8 @@ class PlaneDetection(object):
         return M, Xm
 
 
+# ========================================================
+
 def ransac(data, model_class, min_samples, threshold, max_trials=500):
     best_model = None
     best_inlier_num = 0
@@ -241,6 +246,8 @@ def ransac(data, model_class, min_samples, threshold, max_trials=500):
         best_model = model_class.fit(data[best_inliers])
     return best_model, best_inliers
 
+
+# ========================================================
 
 def save_point_cloud(filename, point_cloud):
     if point_cloud is not None:

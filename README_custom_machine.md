@@ -18,10 +18,11 @@ This file will be created after first run.
         "machine_height": {
 
 ###### Turntable 3D model for "scanning" workbench visualization
-        "machine_model_path": {
-        "machine_model_offset_x": {
-        "machine_model_offset_y": {
-        "machine_model_offset_z": {
+        "machine_model_path"
+        "machine_model_diameter"
+        "machine_model_offset_x"
+        "machine_model_offset_y"
+        "machine_model_offset_z"
 
 ###### Turntable border Z offset for video overlay visualization. 
 Useful for better visualization if your turntable have raised border

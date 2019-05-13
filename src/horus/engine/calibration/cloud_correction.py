@@ -19,7 +19,9 @@ from horus import Singleton
 from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
 
-from horus.gui.util.augmented_view import apply_mask, augmented_pattern_mask, rotatePoint2Plane
+from horus.gui.util.augmented_view import augmented_pattern_mask
+from horus.util.gryphon_util import rotatePoint2Plane, \
+    rigid_transform_3D, PointOntoLine, capture_precise_corners
 
 from horus.util import profile
 
@@ -50,18 +52,6 @@ class CloudCorrection(MovingCalibration):
         self.angles = None
         self.clouds = None
 
-    def _capture_corners(self, steps = 3):
-        corners = []
-        for i in xrange(steps):
-            image = self.image_capture.capture_pattern()
-            if image is not None:
-                c = self.image_detection.detect_corners(image)
-                if c is not None:
-                    corners += [c] # [c.reshape(-1,2)]
-        corners = np.float32(corners)
-        return image, np.mean(corners, axis=0), np.max(np.std(corners, axis=0))
-        
-
     def _move_and_capture(self):
         angle = 0.0
         ncaptures = 1
@@ -72,7 +62,7 @@ class CloudCorrection(MovingCalibration):
             self._progress_callback(100*progress/total_captures)
 
         print("--- Measure center")
-        self.image, corners, std = self._capture_corners(13)
+        self.image, corners, std = capture_precise_corners(13)
         progress += 1
         if self._progress_callback is not None:
             self._progress_callback(100*progress/total_captures)
@@ -98,7 +88,8 @@ class CloudCorrection(MovingCalibration):
         p0 = corners[tuple(corner_id),0]
 
         # reference point cloud
-        self.p0_3d = np.insert(self.point_cloud_generation.compute_platform_point_cloud(p0.T, None, d0, n0), 0, [0], axis=1)
+        #self.p0_3d = np.insert(self.point_cloud_generation.compute_platform_point_cloud(p0.T, None, d0, n0), 0, [0], axis=1)
+        self.p0_3d = self.point_cloud_generation.compute_platform_point_cloud(p0.T, None, d0, n0)
         print(self.p0_3d)
 
         # calulate angles:
@@ -134,7 +125,7 @@ class CloudCorrection(MovingCalibration):
                 #time.sleep(0.5)
                 #self.driver.board.lasers_off()
         
-                self.image, corners, std = self._capture_corners(13)
+                self.image, corners, std = capture_precise_corners(13)
                 progress += 1
                 if self._progress_callback is not None:
                     self._progress_callback(100*progress/total_captures)
@@ -144,7 +135,8 @@ class CloudCorrection(MovingCalibration):
                 pose    = self.image_detection.detect_pose_from_corners(corners)
                 d, n, _ = self.image_detection.detect_pattern_plane(pose)
                 
-                cloud = np.insert(self.point_cloud_generation.compute_platform_point_cloud(p.T, None, d, n), 0, [0], axis=1)
+                #cloud = np.insert(self.point_cloud_generation.compute_platform_point_cloud(p.T, None, d, n), 0, [0], axis=1)
+                cloud = self.point_cloud_generation.compute_platform_point_cloud(p.T, None, d, n)
                 self.clouds[index] += [cloud]
                 #print("Points STD: {0:f}".format(np.max(np.std(self.clouds[index], axis=0)) ) )
 
@@ -181,7 +173,7 @@ class CloudCorrection(MovingCalibration):
             print( np.round(delta, 3) )
             print( np.round(np.max(delta), 3) )
             print( np.round(np.mean(delta), 3) )
-
+            '''
             ret, M, inliers = cv2.estimateAffine3D(cloud.T, perfect_points.T, None, None, \
                                     ransacThreshold = 0.1, confidence = 0.99)
             if ret:
@@ -203,6 +195,19 @@ class CloudCorrection(MovingCalibration):
             else:
                 self.corrections += [None]
                 err += [None]
+            '''
+            M,t,_,_ = rigid_transform_3D(cloud.T, perfect_points.T)
+            print(M)
+            print(t)
+            print(cloud.shape)
+            corrected = [np.matmul(M,v) + t for v in cloud.T]
+            print("With correction: ")
+            print(corrected)
+            delta = np.linalg.norm(M * cloud - perfect_points, axis=0)
+            print( np.round(delta, 3) )
+            print( np.round(np.max(delta), 3) )
+            print( np.round(np.mean(delta), 3) )
+            err += [np.mean(delta)]
 
 
         self._is_calibrating = False

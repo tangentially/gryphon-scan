@@ -137,8 +137,8 @@ class Camera_usb(Camera):
             logger.info("  check adjust exposure/brightness")
             self._check_camera()
 
-            logger.info("  check win driver bug")
-            self._check_driver()
+            #logger.info("  check win driver bug")
+            #self._check_driver()
 
             logger.info(" Done")
         else:

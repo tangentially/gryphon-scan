@@ -193,9 +193,9 @@ class CiclopScan(Scan):
                         self._range = abs(360.0 / self.motor_step)
 
                     # Print info
-                    self._end = time.time()
-                    print "capture: {0} ms".format(
-                        int((self._end - begin) * 1000))
+                    #self._end = time.time()
+                    #print "capture: {0} ms".format(
+                    #    int((self._end - begin) * 1000))
 
                     if self._debug and system == 'Linux':
                         string_time = str(datetime.datetime.now())[:-3] + " - "
