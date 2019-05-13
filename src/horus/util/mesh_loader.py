@@ -29,12 +29,19 @@ def load_mesh(filename):
     """
     loadMesh loads one model from a file.
     """
-    ext = os.path.splitext(filename)[1].lower()
-    if ext == '.ply':
-        return ply.load_scene(filename)
-    if ext == '.stl':
-        return stl.load_scene(filename)
-    logger.error('Error: Unknown model extension: %s' % (ext))
+    from __main__ import appdir
+    if os.file.isfile(appdir+'\\'+filename):
+        machine_model_path = appdir+'\\'+filename
+
+    if os.file.isfile(filename):
+        ext = os.path.splitext(filename)[1].lower()
+        if ext == '.ply':
+            return ply.load_scene(filename)
+        if ext == '.stl':
+            return stl.load_scene(filename)
+        logger.error('Error: Unknown model extension: %s' % (ext))
+    else:
+        logger.error('Error: Model file not found: %s' % (filename))
     return None
 
 

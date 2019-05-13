@@ -607,8 +607,7 @@ class SceneView(opengl_gui.glGuiPanel):
 
     def _draw_machine(self):
         glEnable(GL_BLEND)
-        from __main__ import appdir
-        machine_model_path = appdir+'\\'+profile.settings['machine_model_path']
+        machine_model_path = profile.settings['machine_model_path']
         glEnable(GL_CULL_FACE)
 
         # Draw Platform
