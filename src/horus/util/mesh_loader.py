@@ -30,10 +30,10 @@ def load_mesh(filename):
     loadMesh loads one model from a file.
     """
     from __main__ import appdir
-    if os.file.isfile(appdir+'\\'+filename):
+    if os.path.isfile(appdir+'\\'+filename):
         machine_model_path = appdir+'\\'+filename
 
-    if os.file.isfile(filename):
+    if os.path.isfile(filename):
         ext = os.path.splitext(filename)[1].lower()
         if ext == '.ply':
             return ply.load_scene(filename)
