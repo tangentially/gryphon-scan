@@ -48,6 +48,8 @@ class Camera_usb(Camera):
 
         self.initialize()
 
+        self._max_exposure = 1. # fallback value
+
         if system == 'Windows':
             self._number_frames_fail = 3
             self._max_brightness = 1.
@@ -93,10 +95,12 @@ class Camera_usb(Camera):
         if system == 'Darwin':
             # try to get USB camera params control intrface
             self.controls = None
-            for device in uvc.mac.Camera_List():
-                if device.src_id == self.camera_id:
-                    self.controls = uvc.mac.Controls(device.uId)
-            if self.controls is None:
+            try:
+                for device in uvc.mac.Camera_List():
+                    if device.src_id == self.camera_id:
+                        self.controls = uvc.mac.Controls(device.uId)
+            except:
+                self.controls = None
                 wx.MessageDialog(None, 'For MacOS this camera controls not available. You can not set Brightness, Contrast, Saturation, Exposure for this camera', 'Warning', wx.OK | wx.ICON_INFORMATION).ShowModal()
 
         if self._capture is not None:
