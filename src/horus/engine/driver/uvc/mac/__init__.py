@@ -134,10 +134,11 @@ class Controls(dict):
 
 class Cam():
     """a simple class that only contains info about a camera"""
-    def __init__(self,name,uId,src_id):
+    def __init__(self,name,uId,src_id,model):
         self.src_id = src_id
         self.uId = uId
         self.name = name
+        self.model = model
 
 class Camera_List(list):
     """docstring for uvcc_control"""
@@ -147,9 +148,13 @@ class Camera_List(list):
             #explicit import needed when frozen
             import QTKit
 
+        # https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/QTKitApplicationProgrammingGuide/UsingQTKit/UsingQTKit.html
+        # https://bitbucket.org/ronaldoussoren/pyobjc/src/default/pyobjc-framework-QTKit/metadata/raw/x86_64-10.10.fwinfo
+        # https://docs.microsoft.com/ru-ru/dotnet/api/qtkit.qtcapturedevice
         from QTKit import QTCaptureDevice,QTMediaTypeVideo
         qt_cameras =  QTCaptureDevice.inputDevicesWithMediaType_(QTMediaTypeVideo)
         for src_id,q in enumerate(qt_cameras):
             uId =  q.uniqueID()
             name = q.localizedDisplayName().encode('utf-8')
-            self.append(Cam(name,uId,src_id))
+            model = q.modelUniqueID()
+            self.append(Cam(name,uId,src_id,model))

@@ -268,6 +268,10 @@ easy_install -U matplotlib==1.4.0
 ```
 git clone https://github.com/nightgryphon/gryphon-scan.git
 ```
-
+7. Build USB camera controls library
+```
+cd gryphon-scan\src\horus\engine\driver\uvc\mac
+make
+```
 ------------------------------------------
 For the original Horus README look at README_Horus.md  
