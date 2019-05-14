@@ -154,8 +154,10 @@ class Camera_usb(Camera):
                 self.get_focus()
 
             if system == 'Darwin' and self.controls is not None:
-                self.controls['UVCC_REQ_FOCUS_AUTO'].set_val(1)
+                self.controls['UVCC_REQ_FOCUS_AUTO'].set_val(0)
 
+            # Anti flicker
+            self.set_anti_flicker(1)
 
             logger.info("  check read frame")
             self._check_video()
@@ -367,6 +369,8 @@ class Camera_usb(Camera):
                     ctl = self.controls['UVCC_REQ_EXPOSURE_ABS']
                     value = int(value * self._rel_exposure)
                     ctl.set_val(value)
+
+                    self.set_anti_flicker(1)
                 elif system == 'Windows':
                     value = int(round(-math.log(value) / math.log(2)))
                     self._capture.set(self.CV_CAP_PROP_EXPOSURE, value)
@@ -380,6 +384,15 @@ class Camera_usb(Camera):
     def set_luminosity(self, value):
         Camera.set_luminosity(self, value)
         self.set_exposure(self._exposure, force=True)
+
+    # ------------- Anti flicker ------------
+    def set_anti_flicker(self, value):
+        if system == 'Darwin' and self.controls is not None:
+            #self.capture_image(3)
+            ctl = self.controls['UVCC_REQ_POWER_LINE_FREQ']
+            #print "Line Freq {0} ; {1}".format(ctl.min, ctl.max)
+            ctl.set_val(0)
+            ctl.set_val(value)
 
     # ------------- Frame rate control ------------
     def set_frame_rate(self, value, init_phase=False):
@@ -455,7 +468,7 @@ class Camera_usb(Camera):
     # ------------- Focus control ------------
     def focus_supported(self):
         if system == 'Darwin':
-            return (self.controls is not None)
+            return (not self._is_connected) or (self.controls is not None)
         else:
             return LooseVersion(cv2.__version__) > LooseVersion("3.4.4")
 
