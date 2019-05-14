@@ -373,12 +373,12 @@ class Camera_usb(Camera):
 	logger.info("Set Frame rate: {0}".format(value))
         if self._is_connected:
             if not init_phase:
-                if LooseVersion(cv2.__version__) >= LooseVersion("3.4.4"):
-                    if self._capture.getBackendName() in ["MSMF"]:
-                        logger.info("UNSUPPORTED for this video backend {0}".format(self._capture.getBackendName()))
-                        return
-                else:
-                    if system == 'Windows':
+                if system == 'Windows':
+                    if LooseVersion(cv2.__version__) >= LooseVersion("3.4.4"):
+                        if self._capture.getBackendName() in ["MSMF"]:
+                            logger.info("UNSUPPORTED for this video backend {0}".format(self._capture.getBackendName()))
+                            return
+                    else:
                         logger.info("Possible unsupported. Skipping.")
                         return
 
