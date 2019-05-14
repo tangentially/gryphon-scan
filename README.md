@@ -156,13 +156,16 @@ Still investigating. As workaround try to keep things symmetrical:
 
 ~~- laser to camera distance should be equival~~  
 ~~- laser lines should be vertical~~  
-~~- laser lines should cross at platform center~~  
+~~- laser lines should cross at platform center~~
 - platform center should be in the middle of horizontal axis of camera image  
 - platform rotation axis should be vertical in camera image and parallel to image plane  
-- platform should be perpendicular to rotation axis
+- platform should be perpendicular to rotation axis  
 
-Upd 1. For Gryphon Scan laser planes position and tilt does not affect point cloud misalignment. 
-During some tests i move lasers left-right back-front tilt etc and this does not cause point clouds misalign.
+**Upd 1.** 
+ - For Gryphon Scan laser planes position and tilt does not affect point cloud misalignment. 
+During some tests i move lasers left-right back-front tilt etc and this does not cause point clouds misalign.  
+ - Platform extrinsics is critical. 
+Experiments amount is not enough to be sure but it seems platform calibration with pattern in the middle of the platform produces better results.
 
 ------------------------------------------
 
