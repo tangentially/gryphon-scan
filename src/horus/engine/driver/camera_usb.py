@@ -138,13 +138,22 @@ class Camera_usb(Camera):
                 profile.settings['camera_width'], profile.settings['camera_height'], True)
             self.set_frame_rate(int(profile.settings['frame_rate']), True)
 
+            # disable Auto Exposure
+            if LooseVersion(cv2.__version__) > LooseVersion("3.0.0"):
+                self._capture.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
+                self.get_exposure()
+
+            if system == 'Darwin' and self.controls is not None:
+                self.controls['UVCC_REQ_EXPOSURE_AUTOMODE'].set_val(1)
+
+            # disable Auto Focus
             if LooseVersion(cv2.__version__) > LooseVersion("3.4.4"):
                 self._capture.set(cv2.CAP_PROP_AUTOFOCUS, 0)
                 self.get_focus()
 
-            if LooseVersion(cv2.__version__) > LooseVersion("3.0.0"):
-                self._capture.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
-                self.get_exposure()
+            if system == 'Darwin' and self.controls is not None:
+                self.controls['UVCC_REQ_FOCUS_AUTO'].set_val(1)
+
 
             logger.info("  check read frame")
             self._check_video()
@@ -191,8 +200,6 @@ class Camera_usb(Camera):
 
         try:
             # Check exposure
-            if system == 'Darwin':
-                self.controls['UVCC_REQ_EXPOSURE_AUTOMODE'].set_val(1)
             self.set_exposure(2)
             exposure = self.get_exposure()
             if exposure is not None:
@@ -445,18 +452,27 @@ class Camera_usb(Camera):
 
     # ------------- Focus control ------------
     def focus_supported(self):
-        return LooseVersion(cv2.__version__) > LooseVersion("3.4.4")
+        if system == 'Darwin':
+            return (self.controls is not None)
+        else:
+            return LooseVersion(cv2.__version__) > LooseVersion("3.4.4")
 
     def set_focus(self, value):
-        if self._is_connected and \
-           LooseVersion(cv2.__version__) > LooseVersion("3.4.4"):
-            self._capture.set(cv2.CAP_PROP_FOCUS, value)
+        if self._is_connected:
+           if system == 'Darwin' and self.controls is not None:
+               ctl = self.controls['UVCC_REQ_FOCUS_ABS']
+               ctl.set_val(self._line(value, 0, self._max_brightness, ctl.min, ctl.max))
+           elif LooseVersion(cv2.__version__) > LooseVersion("3.4.4"):
+               self._capture.set(cv2.CAP_PROP_FOCUS, value)
         self._focus = value
 
     def get_focus(self):
-        if self._is_connected and \
-           LooseVersion(cv2.__version__) > LooseVersion("3.4.4"):
-            self._focus = self._capture.get(cv2.CAP_PROP_FOCUS)
+        if self._is_connected:
+            if system == 'Darwin' and self.controls is not None:
+                ctl = self.controls['UVCC_REQ_FOCUS_ABS']
+                self._focus = ctl.get_val()
+            elif LooseVersion(cv2.__version__) > LooseVersion("3.4.4"):
+                self._focus = self._capture.get(cv2.CAP_PROP_FOCUS)
         return self._focus
 
     # ------------- Photo lights control ------------
