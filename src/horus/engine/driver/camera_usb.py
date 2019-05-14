@@ -37,6 +37,7 @@ class Camera_usb(Camera):
         Camera.__init__(self)
 
         self._capture = None
+        self.controls = None
         self._is_connected = False
         self._reading = False
         self._updating = False
@@ -94,6 +95,7 @@ class Camera_usb(Camera):
         self.initialize()
         if system == 'Darwin':
             # try to get USB camera params control intrface
+            logger.info("Connecting USB Video controls")
             self.controls = None
             try:
                 for device in uvc.mac.Camera_List():
