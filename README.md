@@ -273,5 +273,11 @@ git clone https://github.com/nightgryphon/gryphon-scan.git
 cd gryphon-scan\src\horus\engine\driver\uvc\mac
 make
 ```
+8. Run the app  
+```
+gryphon-scan\horus
+```
+You may need to allow this app to run in settings->security because there is no digital signature  
+
 ------------------------------------------
 For the original Horus README look at README_Horus.md  
