@@ -163,7 +163,7 @@ Still investigating. As workaround try to keep things symmetrical:
 
 **Upd 1.** 
  - For Gryphon Scan laser planes position and tilt does not affect point cloud misalignment. 
-During some tests i move lasers left-right back-front tilt etc and this does not cause point clouds misalign.  
+During some tests i move lasers left-right back-front tilt etc and this does not cause point clouds misalignment.  
  - Platform extrinsics is critical. 
 Experiments amount is not enough to be sure but it seems platform calibration with pattern in the middle of the platform produces better results.
 
@@ -177,10 +177,16 @@ But this also slowdown the image capture because there is no way to surely detec
 
 You can adjust the number of flushed frames in 'settings.json' to optimize performance or to fix 'jump' artifacts in scan.
 The parameters are: `flush_stream_*` and `flush_*`  
-The 'flush_stream_' is values for user interface preview mode. The 'flush_' is for calibrating/scanning mode.  
+The `flush_stream_` is values for user interface preview mode. The `flush_` is for calibrating/scanning mode.  
 Values are:  
-       \[  texture capture flush, laser capture flush, pattern capture flush, change mode flush \]  
-
+```
+    [ texture capture flush,
+      laser capture flush,
+      pattern capture flush,
+      change mode flush ]  
+```
+If the value is positive number it is treated as the number of frames to pre-read. Typically 3-4 is enough.  
+If the value is negative it is treated as number of milliseconds for automatic flush mode. It try to detect an actual frame by frame grabbing time. If frame grab time is more than specified number of milliseconds than frame treated as actual frame. But this timings are depend on overall system performance etc so is not perfect. For logitech C270 typical actual frame grab time is 25-30ms so you can try -30 value.
 
 ------------------------------------------
 ### Installing Python 2.7.16 (latest 2.7) for Gryphon Scan
