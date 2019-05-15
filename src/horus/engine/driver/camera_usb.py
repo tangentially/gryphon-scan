@@ -248,7 +248,7 @@ class Camera_usb(Camera):
                     c = 0
                     # max time for buffered frame
                     # max flushed frames count
-                    while e - b < (0.03) and c < 4:
+                    while b - e > (flush * 0.001) and c < 4:
                         b = time.time()
                         #self._capture.grab()
                         ret, image = self._capture.read()

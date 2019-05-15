@@ -134,11 +134,13 @@ class ImageCapture(object):
             self._mode.send_all_settings()
             # wait for camera to adjust to new settings
             if self.stream:
-                if self._flush_stream_mode != 0:
-                    self.capture_image(flush=self._flush_stream_mode-1)
+                flush = self._flush_stream_mode
             else:
-                if self._flush_mode != 0:
-                    self.capture_image(flush=self._flush_mode-1)
+                flush = self._flush_mode
+            if flush > 0:
+                self.capture_image(flush-1)
+            else:
+                self.capture_image(flush)
             self._updating = False
 
     def set_mode_texture(self):
