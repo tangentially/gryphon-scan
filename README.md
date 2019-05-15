@@ -102,8 +102,6 @@ Oversharped image create wobbly "pixel stairs" style artifacts at the 3D scan.
 3. If you wish to use segmentation equival to Horus 0.1 than set: YCrCb filter, blur and window filters off, refinement off  
 
 
-------------------------------------------
-
 ### Camera calibration
 To get better scanning results you has to calibrate your camera using "Calibration"->"Camera intrinsics".  
 There is two steps to calibrate camera:
@@ -133,8 +131,6 @@ https://docs.opencv.org/3.1.0/dc/dbb/tutorial_py_calibration.html
 https://www.cs.auckland.ac.nz/courses/compsci773s1c/lectures/camera%20distortion.pdf  
 
 
-------------------------------------------
-
 ### Laser calibration
 Using "Calibration"->"Laser triangulation" make two calibration sequences with different chessboard pattern positions.  
 
@@ -151,7 +147,7 @@ This will make calibration more precise by using larger lasers point cloud area.
 
 ------------------------------------------
 
-### Pont clouds misalignment
+## Pont clouds misalignment
 Still investigating. As workaround try to keep things symmetrical:  
 
 ~~- laser to camera distance should be equival~~  
@@ -159,7 +155,8 @@ Still investigating. As workaround try to keep things symmetrical:
 ~~- laser lines should cross at platform center~~
 - platform center should be in the middle of horizontal axis of camera image  
 - platform rotation axis should be vertical in camera image and parallel to image plane  
-- platform should be perpendicular to rotation axis  
+- platform should be perpendicular to rotation axis 
+- platform calibration is the most critical. Try to put pattern in the middle of turntable for better calibration results.
 
 **Upd 1.** 
  - For Gryphon Scan laser planes position and tilt does not affect point cloud misalignment. 
@@ -169,7 +166,7 @@ Experiments amount is not enough to be sure but it seems platform calibration wi
 
 ------------------------------------------
 
-# Capture performance and video flush values
+## Capture performance and video flush values
 Most web cam drivers use buffer of few captured frames to enchance performance. 
 But in case of scanning we need _current_ frame not the buffered one.
 To flush the buffer and get the current frame the specified amount of frames are pre-read from camera driver. 
@@ -185,11 +182,16 @@ Values are:
       pattern capture flush,
       change mode flush ]  
 ```
-If the value is positive number it is treated as the number of frames to pre-read. Typically 3-4 is enough.  
-If the value is negative it is treated as number of milliseconds for automatic flush mode. It try to detect an actual frame by frame grabbing time. If frame grab time is more than specified number of milliseconds than frame treated as actual frame. But this timings are depend on overall system performance etc so is not perfect. For logitech C270 typical actual frame grab time is 25-30ms so you can try -30 value.
+- If the value is positive number it is treated as the number of frames to pre-read. Typically 3-4 is enough.  
+- If the value is negative it is treated as number of milliseconds for automatic flush mode. It try to detect an actual frame by frame grabbing time. If frame grab time is more than specified number of milliseconds than frame treated as actual frame. But this timings are depend on overall system performance etc so is not perfect. For logitech C270 typical actual frame grab time is 25-30ms so you can try -30 value. The number of auto flush frames is limited to 4 frames to prevent possible lockup.
+
 
 ------------------------------------------
-### Installing Python 2.7.16 (latest 2.7) for Gryphon Scan
+
+## Installation
+At the moment there is no automatic installer so you need to install Python and requred libraries manually then download and run Gryphon Scan.  
+
+### Windows: Installing Python 2.7 for Gryphon Scan
 This notes can be incomplete. This is my experience for my environment (Win 8.1)
 Yes, there is bundler scripts in Horus but there is a lot of broken download links and old software versions.
 I plan to switch to new OpenCV with contrib package (4.1.0 at the moment)  
@@ -223,8 +225,8 @@ Also pip package require GLUT DLLs to be installed separately
 http://freeglut.sourceforge.net/index.php#download  
 https://www.transmissionzero.co.uk/software/freeglut-devel/  
 Download "freeglut 3.0.0 MSVC Package"  
-Extract and copy \freeglut\bin\\[x64\\]freeglut.dll -> \Python27\Lib\site-packages\OpenGL\DLLS\freeglut[64].dll  
-For 64 bit python you need to rename DLL to freeglut64.dll
+Extract and copy `\freeglut\bin\\[x64\\]freeglut.dll` -> `\Python27\Lib\site-packages\OpenGL\DLLS\freeglut[64].dll`  
+For 64 bit python you need to rename DLL to `freeglut64.dll`
 
 6. Install packages with PIP  
 ```
@@ -232,7 +234,6 @@ pip install -U pyserial numpy scipy matplotlib==1.4.0
 ```
 
 
-------------------------------------------
 ### MacOS: Setting Python for Gryphon Scan
 I'm not MAC user but this make Gryphon Scan to start on MAC. Please correct me if i miss something.  
 
