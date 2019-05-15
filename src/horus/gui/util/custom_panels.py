@@ -340,7 +340,7 @@ class ControlPanel(wx.Panel):
         if len(self.undo_values) > 0:
             value = self.undo_values.pop()
             self.update_to_profile(value)
-            self.control.SetValue(value)
+            self.set_control_value(value)
             self.set_engine(value)
 
     def reset_profile(self):
@@ -354,8 +354,11 @@ class ControlPanel(wx.Panel):
         if self.control is not None and \
            not isinstance(self.control, wx.Button) and \
            not isinstance(self.control, wx.ToggleButton):
-            self.control.SetValue(value)
+            self.set_control_value(value)
             self.set_engine(value)
+
+    def set_control_value(self, value):
+        self.control.SetValue(value)
 
     def update_to_profile(self, value):
         profile.settings[self.name] = value
@@ -1014,3 +1017,51 @@ class ToggleButton(ControlPanel):
 
             if self.engine_callback[function] is not None:
                 self.engine_callback[function]()
+
+class ColorPicker(ControlPanel):
+
+    def __init__(self, parent, name, engine_callback=None):
+        ControlPanel.__init__(self, parent, name, engine_callback)
+
+        # Elements
+        label = wx.StaticText(self, size=(130, -1), label=_(self.setting._label))
+        self.control = wx.Button(self, label="", size=(150, -1))
+        self.set_control_value(profile.settings[self.name])
+
+        # Layout
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+        hbox.AddStretchSpacer()
+        hbox.Add(self.control, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        self.SetSizer(hbox)
+        self.Layout()
+
+        # Events
+        self.control.Bind(wx.EVT_BUTTON, self._on_btn_click)
+
+
+    def set_control_value(self, value):
+        self.control.SetBackgroundColour(wx.Colour(value[0] & 0xFF, value[1] & 0xFF, value[2] & 0xFF))
+
+    def _on_btn_click(self, event):
+        v = self.pick_color()
+        if v is not None:
+            self.set_control_value(v)
+            self.update_to_profile(v)
+            self.set_engine(v)
+
+    def pick_color(self):
+        ret = None
+        data = wx.ColourData()
+        data.SetColour(self.setting.value)
+        dialog = wx.ColourDialog(self, data)
+        dialog.GetColourData().SetChooseFull(True)
+        if dialog.ShowModal() == wx.ID_OK:
+            data = dialog.GetColourData()
+            ret = list(data.GetColour().Get())
+        dialog.Destroy()
+        return ret
+
+
+
+

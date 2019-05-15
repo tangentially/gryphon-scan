@@ -46,18 +46,18 @@ class CiclopScan(Scan):
         self.image = None
         self.current_video = CurrentVideo()
         self.calibration_data = CalibrationData()
-        self.capture_texture = True
-        self.laser = [True, True]
+        self.texture_mode = 2 # Capture 
+        self.laser = [True]*len(self.calibration_data.laser_planes)
         self.move_motor = True
         self.motor_step = 0
         self.motor_speed = 0
         self.motor_acceleration = 0
         self.color = (0, 0, 0)
+        self.colors = [(0, 0, 0)]*len(self.calibration_data.laser_planes)
 
         self._theta = 0
         self._count = 0
         self._debug = False
-        self._bicolor = False
         self._scan_sleep = 0.05
         self._captures_queue = Queue.Queue(10)
         self.point_cloud_callback = None
@@ -69,23 +69,54 @@ class CiclopScan(Scan):
         self.capturing = False
 
     def read_profile(self):
-        self.capture_texture = profile.settings['capture_texture']
+        self.set_texture_mode(profile.settings['texture_mode'])
+
+        self.set_color(profile.settings['point_cloud_color'])
+        self.set_colors(0, profile.settings['point_cloud_color_l'])
+        self.set_colors(1, profile.settings['point_cloud_color_r'])
+
         use_laser = profile.settings['use_laser']
         self.set_use_left_laser(use_laser == 'Left' or use_laser == 'Both')
         self.set_use_right_laser(use_laser == 'Right' or use_laser == 'Both')
+
         self.motor_step = profile.settings['motor_step_scanning']
         self.motor_speed = profile.settings['motor_speed_scanning']
         self.motor_acceleration = profile.settings['motor_acceleration_scanning']
-        self.color = struct.unpack(
-            'BBB', profile.settings['point_cloud_color'].decode('hex'))
         self.set_scan_sleep(profile.settings['scan_sleep'])
 
         self.ph_save_enable = profile.settings['ph_save_enable']
         self.ph_save_folder = profile.settings['ph_save_folder']
         self.ph_save_divider = profile.settings['ph_save_divider']
 
-    def set_capture_texture(self, value):
-        self.capture_texture = value
+    def set_texture_mode(self, value):
+        # 'Flat color', 'Multi color', 'Capture', 'Laser BG'
+        if value == 'Flat color':
+            self.texture_mode = 0
+        elif value == 'Multi color':
+            self.texture_mode = 1
+        elif value == 'Capture':
+            self.texture_mode = 2
+        elif value == 'Laser BG':
+            self.texture_mode = 3
+        else:
+            self.texture_mode = 2
+
+    def decode_color(self, value):
+        if isinstance(value, basestring):
+            ret = struct.unpack('BBB', value.decode('hex'))
+        elif isinstance(value, (tuple,list)) and \
+             len(value) == 3 and \
+             all(isinstance(x, int) for x in value):
+           ret = value
+        else:
+           ret = (0,0,0)
+        return ret
+
+    def set_color(self, value):
+        self.color = self.decode_color(value) 
+
+    def set_colors(self, index, value):
+        self.colors[index] = self.decode_color(value) 
 
     def set_use_left_laser(self, value):
         self.laser[0] = value
@@ -149,9 +180,7 @@ class CiclopScan(Scan):
             os.makedirs(self.ph_save_folder)
 
     def _capture(self):
-        # Flush buffer of texture captures
         self.capturing = True
-        self.image_capture.flush_laser()
         while self.is_scanning:
             if self._inactive:
                 self.image_capture.stream = True
@@ -166,7 +195,6 @@ class CiclopScan(Scan):
                         # Capture images
                         capture = self._capture_images()
                         # Put images into queue
-                        #print("Put: {0:f}".format(np.rad2deg(capture.theta)))
                         self._captures_queue.put(capture)
                     except Exception as e:
                         logger.info("Capture error: "+str(e))
@@ -177,7 +205,6 @@ class CiclopScan(Scan):
                         break
 
                     # Move motor
-                    #print("Move start from: {0:f}".format(self._theta))
                     if self.move_motor:
                         self.driver.board.motor_move(self.motor_step)
                     else:
@@ -186,7 +213,6 @@ class CiclopScan(Scan):
                     # Update theta
                     self._theta += self.motor_step
                     self._count += 1
-                    #print("Move done. Theta update: {0:f}".format(self._theta))
                     # Refresh progress
                     if self.motor_step != 0:
                         self._progress = abs(self._theta / self.motor_step)
@@ -210,7 +236,7 @@ class CiclopScan(Scan):
                         print string_time + " capture: {0} ms".format(
                             int((self._end - begin) * 1000))
             # Sleep
-            #time.sleep(self._scan_sleep)
+            time.sleep(self._scan_sleep)
 
         self.driver.board.lasers_off()
         self.driver.board.motor_disable()
@@ -218,38 +244,26 @@ class CiclopScan(Scan):
         self.image_capture.stream = True
 
     def _capture_images(self):
-        capture = ScanCapture()
+        capture = ScanCapture(lasers = len(self.laser))
         capture.theta = np.deg2rad(self._theta)
-        #print("Capture start: {0:f}".format(np.rad2deg(capture.theta)))
         capture.count = self._count
 
-        capture.texture = None
-        if self.capture_texture:
+        if self.texture_mode == 2:
             capture.texture = self.image_capture.capture_texture()
-            # Flush buffer to improve the synchronization when
-            # the texture exposure is around 33 ms
-            self.image_capture.flush_laser()
-        '''
-        else:
-            r, g, b = self.color
-            ones = np.zeros((self.calibration_data.height,
-                             self.calibration_data.width, 3), np.uint8)
-            ones[:, :, 0] = r
-            ones[:, :, 1] = g
-            ones[:, :, 2] = b
-            capture.texture = ones
-        '''
-        if self.laser[0] and self.laser[1]:
+
+        if all(self.laser):
             capture.lasers = self.image_capture.capture_lasers()
         else:
-            for i in xrange(2):
+            for i in xrange(len(self.laser)):
                 if self.laser[i]:
-                    capture.lasers[i],capture.lasers[2] = self.image_capture.capture_laser(i)
-
-        #print("Capture: {0:f} [done]".format(np.rad2deg(capture.theta)))
+                    # TODO Use previous captured background
+                    capture.lasers[i],capture.lasers[-1] = self.image_capture.capture_laser(i)
 
         # Set current video images
-        self.current_video.set_texture(capture.texture)
+        if self.texture_mode == 3:
+            self.current_video.set_texture(capture.lasers[-1])
+        else:
+            self.current_video.set_texture(capture.texture)
         self.current_video.set_laser(capture.lasers)
         return capture
 
@@ -307,52 +321,49 @@ class CiclopScan(Scan):
         if self._after_callback is not None:
             self._after_callback(response)
 
+
     def _process_capture(self, capture):
         # Current video arrays
         image = None
-        images = [None, None]
         points = [None, None]
 
         #print("Process start: {0:f}".format(np.rad2deg(capture.theta)))
         # begin = time.time()
-#        u_offset = 2.8
-#        u_offset = 1.8
-#        u_offset = 0.0
         for i in xrange(2):
             if capture.lasers[i] is not None:
                 image = capture.lasers[i]
                 self.image = image
                 # Compute 2D points from images
                 points_2d, image = self.laser_segmentation.compute_2d_points(image)
-
-                images[i] = image
                 points[i] = points_2d
 
                 # Compute point cloud texture
                 u, v = points_2d
-
-                if self.capture_texture:
-                    texture = capture.texture[v, np.around(u).astype(int)].T
-
-                else:
-                    if self._bicolor:
-                        if i == 0:
-                            r, g, b = 255, 0, 0 # red laser left
-                        else:
-                            r, g, b = 0, 255, 255 # cyan
-                    else:
-                        r, g, b = self.color
-
+                texture = None
+                if self.texture_mode == 0:
+                    # Flat color
+                    r, g, b = self.color
                     texture = np.zeros((3, len(v)), np.uint8)
                     texture[0, :] = r
                     texture[1, :] = g
                     texture[2, :] = b
 
+                elif self.texture_mode == 1:
+                    # Multi color
+                    r, g, b = self.colors[i]
+                    texture = np.zeros((3, len(v)), np.uint8)
+                    texture[0, :] = r
+                    texture[1, :] = g
+                    texture[2, :] = b
 
-                # Compute point cloud from 2D points
-                #points_2d[0][:] += u_offset
+                elif self.texture_mode == 2:
+                    # Texture
+                    texture = capture.texture[v, np.around(u).astype(int)].T
 
-                #points_2d = self.point_cloud_generation.undistort_points(points_2d)
+                elif self.texture_mode == 3:
+                    # Laser BG
+                    texture = capture.lasers[-1][v, np.around(u).astype(int)].T
+
                 point_cloud = self.point_cloud_generation.compute_point_cloud(
                     capture.theta, points_2d, i)
                 #print("Processed: {0:f} - {1}".format(np.rad2deg(capture.theta),i))
@@ -367,15 +378,12 @@ class CiclopScan(Scan):
             #print filename
             if capture.texture is not None:
                 self.driver.camera.save_image(filename, capture.texture)
-            elif capture.lasers[2] is not None:
-                self.driver.camera.save_image(filename, capture.lasers[2])
+            elif capture.lasers[-1] is not None:
+                self.driver.camera.save_image(filename, capture.lasers[-1])
 
         # Set current video images
-        self.current_video.set_gray(images)
+        self.current_video.set_gray(capture.lasers[:-1])
         self.current_video.set_line(points, image)
 
         # Print info
-        #print("Process end: {0:f}".format(np.rad2deg(capture.theta)))
-        """if self._debug and system == 'Linux':
-            print string_time + " process: {0} ms".format(
-                int((time.time() - begin) * 1000))"""
+        #print("Process end: {0:f} {1}ms".format(np.rad2deg(capture.theta), int((time.time() - begin) * 1000) ))

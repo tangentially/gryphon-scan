@@ -11,7 +11,7 @@ import wx._core
 from horus.util import profile
 from horus.gui.engine import driver, ciclop_scan, point_cloud_roi
 from horus.gui.util.custom_panels import ExpandablePanel, Slider, CheckBox, ComboBox, \
-    Button, FloatTextBox, DirPicker, IntTextBox
+    Button, FloatTextBox, DirPicker, IntTextBox, ColorPicker
 
 
 class ScanParameters(ExpandablePanel):
@@ -22,11 +22,9 @@ class ScanParameters(ExpandablePanel):
         self.main = self.GetParent().GetParent().GetParent()
 
     def add_controls(self):
-        self.add_control('capture_texture', CheckBox)
         self.add_control('use_laser', ComboBox)
 
     def update_callbacks(self):
-        self.update_callback('capture_texture', ciclop_scan.set_capture_texture)
         self.update_callback('use_laser', self.set_use_laser)
 
     def set_use_laser(self, value):
@@ -134,32 +132,44 @@ class PointCloudColor(ExpandablePanel):
         self.main = self.GetParent().GetParent().GetParent()
 
     def add_controls(self):
-        self.add_control('point_cloud_color', Button)
-        self.add_control('point_cloud_bicolor', CheckBox)
+        self.add_control('texture_mode', ComboBox)
+        self.add_control('point_cloud_color', ColorPicker)
+        self.add_control('point_cloud_color_l', ColorPicker)
+        self.add_control('point_cloud_color_r', ColorPicker)
 
     def update_callbacks(self):
-        self.update_callback('point_cloud_color', self.on_color_picker)
-        self.update_callback('point_cloud_bicolor', lambda v: self.on_set_bicolor(v) )
-
-    def on_color_picker(self):
-        data = wx.ColourData()
-        data.SetColour(ciclop_scan.color)
-        dialog = wx.ColourDialog(self, data)
-        dialog.GetColourData().SetChooseFull(True)
-        if dialog.ShowModal() == wx.ID_OK:
-            data = dialog.GetColourData()
-            color = data.GetColour().Get()
-            ciclop_scan.color = color
-            profile.settings['point_cloud_color'] = unicode("".join(map(chr, color)).encode('hex'))
-        dialog.Destroy()
-
-    def on_set_bicolor(self, value):
-        ciclop_scan._bicolor = value
+        self.update_callback('texture_mode', lambda v: self._set_texture_mode(v) )
+        self.update_callback('point_cloud_color', ciclop_scan.set_color )
+        self.update_callback('point_cloud_color_l', lambda v: ciclop_scan.set_color(0,v) )
+        self.update_callback('point_cloud_color_r', lambda v: ciclop_scan.set_color(1,v) )
 
     def on_selected(self):
         self.main.scene_view._view_roi = False
         self.main.scene_view.queue_refresh()
         profile.settings['current_panel_scanning'] = 'point_cloud_color'
+
+    def _set_texture_mode(self, mode):
+        ciclop_scan.set_texture_mode(mode)
+
+        self.get_control('point_cloud_color').Hide()
+        self.get_control('point_cloud_color_l').Hide()
+        self.get_control('point_cloud_color_r').Hide()
+
+        if mode == 'Flat color':
+            self.get_control('point_cloud_color').Show()
+        elif mode == 'Multi color':
+            self.get_control('point_cloud_color_l').Show()
+            self.get_control('point_cloud_color_r').Show()
+        elif mode == 'Capture':
+            pass
+        elif mode == 'Laser BG':
+            pass
+        else:
+            pass
+
+        self.parent.Layout()
+        self.Layout()
+
 
 class Photogrammetry(ExpandablePanel):
 

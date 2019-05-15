@@ -418,8 +418,24 @@ class Settings(collections.MutableMapping):
                     possible_values=(u'scan_capture', u'scan_segmentation',
                                      u'calibration_capture', u'calibration_segmentation')))
 
+
+        # ---------- Scan settings ----------
+
         self._add_setting(
-            Setting('capture_texture', _('Capture texture'), 'profile_settings', bool, True))
+            Setting('texture_mode', _('Texture'), 'profile_settings', 
+                    unicode, u'Texture',
+                    possible_values=(u'Flat color', u'Multi color', u'Capture', u'Laser BG')))
+
+        self._add_setting(
+            Setting('point_cloud_color', _('Cloud color'), 'profile_settings',
+                    list, [170,170,170]))
+        self._add_setting(
+            Setting('point_cloud_color_l', _('Left color'), 'profile_settings',
+                    list, [255,0,0]))
+        self._add_setting(
+            Setting('point_cloud_color_r', _('Right color'), 'profile_settings',
+                    list, [0,255,255]))
+
         # Hack to translate combo boxes:
         _('Left')
         _('Right')
@@ -449,14 +465,8 @@ class Settings(collections.MutableMapping):
             Setting('roi_height', _('Height (mm)'), 'profile_settings',
                     int, 400, min_value=0, max_value=350))
         self._add_setting(
-            Setting('point_cloud_color', _('Choose point cloud color'), 'profile_settings',
-                    unicode, u'AAAAAA'))
-        self._add_setting(
-            Setting('point_cloud_bicolor', _('Red/Cyan point cloud'), 'profile_settings', bool, False))
-
-        self._add_setting(
-            Setting('scan_sleep', _(u'Wait time in each scan interval'), 'profile_settings',
-                    float, 50.0, min_value=0.0, max_value=1000.0))
+            Setting('scan_sleep', _(u'Wait milliseconds after each scan capture step'), 'profile_settings',
+                    float, 0.0, min_value=0.0, max_value=1000.0))
 
         # Hack to translate combo boxes:
         _('Texture')

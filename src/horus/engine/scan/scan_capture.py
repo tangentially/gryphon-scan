@@ -8,7 +8,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 class ScanCapture(object):
 
-    def __init__(self):
+    def __init__(self, lasers = 2):
         self.theta = 0
         self.texture = None
-        self.lasers = [None, None]
+        self.lasers = [None]*(lasers+1)
