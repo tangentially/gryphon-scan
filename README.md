@@ -19,7 +19,7 @@ This is platform for learning and experiments.
 I will try to make things work smooth but i can not warranty everything will work out of the box in every environment. 
 Most likely you'll need to spend some time and use brain to make things work.  
 
-Please don't write that shitty comments as you do for Ciclop/Horus. This is not expected to be out of the box solution.  
+Please don't write that shitty comments as you do for Ciclop/Horus. This is not the out of the box solution at the moment.  
 
 
 ###### Dear Visitors
@@ -190,11 +190,12 @@ Values are:
 
 ## Installation
 At the moment there is no automatic installer so you need to install Python and requred libraries manually then download and run Gryphon Scan.  
-
+Yes, there is bundler scripts in Horus but there is a lot of broken download links and old software versions.
+Also i plan to switch to new OpenCV with contrib package (4.1.0 at the moment)  
+  
+  
 ### Windows: Installing Python 2.7 for Gryphon Scan
 This notes can be incomplete. This is my experience for my environment (Win 8.1)
-Yes, there is bundler scripts in Horus but there is a lot of broken download links and old software versions.
-I plan to switch to new OpenCV with contrib package (4.1.0 at the moment)  
 
 1. Get and install latest Python 2.7  
 https://www.python.org/downloads/release/python-2716/  
@@ -232,10 +233,10 @@ For 64 bit python you need to rename DLL to `freeglut64.dll`
 ```
 pip install -U pyserial numpy scipy matplotlib==1.4.0
 ```
-
-
+  
+  
 ### MacOS: Setting Python for Gryphon Scan
-I'm not MAC user but this make Gryphon Scan to start on MAC. Please correct me if i miss something.  
+I'm new in Mac world so please correct me if i miss something.  
 
 1. Mac OS already have python 2.7 installed
 
