@@ -176,13 +176,10 @@ To flush the buffer and get the current frame the specified amount of frames are
 But this also slowdown the image capture because there is no way to surely detect which frame is actual not the buffered one.  
 
 You can adjust the number of flushed frames in 'settings.json' to optimize performance or to fix 'jump' artifacts in scan.
-The parameters are: flush_stream_* flush_*  
-The 'flush_stream_' if values for user interface preview mode. The 'flush_' is for calibrating/scanning mode.  
+The parameters are: `flush_stream_*` and `flush_*`  
+The 'flush_stream_' is values for user interface preview mode. The 'flush_' is for calibrating/scanning mode.  
 Values are:  
-          texture capture flush,  
-          laser capture flush,  
-          pattern capture flush,  
-          change mode flush  
+       \[  texture capture flush, laser capture flush, pattern capture flush, change mode flush \]  
 
 
 ------------------------------------------
