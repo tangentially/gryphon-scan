@@ -358,11 +358,13 @@ class CiclopScan(Scan):
 
                 elif self.texture_mode == 2:
                     # Texture
-                    texture = capture.texture[v, np.around(u).astype(int)].T
+                    if capture.texture is not None:
+                        texture = capture.texture[v, np.around(u).astype(int)].T
 
                 elif self.texture_mode == 3:
                     # Laser BG
-                    texture = capture.lasers[-1][v, np.around(u).astype(int)].T
+                    if capture.lasers[-1] is not None:
+                        texture = capture.lasers[-1][v, np.around(u).astype(int)].T
 
                 point_cloud = self.point_cloud_generation.compute_point_cloud(
                     capture.theta, points_2d, i)
