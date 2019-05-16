@@ -91,7 +91,7 @@ It is created automatically after first run with default values. Check README_cu
 - using "Calibration"->"Platform extrinsics" calibrate platform position  
 - check calibration quality by calibration visualization for pattern/platform/laser lines positions  
 
-###### Notes
+##### Notes
 
 1. Do not oversharp/overtight images in laser capture adjustments. 
 A bit blurry laser line before segmentation filters provide subpixel position information.
@@ -107,9 +107,9 @@ To get better scanning results you has to calibrate your camera using "Calibrati
 There is two steps to calibrate camera:
 
 1. Measure rough initial camera intrinsics.
-For Logitech C270 you can use the default initial values ans skip to next step.  
+For Logitech C270 you can use the default initial values and skip to next step.  
 If your camera is not Logitech C270 it is better to estimate rough focal length using ruler and some linear target. 
-You can use another ruler or just something straight as target. 
+As calibration target you can use another ruler or just something straight. 
 - Measure your target length and fill in "Targrt length" field
 - Put target horosontally and parallel to camera. Move target back/front so it exactly fit in to camera frame.
 Measure distance from camera to target and fill "Target horisontal dist" field
