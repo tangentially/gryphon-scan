@@ -68,7 +68,6 @@ http://vk.com/wingcatlab
 ------------------------------------------
 
 ## Calibration
-Do not use wizard. It is not ready at the moment.  
 
 __!!! WARNING !!!__ Current machine defaults are set for my custom hardware. 
 To use with Ciclop hardware you need to adjust 'settings.json'. 
