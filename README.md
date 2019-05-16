@@ -103,7 +103,9 @@ Oversharped image create wobbly "pixel stairs" style artifacts at the 3D scan.
 
 ### Camera calibration
 To get better scanning results you has to calibrate your camera using "Calibration"->"Camera intrinsics".  
-There is two steps to calibrate camera:
+Gryphon Scan use multistep camera calibration to get better precision. Each next camera calibration use previous results as starting point.  
+
+#### Steps to calibrate camera:
 
 1. Measure rough initial camera intrinsics.
 For Logitech C270 you can use the default initial values and skip to next step.  
@@ -120,6 +122,8 @@ The chessboard pattern has to be flat and rigid as possible.
 Capture 15 frames of calibration data moving pattern all around the camera view. 
 Keep patten parallel to camera. To capture frame press \[space\]. 
 Frames are only captured if pattern is detected within frame.  
+
+All captured frames are automatically saved to `camera_intrisics` folder. You can recall them one by one by press [r] button during frames capture. 
 
 ##### Some reading
 The Intrinsic Matrix:  
