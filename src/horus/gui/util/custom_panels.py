@@ -1025,7 +1025,7 @@ class ColorPicker(ControlPanel):
         ControlPanel.__init__(self, parent, name, engine_callback)
         # Elements
         label = wx.StaticText(self, size=(130, -1), label=_(self.setting._label))
-        self.control = wx.Button(self, label="", size=(150, -1))
+        self.control = wx.Button(self, label="", size=(150, -1), style=wx.BORDER_NONE)
         self.update_from_profile()
 
         # Layout
@@ -1069,6 +1069,8 @@ class ColorPicker(ControlPanel):
 
     def set_control_value(self, value):
         self.control.SetBackgroundColour(wx.Colour(value[0] & 0xFF, value[1] & 0xFF, value[2] & 0xFF))
+        self.control.SetLabel( "#{0}\n{1} {2} {3}".format("".join(map(chr, value)).encode('hex'), \
+                  value[0] & 0xFF, value[1] & 0xFF, value[2] & 0xFF ) )
 
     def _on_btn_click(self, event):
         v = self.pick_color()
