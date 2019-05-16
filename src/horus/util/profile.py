@@ -518,16 +518,16 @@ class Settings(collections.MutableMapping):
             Setting('pattern_origin_distance', _('Origin distance (mm)'), 'calibration_settings',
                     float, 0.0, min_value=0.0))
         self._add_setting(
-            Setting('pattern_border_l', _('Pattern border width Left (mm)'), 'calibration_settings',
+            Setting('pattern_border_l', _('Border Left (mm)'), 'calibration_settings',
                     float, 5.0, min_value=0.0))
         self._add_setting(
-            Setting('pattern_border_r', _('Pattern border width Right (mm)'), 'calibration_settings',
+            Setting('pattern_border_r', _('Border Right (mm)'), 'calibration_settings',
                     float, 5.0, min_value=0.0))
         self._add_setting(
-            Setting('pattern_border_t', _('Pattern border width Top (mm)'), 'calibration_settings',
+            Setting('pattern_border_t', _('Border Top (mm)'), 'calibration_settings',
                     float, 5.0, min_value=0.0))
         self._add_setting(
-            Setting('pattern_border_b', _('Pattern border width Bottom (mm)'), 'calibration_settings',
+            Setting('pattern_border_b', _('Border Bottom (mm)'), 'calibration_settings',
                     float, 5.0, min_value=0.0))
 
         self._add_setting(

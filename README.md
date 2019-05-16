@@ -150,13 +150,13 @@ This will make calibration more precise by using larger lasers point cloud area.
 ## Pont clouds misalignment
 Still investigating. As workaround try to keep things symmetrical:  
 
-~~- laser to camera distance should be equival~~  
-~~- laser lines should be vertical~~  
-~~- laser lines should cross at platform center~~
+- platform calibration is the most critical. Try to put pattern in the middle of turntable for better calibration results.
 - platform center should be in the middle of horizontal axis of camera image  
 - platform rotation axis should be vertical in camera image and parallel to image plane  
 - platform should be perpendicular to rotation axis 
-- platform calibration is the most critical. Try to put pattern in the middle of turntable for better calibration results.
+~~- laser to camera distance should be equival~~  
+~~- laser lines should be vertical~~  
+~~- laser lines should cross at platform center~~
 
 **Upd 1.** 
  - For Gryphon Scan laser planes position and tilt does not affect point cloud misalignment. 
