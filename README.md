@@ -77,7 +77,7 @@ Take a look at README_custom_machine.md
   
 
 
-#### General calibration process is:  
+### General calibration process is:  
 
 - if needed set machine custom parameters (turntable geometry, board init string, etc...) in 'settings.json' file.
 It is created automatically after first run with default values. Check README_custom_machine.md  
