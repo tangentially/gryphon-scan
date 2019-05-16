@@ -474,7 +474,7 @@ class Settings(collections.MutableMapping):
 
         self._add_setting(
             Setting('scan_sync_threads', _('Synchronize capture and process threads'),
-                    'profile_settings', bool, True))
+                    'profile_settings', bool, False))
 
         # Hack to translate combo boxes:
         _('Texture')

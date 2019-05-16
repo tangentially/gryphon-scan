@@ -303,7 +303,7 @@ class CiclopScan(Scan):
                 else:
                     if self.capturing:
                         # Wait for more data
-                        time.sleep(self._scan_sleep)
+                        time.sleep(0.1)
                     else:
                         print("No more data expected. Shutdown processing thread.")
                         self.is_scanning = False
@@ -318,7 +318,7 @@ class CiclopScan(Scan):
         # Cursor down
         # if self._debug and system == 'Linux':
         #     print "\x1b[1C"
-
+                                              	
         self.image_capture.stream = True
 
         progress = 0
