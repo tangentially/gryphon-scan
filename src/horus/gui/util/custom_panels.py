@@ -7,6 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx._core
 import types
+import struct
 from collections import OrderedDict
 
 from horus.util import profile, resources, system as sys
@@ -1022,11 +1023,10 @@ class ColorPicker(ControlPanel):
 
     def __init__(self, parent, name, engine_callback=None):
         ControlPanel.__init__(self, parent, name, engine_callback)
-
         # Elements
         label = wx.StaticText(self, size=(130, -1), label=_(self.setting._label))
         self.control = wx.Button(self, label="", size=(150, -1))
-        self.set_control_value(profile.settings[self.name])
+        self.update_from_profile()
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -1038,6 +1038,33 @@ class ColorPicker(ControlPanel):
 
         # Events
         self.control.Bind(wx.EVT_BUTTON, self._on_btn_click)
+
+
+    def update_from_profile(self):
+        value = self.decode_color(self.setting.value)
+        if self.control is not None:
+            self.set_control_value(value)
+            self.set_engine(value)
+
+    def decode_color(self, value):
+        if isinstance(value, basestring):
+            ret = struct.unpack('BBB', value.decode('hex'))
+        elif isinstance(value, (tuple,list)) and \
+             len(value) == 3 and \
+             all(isinstance(x, int) for x in value):
+           ret = value
+        else:
+           ret = (0,0,0)
+        return ret
+
+
+    def update_to_profile(self, value):
+        if issubclass(self.setting._type, basestring):
+            profile.settings[self.name] = unicode("".join(map(chr, value)).encode('hex'))
+        elif issubclass(self.setting._type, list):
+            profile.settings[self.name] = value
+        elif issubclass(self.setting._type, tuple):
+            profile.settings[self.name] = tuple(value)
 
 
     def set_control_value(self, value):

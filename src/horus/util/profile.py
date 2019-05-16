@@ -14,12 +14,15 @@ import collections
 import json
 import types
 import numpy as np
+
+from horus import Singleton
 import logging
 logger = logging.getLogger(__name__)
 
 from horus.util import resources, system
 
 
+@Singleton
 class Settings(collections.MutableMapping):
 
     def __init__(self):

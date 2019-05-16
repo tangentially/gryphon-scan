@@ -140,8 +140,8 @@ class PointCloudColor(ExpandablePanel):
     def update_callbacks(self):
         self.update_callback('texture_mode', lambda v: self._set_texture_mode(v) )
         self.update_callback('point_cloud_color', ciclop_scan.set_color )
-        self.update_callback('point_cloud_color_l', lambda v: ciclop_scan.set_color(0,v) )
-        self.update_callback('point_cloud_color_r', lambda v: ciclop_scan.set_color(1,v) )
+        self.update_callback('point_cloud_color_l', lambda v: ciclop_scan.set_colors(0,v) )
+        self.update_callback('point_cloud_color_r', lambda v: ciclop_scan.set_colors(1,v) )
 
     def on_selected(self):
         self.main.scene_view._view_roi = False
