@@ -166,7 +166,8 @@ Experiments amount is not enough to be sure but it seems platform calibration wi
 
 ------------------------------------------
 
-## Capture performance and video flush values
+## Capture performance 
+### Video flush values
 Most web cam drivers use buffer of few captured frames to enchance performance. 
 But in case of scanning we need _current_ frame not the buffered one.
 To flush the buffer and get the current frame the specified amount of frames are pre-read from camera driver. 
@@ -183,7 +184,18 @@ Values are:
       change mode flush ]  
 ```
 - If the value is positive number it is treated as the number of frames to pre-read. Typically 3-4 is enough.  
-- If the value is negative it is treated as number of milliseconds for automatic flush mode. It try to detect an actual frame by frame grabbing time. If frame grab time is more than specified number of milliseconds than frame treated as actual frame. But this timings are depend on overall system performance etc so is not perfect. For logitech C270 typical actual frame grab time is 25-30ms so you can try -30 value. The number of auto flush frames is limited to 4 frames to prevent possible lockup.
+- If the value is negative it is treated as number of milliseconds for automatic flush mode. 
+It will try to detect an actual frame by measuring frame grabbing time. 
+If frame grab time is more than specified number of milliseconds than frame treated as actual frame. 
+But this timings are depend on overall system performance etc so is not perfect. 
+For logitech C270 typical actual frame grab time is 25-30ms so you can try -30 value. 
+The number of auto flush frames is limited to 4 frames to prevent possible lockup.  
+
+### Multithreading
+During scanning Horus use two separate threads to capture data and to process data. 
+If automatic flush is used the processing thread can affect frame grabbing time causing false positive detection of current frame 
+which will cause slices "jumping" out of the model. To minimize this effects you can pause processing during capture frames.
+To enable set `"scan_sync_threads": true` in 'settings.json'  
 
 
 ------------------------------------------

@@ -467,9 +467,14 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('roi_height', _('Height (mm)'), 'profile_settings',
                     int, 400, min_value=0, max_value=350))
+
         self._add_setting(
             Setting('scan_sleep', _(u'Wait milliseconds after each scan capture step'), 'profile_settings',
                     float, 0.0, min_value=0.0, max_value=1000.0))
+
+        self._add_setting(
+            Setting('scan_sync_threads', _('Synchronize capture and process threads'),
+                    'profile_settings', bool, True))
 
         # Hack to translate combo boxes:
         _('Texture')

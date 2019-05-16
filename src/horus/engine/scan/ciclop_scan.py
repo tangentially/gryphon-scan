@@ -11,6 +11,7 @@ import numpy as np
 import datetime
 import struct
 import os
+import threading
 
 from horus import Singleton
 from horus.engine.scan.scan import Scan
@@ -67,6 +68,7 @@ class CiclopScan(Scan):
         self.ph_save_divider = 1
 
         self.capturing = False
+        self.semaphore = None
 
     def read_profile(self):
         self.set_texture_mode(profile.settings['texture_mode'])
@@ -82,7 +84,13 @@ class CiclopScan(Scan):
         self.motor_step = profile.settings['motor_step_scanning']
         self.motor_speed = profile.settings['motor_speed_scanning']
         self.motor_acceleration = profile.settings['motor_acceleration_scanning']
+
         self.set_scan_sleep(profile.settings['scan_sleep'])
+        if profile.settings['scan_sync_threads']:
+            self.semaphore = threading.Semaphore()
+        else:
+            self.semaphore = None
+
 
         self.ph_save_enable = profile.settings['ph_save_enable']
         self.ph_save_folder = profile.settings['ph_save_folder']
@@ -193,7 +201,11 @@ class CiclopScan(Scan):
                     begin = time.time()
                     try:
                         # Capture images
+                        if self.semaphore is not None:
+                            self.semaphore.acquire()
                         capture = self._capture_images()
+                        if self.semaphore is not None:
+                            self.semaphore.release()
                         # Put images into queue
                         self._captures_queue.put(capture)
                     except Exception as e:
@@ -331,6 +343,8 @@ class CiclopScan(Scan):
         # begin = time.time()
         for i in xrange(2):
             if capture.lasers[i] is not None:
+                if self.semaphore is not None:
+                    self.semaphore.acquire()
                 image = capture.lasers[i]
                 self.image = image
                 # Compute 2D points from images
@@ -374,7 +388,11 @@ class CiclopScan(Scan):
                     self.point_cloud_callback(self._range, self._progress,
                                               (point_cloud, texture, i))
 
+                if self.semaphore is not None:
+                    self.semaphore.release()
         # Photogrammetry
+        if self.semaphore is not None:
+            self.semaphore.acquire()
         if self.ph_save_enable and capture.count % self.ph_save_divider == 0:
             filename = self.ph_save_folder + "/img{:03.03f}.png".format(np.rad2deg(capture.theta))
             #print filename
@@ -386,6 +404,8 @@ class CiclopScan(Scan):
         # Set current video images
         self.current_video.set_gray(capture.lasers[:-1])
         self.current_video.set_line(points, image)
+        if self.semaphore is not None:
+            self.semaphore.release()
 
         # Print info
         #print("Process end: {0:f} {1}ms".format(np.rad2deg(capture.theta), int((time.time() - begin) * 1000) ))
