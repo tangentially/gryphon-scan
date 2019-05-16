@@ -91,8 +91,8 @@ class MainWindow(wx.Frame):
 
         # Menu File
         self.menu_file = wx.Menu()
-        self.menu_launch_wizard = self.menu_file.Append(wx.NewId(), _("Launch wizard"))
-        self.menu_file.AppendSeparator()
+        #self.menu_launch_wizard = self.menu_file.Append(wx.NewId(), _("Launch wizard"))
+        #self.menu_file.AppendSeparator()
         self.menu_load_model = self.menu_file.Append(wx.NewId(), _("Open model"))
         self.menu_save_model = self.menu_file.Append(wx.NewId(), _("Save model"))
         self.menu_clear_model = self.menu_file.Append(wx.NewId(), _("Clear model"))
@@ -149,7 +149,7 @@ class MainWindow(wx.Frame):
         self.SetMenuBar(self.menu_bar)
 
         # Events
-        self.Bind(wx.EVT_MENU, self.on_launch_wizard, self.menu_launch_wizard)
+        #self.Bind(wx.EVT_MENU, self.on_launch_wizard, self.menu_launch_wizard)
         self.Bind(wx.EVT_MENU, self.on_load_model, self.menu_load_model)
         self.Bind(wx.EVT_MENU, self.on_save_model, self.menu_save_model)
         self.Bind(wx.EVT_MENU, self.on_clear_model, self.menu_clear_model)

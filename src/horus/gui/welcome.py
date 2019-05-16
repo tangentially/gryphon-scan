@@ -86,7 +86,7 @@ class CreateNew(wx.Panel):
 
         # Elements
         title_text = wx.StaticText(self, label=_("Create new"))
-        wizard_button = wx.Button(self, label=_("Wizard mode (step by step)"))
+        #wizard_button = wx.Button(self, label=_("Wizard mode (step by step)"))
         scan_button = wx.Button(self, label=_("Scan using recent settings"))
         # advanced_control_button = wx.Button(self, label=_("Advanced control"))
         advanced_adjustment_button = wx.Button(self, label=_("Advanced adjustment"))
@@ -95,7 +95,7 @@ class CreateNew(wx.Panel):
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(title_text, 0, wx.BOTTOM | wx.CENTER, 10)
-        vbox.Add(wizard_button, 1, wx.ALL | wx.EXPAND, 5)
+        #vbox.Add(wizard_button, 1, wx.ALL | wx.EXPAND, 5)
         vbox.Add(scan_button, 1, wx.ALL | wx.EXPAND, 5)
         # vbox.Add(advanced_control_button, 1, wx.TOP | wx.BOTTOM | wx.EXPAND, 5)
         vbox.Add(advanced_adjustment_button, 1, wx.ALL | wx.EXPAND, 5)
@@ -104,7 +104,7 @@ class CreateNew(wx.Panel):
         self.Layout()
 
         # Events
-        wizard_button.Bind(wx.EVT_BUTTON, self.on_wizard)
+        #wizard_button.Bind(wx.EVT_BUTTON, self.on_wizard)
         scan_button.Bind(wx.EVT_BUTTON, self.on_scan)
         # advanced_control_button.Bind(wx.EVT_BUTTON, self.on_advanced_control)
         advanced_adjustment_button.Bind(wx.EVT_BUTTON, self.on_advanced_adjustment)
