@@ -36,22 +36,32 @@ class TanNode(class):
 
 
 
-def unwrap_cloud(_object, width = 360, height = 1024, scale_z = 1):
+def unwrap_cloud(_object):
     m = _object._mesh
-    image = None
     if m is not None:
         if m.vertex_count > 0:
             #[x,y,z] = m.vertexes.T
             r = np.linalg.norm(m.vertexes[:,0:2])
             t = np.arctan2(m.vertexes[:,1],m.vertexes[:,0])
-            t = np.around(t*width/np.pi).astype(int)
-            z = np.around(m.vertexes[:,2]*scale_z).astype(int)
-            ind = np.argwhere(z>0 and z<height)
+            z = m.vertexes[:,2]
+            
+            return t, r, z, m.colors, m.cloud_meta
+    return None, None, None, None, None
 
-            image = np.zeros((width,height))
-            #np.put(image, (t[ind], z[ind]), r[ind])
-            image[ t[ind], z[ind] ] = zip(r[ind], m.colors[ind], m.cloud_index[ind])
+def unwrap_cloud_image(_object, width = 360, height = 1024, scale_z = 1):
+    image = None
+    t, r, z, color, cloud_index = unwrap_cloud(_object)
+    if t is not None:
+        t = np.around((t+np.pi)*(width/2/np.pi)).astype(int)
+        z = np.around(z*scale_z).astype(int)
+        ind = np.argwhere(z>0 and z<height)
 
-            # m.colors[i, 0], m.colors[i, 1], m.colors[i, 2], m.cloud_index[i]))
+        image = np.empty((width,height), dtype=list)
+        map(lambda x: map(lambda y: list(), x), z[:])
+         d.setdefault(6,[]).append(5)
+        #np.put(image, (t[ind], z[ind]), r[ind])
+        image[ t[ind], z[ind] ] = zip(r[ind], colors[ind], cloud_meta[ind])
+
+        # m.colors[i, 0], m.colors[i, 1], m.colors[i, 2], m.cloud_meta[i]))
     return image
 

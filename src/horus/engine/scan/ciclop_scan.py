@@ -386,7 +386,7 @@ class CiclopScan(Scan):
 
                 if self.point_cloud_callback:
                     self.point_cloud_callback(self._range, self._progress,
-                                              (point_cloud, texture, i))
+                                              (point_cloud, texture), i, (capture.count,capture.theta))
 
                 if self.semaphore is not None:
                     self.semaphore.release()

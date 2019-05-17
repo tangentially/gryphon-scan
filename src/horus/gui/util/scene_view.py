@@ -104,19 +104,13 @@ class SceneView(opengl_gui.glGuiPanel):
         self._object._add_mesh()
         self._object._mesh._prepare_vertex_count(4000000)
 
-    def append_point_cloud(self, point, color, index=None):
+    def append_point_cloud(self, point, color, index=None, _slice=None):
 #        self._object_point_cloud.append(point)
 #        self._object_texture.append(color)
         # TODO: optimize
         if self._object is not None:
             if self._object._mesh is not None:
-                self._object._mesh._add_pointcloud(point.T, color.T, index)
-                """
-                for i in xrange(point.shape[1]):
-                    self._object._mesh._add_vertex(
-                        point[0][i], point[1][i], point[2][i],
-                        color[0][i], color[1][i], color[2][i])
-                """
+                self._object._mesh._add_pointcloud(point.T, color.T, index, _slice)
             # Conpute Z center
             if point.shape[1] > 0:
                 zmax = max(point[2])
