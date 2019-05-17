@@ -101,7 +101,7 @@ class Mesh(object):
     """
 
     def __init__(self, obj):
-        self.vertexes = None
+        self.vertexes = np.zeros((0, 3), np.float32)
         self.colors = None
         self.normal = None
         self.vertex_count = 0

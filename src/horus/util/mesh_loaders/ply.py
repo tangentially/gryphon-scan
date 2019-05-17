@@ -26,61 +26,98 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def _load_ascii(mesh, stream, dtype, count):
-    #TODO: build exact field indexes by actual header data. Do not estimate by data existance
-    fields = dtype.fields
+def _load_ascii_vertex(mesh, stream, dtype, count):
+    mesh._prepare_vertex_count(count)
 
-    v = 0
-    c = 0
-    idx = 0
+    fields = dtype.names
+    
+    x = -1
+    y = -1
+    z = -1
+    if 'x' in fields:
+        x = fields.index('x')
+    if 'y' in fields:
+        y = fields.index('y')
+    if 'z' in fields:
+        z = fields.index('z')
 
-    if 'c' in fields:
-        c += 3
-    if 'n' in fields:
-        c += 3
-    idx = c + 3
+    nx = -1
+    ny = -1
+    nz = -1
+    if 'nx' in fields:
+        nx = fields.index('nx')
+    if 'ny' in fields:
+        ny = fields.index('ny')
+    if 'nz' in fields:
+        nz = fields.index('nz')
 
-    i = 0
-    while i < count:
-        i += 1
+    idx = -1
+    if 'scalar_Original_cloud_index' in fields:
+        idx = fields.index('scalar_Original_cloud_index')
+
+    for i in range(count):
         data = stream.readline().split(' ')
+        data.append(0)
         if data is not None:
-            mesh._add_vertex(data[v], data[v + 1], data[v + 2], data[c], data[c + 1], data[c + 2], data[idx])
+            mesh._add_vertex(data[x], data[y], data[z], data[nx], data[ny], data[nz], data[idx])
 
 
-def _load_binary(mesh, stream, dtype, count):
+def _load_binary_vertex(mesh, stream, dtype, count):
     data = np.fromfile(stream, dtype=dtype, count=count)
 
     fields = dtype.fields
     mesh.vertex_count = count
 
-    if 'v' in fields:
-        mesh.vertexes = data['v']
+    if 'x' in fields:
+        mesh.vertexes = np.array(zip(data['x'], data['y'], data['z']))
     else:
         mesh.vertexes = np.zeros((count, 3))
 
-    if 'n' in fields:
-        mesh.normal = data['n']
+    if 'nx' in fields:
+        mesh.normal = np.array(zip(data['nx'], data['ny'], data['nz']))
     else:
         mesh.normal = np.zeros((count, 3))
 
-    if 'c' in fields:
-        mesh.colors = data['c']
+    if 'red' in fields:
+        mesh.colors = np.array(zip(data['red'], data['green'], data['blue']))
     else:
         mesh.colors = 255 * np.ones((count, 3))
 
-    if 'i' in fields:
-        mesh.cloud_index = data['i']
+    if 'scalar_Original_cloud_index' in fields:
+        mesh.cloud_index = data['scalar_Original_cloud_index']
     else:
         mesh.cloud_index = np.zeros((count, 1))
 
+
+def _load_element(mesh, stream, format, element, dtype, count):
+    print "Load elements: '{0}' x {1} format {2}".format(element,count,format)
+                                                                      
+    if len(dtype)<=0 or \
+        element is None or \
+        format is None or \
+        count <= 0:
+        return
+
+    dtype = np.dtype(dtype)
+    print "   Types: {0}".format(dtype.names)
+
+    if format == 'ascii':
+        if element == 'vertex':
+            _load_ascii_vertex(mesh, stream, dtype, count)
+        else:
+            for i in xrange(count):
+                stream.readline()
+
+    elif format == 'binary_big_endian' or format == 'binary_little_endian':
+        if element == 'vertex':
+            _load_binary_vertex(mesh, stream, dtype, count)
+        else:
+            np.fromfile(stream, dtype=dtype, count=count)
 
 def load_scene(filename):
     obj = model.Model(filename, is_point_cloud=True)
     m = obj._add_mesh()
     with open(filename, "rb") as f:
-        dtype = []
-        count = 0
         format = None
         line = None
         header = ''
@@ -88,8 +125,8 @@ def load_scene(filename):
         while line != 'end_header\n' and line != '':
             line = f.readline()
             header += line
-        # Discart faces
-        header = header.split('element face ')[0].split('\n')
+
+        header = header.split('\n')
 
         if header[0] == 'ply':
 
@@ -106,26 +143,50 @@ def load_scene(filename):
                 elif format == 'binary_little_endian':
                     fm = '<'
 
-            df = {'float': fm + 'f', 'uchar': fm + 'B'}
-            dt = {'x': 'v', 'nx': 'n', 'red': 'c', 'alpha': 'a', 'scalar_Original_cloud_index': 'i'}
-            ds = {'x': 3, 'nx': 3, 'red': 3, 'alpha': 1, 'scalar_Original_cloud_index': 1}
+            # PLY data types
+            # https://web.archive.org/web/20161204152348/http://www.dcs.ed.ac.uk/teaching/cs4/www/graphics/Web/ply.html
+            df = { 'float': fm + 'f4', \
+                   'uchar': fm + 'B', \
+                   'char': fm + 'b', \
+                   'short': fm + 'i2', \
+                   'ushort': fm + 'u2', \
+                   'int': fm + 'i4', \
+                   'uint': fm + 'u4', \
+                   'double': fm + 'f8' \
+                 }
 
+            dtype = []
+            count = 0
+            element = None
             for line in header:
-                if 'element vertex ' in line:
-                    count = int(line.split('element vertex ')[1])
-                elif 'property ' in line:
+                if line.startswith('element'):
+                    # new element definition starts
+                    #  element <element-name> <number-in-file>
+
+                    # read just completed element
+                    _load_element(m, f, format, element, dtype, count)
+
+                    # decode element header
                     props = line.split(' ')
-                    if props[2] in dt.keys():
-                        dtype = dtype + [(dt[props[2]], df[props[1]], (ds[props[2]],))]
+                    element = props[1]
+                    count = int(props[2])
+                    dtype = []
+                        
+                elif count>0 and line.startswith('property'):
+                    #  property <data-type> <property-name>
+                    props = line.split(' ')
+                    if props[1] == 'list':
+                        # property list <numerical-type size.type> <numerical-type element.type> <property-name>
+                        logger.error("PLY load Error: 'list' not supported.")
+                        if format == 'ascii':
+                            for i in xrange(count):
+                                stream.readline()
+                        else:
+                            return obj
+                    else:
+                        dtype = dtype + [ (props[-1], df[props[1]]) ]  # (name, format, shape)
 
-            dtype = np.dtype(dtype)
-
-            if format is not None:
-                if format == 'ascii':
-                    m._prepare_vertex_count(count)
-                    _load_ascii(m, f, dtype, count)
-                elif format == 'binary_big_endian' or format == 'binary_little_endian':
-                    _load_binary(m, f, dtype, count)
+            _load_element(m, f, format, element, dtype, count)
             obj._post_process_after_load()
             return obj
 
