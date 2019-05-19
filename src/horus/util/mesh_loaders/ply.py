@@ -255,7 +255,8 @@ def save_scene_stream(stream, _object):
                         _slice=(-1,0)
                     stream.write(struct.pack("<fffBBBBif",
                                              m.vertexes[i, 0], m.vertexes[i, 1], m.vertexes[i, 2],
-                                             m.colors[i, 0], m.colors[i, 1], m.colors[i, 2], m.cloud_meta[i][0]), _slice[0], _slice[1])
+                                             m.colors[i, 0], m.colors[i, 1], m.colors[i, 2], 
+                                             m.cloud_meta[i][0], _slice[0], _slice[1]))
             else:
                 for i in xrange(m.vertex_count):
                     _slice = m.cloud_meta[i][1]
