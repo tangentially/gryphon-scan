@@ -118,6 +118,10 @@ class Mesh(object):
         self.vertex_count += 1
 
     def _add_pointcloud(self, cloud_vertex, cloud_color, index=None, _slice = None):
+        if cloud_vertex is None or \
+           cloud_vertex.shape[0] <= 0:
+            return
+
         if index is None:
             index=self.current_cloud_index
         n = self.vertex_count
