@@ -122,9 +122,17 @@ class Mesh(object):
             index=self.current_cloud_index
         n = self.vertex_count
         m = n + cloud_vertex.shape[0]
-        self.vertexes[n:m] = cloud_vertex
-        self.colors[n:m] = cloud_color
-        self.cloud_meta[n:m] = [(index, _slice)] * cloud_vertex.shape[0]
+        #print "Add [{0}:{1}] = {2}".format(n,m,cloud_vertex.shape)
+        if m >= len(self.vertexes):
+            #print "Add Shapes {0} + {1}".format(self.vertexes.dtype, cloud_vertex.dtype)
+            self.vertexes   = np.append( self.vertexes,   cloud_vertex, axis=0)
+            self.colors     = np.append( self.colors,     cloud_color, axis=0)
+            self.cloud_meta = np.append( self.cloud_meta, [(index, _slice)] * cloud_vertex.shape[0], axis=0)
+            #print "V {0} C {1} M {2}".format(self.vertexes.shape, self.colors.shape, self.cloud_meta.shape)
+        else:
+            self.vertexes[n:m] = cloud_vertex
+            self.colors[n:m] = cloud_color
+            self.cloud_meta[n:m] = [(index, _slice)] * cloud_vertex.shape[0]
         self.vertex_count = m
 
     def _add_face(self, x0, y0, z0, x1, y1, z1, x2, y2, z2):
@@ -156,3 +164,4 @@ class Mesh(object):
         normals /= np.linalg.norm(normals)
         n = np.concatenate((np.concatenate((normals, normals), axis=1), normals), axis=1)
         self.normal = n.reshape(self.vertex_count, 3)
+
