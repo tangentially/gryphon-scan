@@ -67,8 +67,9 @@ def _load_ascii_vertex(mesh, stream, dtype, count):
         data = stream.readline().split(' ')
         data.append(0)
         if data is not None:
-            _slice = (data[sn], data[sa])
-            if _slice[0]<0:
+            if sn >= 0:
+                _slice = (data[sn], data[sa])
+            else:
                 _slice = None
             mesh._add_vertex(data[x], data[y], data[z], data[nx], data[ny], data[nz], data[idx], _slice)
 
