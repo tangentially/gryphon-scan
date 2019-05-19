@@ -132,7 +132,7 @@ class Mesh(object):
         else:
             self.vertexes[n:m] = cloud_vertex
             self.colors[n:m] = cloud_color
-            self.cloud_meta[n:m] = [(index, _slice)] * cloud_vertex.shape[0]
+            self.cloud_meta[n:m] = [[index, _slice]] * cloud_vertex.shape[0]
         self.vertex_count = m
 
     def _add_face(self, x0, y0, z0, x1, y1, z1, x2, y2, z2):
