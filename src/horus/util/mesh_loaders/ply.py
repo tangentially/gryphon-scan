@@ -18,6 +18,7 @@ http://en.wikipedia.org/wiki/PLY_(file_format)
 
 import struct
 import numpy as np
+import pickle
 
 from horus import __version__
 from horus.util import model
@@ -26,6 +27,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+# -------------- Vertex -------------
 def _load_ascii_vertex(mesh, stream, dtype, count):
     mesh._prepare_vertex_count(count)
 
@@ -65,7 +67,7 @@ def _load_ascii_vertex(mesh, stream, dtype, count):
 
     for i in range(count):
         data = stream.readline().split(' ')
-        data.append(0)
+        data.append(0) # default value for '-1' index
         if data is not None:
             if sn >= 0:
                 _slice = (data[sn], data[sa])
@@ -95,9 +97,10 @@ def _load_binary_vertex(mesh, stream, dtype, count):
     else:
         mesh.colors = 255 * np.ones((count, 3))
 
-    if 'slice_num' in fields:
-        slices = zip(data['slice_num'], data['slice_angle'])
+    if 'slice_index' in fields:
+        slices = zip(data['slice_index'], data['slice_angle'])
         slices = [None if el[0]<0 else el for el in slices]
+        print "Slices loaded: {0}...{1}".format(np.min(np.array(slices)[:,0]), np.max(np.array(slices)[:,0]))
     else:
         slices = [None]*count
 
@@ -107,9 +110,24 @@ def _load_binary_vertex(mesh, stream, dtype, count):
         cloud_index = [0]*count
 
     mesh.cloud_meta = np.array(zip(cloud_index,slices))
-    print "PLY meta {0}".format(mesh.cloud_meta[0])
+    print "PLY meta {0}".format(mesh.cloud_meta[610])
 
 
+# ------------ Mesh Metadata ---------------
+def _load_binary_metadata(mesh, stream, dtype, count):
+    for i in range(count):
+        data = stream.readline()
+
+    mesh.metadata = pickle.loads(data)
+
+
+def _load_binary_metadata(mesh, stream, dtype, count):
+    data = np.fromfile(stream, dtype=dtype, count=count)
+
+    mesh.metadata = pickle.loads(data.view('S{0}'.format(count))[0])
+
+
+# ======================================
 def _load_element(mesh, stream, format, element, dtype, count):
     print "Load elements: '{0}' x {1} format {2}".format(element,count,format)
                                                                       
@@ -125,6 +143,8 @@ def _load_element(mesh, stream, format, element, dtype, count):
     if format == 'ascii':
         if element == 'vertex':
             _load_ascii_vertex(mesh, stream, dtype, count)
+        elif element == 'metadata':
+            _load_ascii_metadata(mesh, stream, dtype, count)
         else:
             for i in xrange(count):
                 stream.readline()
@@ -132,6 +152,8 @@ def _load_element(mesh, stream, format, element, dtype, count):
     elif format == 'binary_big_endian' or format == 'binary_little_endian':
         if element == 'vertex':
             _load_binary_vertex(mesh, stream, dtype, count)
+        elif element == 'metadata':
+            _load_binary_metadata(mesh, stream, dtype, count)
         else:
             np.fromfile(stream, dtype=dtype, count=count)
 
@@ -243,10 +265,25 @@ def save_scene_stream(stream, _object):
         frame += "property uchar scalar_Original_cloud_index\n"
         frame += "property int slice_index\n"
         frame += "property float slice_angle\n"
+
+        if m.metadata is not None:
+            metadata = pickle.dumps(m.metadata, 2)
+            if binary:
+                frame += "element metadata {0}\n".format(len(metadata))
+                frame += "property uchar data\n"
+            else:
+                frame += "element metadata 1\n" # single line of data
+                frame += "property uchar data\n"
+        else:
+            print "No metadata to save"
+
         frame += "element face 0\n"
         frame += "property list uchar int vertex_indices\n"
+
         frame += "end_header\n"
+
         stream.write(frame)
+
         if m.vertex_count > 0:
             if binary:
                 for i in xrange(m.vertex_count):
@@ -257,6 +294,8 @@ def save_scene_stream(stream, _object):
                                              m.vertexes[i, 0], m.vertexes[i, 1], m.vertexes[i, 2],
                                              m.colors[i, 0], m.colors[i, 1], m.colors[i, 2], 
                                              m.cloud_meta[i][0], _slice[0], _slice[1]))
+                if m.metadata is not None:
+                    stream.write(metadata)
             else:
                 for i in xrange(m.vertex_count):
                     _slice = m.cloud_meta[i][1]
@@ -266,3 +305,5 @@ def save_scene_stream(stream, _object):
                                  m.vertexes[i, 0], m.vertexes[i, 1], m.vertexes[i, 2],
                                  m.colors[i, 0], m.colors[i, 1], m.colors[i, 2]),
                                  m.cloud_meta[i][0], _slice[0], _slice[1])
+                if m.metadata is not None:
+                    stream.write("{0}\n".format(metadata))

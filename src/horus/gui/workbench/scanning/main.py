@@ -206,8 +206,15 @@ class ScanningWorkbench(Workbench):
         self.scroll_panel.Layout()
         self.GetParent().Layout()
         self.pages_collection['view_page'].combo_video_views.Show()
-        self.scene_view.create_default_object()
         self.scene_view.set_show_delete_menu(False)
+        obj = self.scene_view.create_default_object()
+        obj._mesh.metadata = {}
+        meta_names = ['motor_step_scanning', 'texture_mode', 'use_laser', 'camera_matrix', 'distortion_vector',\
+                'distance_left','normal_left','distance_right','normal_right',\
+                'rotation_matrix', 'translation_vector']
+        for n in meta_names:
+            obj._mesh.metadata[n] = profile.settings[n]
+        print "Metadata created: {0}".format(obj._mesh.metadata)
         self.gauge.SetValue(0)
         self.gauge.Show()
         self.scene_panel.Layout()

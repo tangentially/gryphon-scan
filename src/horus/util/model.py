@@ -109,6 +109,7 @@ class Mesh(object):
         self._obj = obj
         self.cloud_meta = None
         self.current_cloud_index = 0
+        self.metadata = None
 
     def _add_vertex(self, x, y, z, r=255, g=255, b=255, index=None, _slice = None):
         if index is None:
