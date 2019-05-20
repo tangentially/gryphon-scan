@@ -606,22 +606,22 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('normal_left', _('Normal left'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
-        self._add_setting(
-            Setting('cloud_correction_left', _('Correction matrix left'), 'calibration_settings',
-                    np.ndarray, np.ndarray(shape=(3, 4), buffer=np.array([[1.0, 0.0, 0.0, 0.0],
-                                                                          [0.0, 1.0, 0.0, 0.0],
-                                                                          [0.0, 0.0, 1.0, 0.0]]))))
+#        self._add_setting(
+#            Setting('cloud_correction_left', _('Correction matrix left'), 'calibration_settings',
+#                    np.ndarray, np.ndarray(shape=(3, 4), buffer=np.array([[1.0, 0.0, 0.0, 0.0],
+#                                                                          [0.0, 1.0, 0.0, 0.0],
+#                                                                          [0.0, 0.0, 1.0, 0.0]]))))
 
         self._add_setting(
             Setting('distance_right', _('Distance right (mm)'), 'calibration_settings', float, 0.0))
         self._add_setting(
             Setting('normal_right', _('Normal right'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
-        self._add_setting(
-            Setting('cloud_correction_right', _('Correction matrix right'), 'calibration_settings',
-                    np.ndarray, np.ndarray(shape=(3, 4), buffer=np.array([[1.0, 0.0, 0.0, 0.0],
-                                                                          [0.0, 1.0, 0.0, 0.0],
-                                                                          [0.0, 0.0, 1.0, 0.0]]))))
+#        self._add_setting(
+#            Setting('cloud_correction_right', _('Correction matrix right'), 'calibration_settings',
+#                    np.ndarray, np.ndarray(shape=(3, 4), buffer=np.array([[1.0, 0.0, 0.0, 0.0],
+#                                                                          [0.0, 1.0, 0.0, 0.0],
+#                                                                          [0.0, 0.0, 1.0, 0.0]]))))
 
         self._add_setting(
             Setting('laser_triangulation_hash', '', 'calibration_settings', unicode, u''))
@@ -649,7 +649,7 @@ class Settings(collections.MutableMapping):
                     possible_values=(u'pattern_settings', u'camera_intrinsics',
                                      u'scanner_autocheck', u'rotating_platform_settings',
                                      u'laser_triangulation', u'platform_extrinsics',
-                                     u'video_settings', u'cloud_correction')))
+                                     u'video_settings'))) #, u'cloud_correction')))
 
         # -- Machine Settings
 

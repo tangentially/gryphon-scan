@@ -142,7 +142,7 @@ class LaserTriangulationPanel(ExpandablePanel):
         self.add_control('distance_right', FloatLabel)
         self.add_control('normal_right', FloatLabelArray)
 
-
+'''
 class CloudCorrectionPanel(ExpandablePanel):
 
     def __init__(self, parent, on_selected_callback):
@@ -152,7 +152,7 @@ class CloudCorrectionPanel(ExpandablePanel):
     def add_controls(self):
         self.add_control('cloud_correction_left', FloatLabelArray)
         self.add_control('cloud_correction_right', FloatLabelArray)
-
+'''
 
 class PlatformExtrinsics(ExpandablePanel):
 

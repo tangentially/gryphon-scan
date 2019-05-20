@@ -33,7 +33,7 @@ class PointCloudGeneration(object):
         c, s = np.cos(-theta), np.sin(-theta)
         Rz = np.matrix([[c, -s, 0], [s, c, 0], [0, 0, 1]])
         Xw = Rz * Xwo
-
+        '''
         # Correction
         if M is None and index is not None:
             M = self.calibration_data.laser_planes[index].correction
@@ -41,7 +41,7 @@ class PointCloudGeneration(object):
             M = np.matrix(M)
             Xw = np.insert( Xw, 3, [1.], axis=0)
             Xw = (M * Xw)
-
+        '''
         # Return point cloud
         if Xw.size > 0:
             return np.array(Xw)
