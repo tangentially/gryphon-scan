@@ -181,6 +181,17 @@ class ScanningWorkbench(Workbench):
                 dlg.Destroy()
                 return
 
+            if profile.settings['texture_mode'] == 'Laser BG' and profile.settings['remove_background_scanning'] == False:
+                dlg = wx.MessageDialog(self,
+                                       _("'Laser BG' texture mode selected but laser background removal disabled. Background will not be captured. \n"
+                                         "You can enable laser background option at Adjustment->Scan capture->Lasers\n"
+                                         "Scan with flat color background?\n"),
+                                       _("Laser BG impossible"), wx.YES_NO | wx.ICON_QUESTION)
+                result = dlg.ShowModal() == wx.ID_YES
+                dlg.Destroy()
+                if not result:
+                    return
+
             result = True
             if self.scene_view._object is not None:
                 dlg = wx.MessageDialog(self,

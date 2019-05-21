@@ -343,6 +343,7 @@ class CiclopScan(Scan):
         # begin = time.time()
         for i in xrange(2):
             if capture.lasers[i] is not None:
+                #print "Process image {0} at angle {1}".format(i,np.rad2deg(capture.theta))
                 if self.semaphore is not None:
                     self.semaphore.acquire()
                 image = capture.lasers[i]
@@ -354,15 +355,7 @@ class CiclopScan(Scan):
                 # Compute point cloud texture
                 u, v = points_2d
                 texture = None
-                if self.texture_mode == 0:
-                    # Flat color
-                    r, g, b = self.color
-                    texture = np.zeros((3, len(v)), np.uint8)
-                    texture[0, :] = r
-                    texture[1, :] = g
-                    texture[2, :] = b
-
-                elif self.texture_mode == 1:
+                if self.texture_mode == 1:
                     # Multi color
                     r, g, b = self.colors[i]
                     texture = np.zeros((3, len(v)), np.uint8)
@@ -379,6 +372,14 @@ class CiclopScan(Scan):
                     # Laser BG
                     if capture.lasers[-1] is not None:
                         texture = capture.lasers[-1][v, np.around(u).astype(int)].T
+
+                if texture is None:
+                    # Flat color fallback
+                    r, g, b = self.color
+                    texture = np.zeros((3, len(v)), np.uint8)
+                    texture[0, :] = r
+                    texture[1, :] = g
+                    texture[2, :] = b
 
                 point_cloud = self.point_cloud_generation.compute_point_cloud(
                     capture.theta, points_2d, i)

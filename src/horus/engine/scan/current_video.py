@@ -7,6 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import cv2
 import numpy as np
+from itertools import cycle
 
 from horus import Singleton
 
@@ -38,29 +39,28 @@ class CurrentVideo(object):
         self.images['Gray'] = image
 
     def set_line(self, points, image):
-        images = [None, None]
-        if image is not None:
-            for i in xrange(2):
-                if points[i]:
-                    images[i] = self._compute_line_image(points[i], image)
-            #image = self._combine_images(images)
-            #image = cv2.merge((image, image, image))
-            image = cv2.merge((images[0], images[1], images[1]))
-            self.images['Line'] = image
+        if image is None:
+            return
+
+        line_colors = cycle([[255,0,0],[0,255,255],[0,255,0],[255,0,255]])
+        lines = np.zeros_like(image)
+        for p in points:
+            c = next(line_colors)
+            if p:
+                lines[p[1].astype(int), np.around(p[0]).astype(int)] = c
+
+        self.images['Line'] = cv2.addWeighted(image,0.5,lines,1.)
 
     def _combine_images(self, images):
-        if images[0] is not None and images[1] is not None:
-            return np.maximum(images[0], images[1])
-
-        if images[0] is not None:
-            return images[0]
-
-        if images[1] is not None:
-            return images[1]
+        im = [i for i in images if i is not None]
+        if len(im)>0:
+            return np.max(im, axis=0)
 
         return None
 
     def _compute_line_image(self, points, image):
+        if image is None:
+            return None
         if points is not None:
             u, v = points
             image = np.zeros_like(image)
