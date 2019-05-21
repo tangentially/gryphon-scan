@@ -151,21 +151,44 @@ This will make calibration more precise by using larger lasers point cloud area.
 ------------------------------------------
 
 ## Pont clouds misalignment
-Still investigating. As workaround try to keep things symmetrical:  
+Still investigating. As general workaround try to keep things symmetrical/parallel/perpendicular.  
 
-- platform calibration is the most critical. Try to put pattern in the middle of turntable for better calibration results.
-- platform center should be in the middle of horizontal axis of camera image  
-- platform rotation axis should be vertical in camera image and parallel to image plane  
-- platform should be perpendicular to rotation axis  
+### Lasers
+For Gryphon Scan laser planes position and tilt does not affect on point cloud misalignment. 
+During some tests i move lasers left-right, back-front, tilt, slightly change focus etc and this does not cause any noticible point clouds misalignment.  
+I plan to do more investigations later.
+
 ~~- laser to camera distance should be equival~~  
 ~~- laser lines should be vertical~~  
 ~~- laser lines should cross at platform center~~
 
-**Upd 1.** 
- - For Gryphon Scan laser planes position and tilt does not affect point cloud misalignment. 
-During some tests i move lasers left-right back-front tilt etc and this does not cause point clouds misalignment.  
- - Platform extrinsics is critical. 
-Experiments amount is not enough to be sure but it seems platform calibration with pattern in the middle of the platform produces better results.
+### Platform
+Platform calibration is the most critical. 
+- to get better platform calibration put pattern in the middle of turntable.
+- platform center should be in the middle of horizontal axis of camera image  
+- platform rotation axis should be vertical in camera image and parallel to image plane  
+- platform should be perpendicular to rotation axis  
+
+_Here is how platform offset vector affect the clouds alignment:_  
+
+#### Change X value
+The X coordinate (horizontal) mostly affect clouds scaling artifacts  
+
+![][platform-offset-x] ![][platform-offset-X]  
+
+#### Change Y value
+The Y coordinate (vertical) mostly affect general position of mesh on the vertical axis  
+
+#### Change Z value
+The Z coordinate (depth) mostly affect clouds rotation artifacts  
+
+![][platform-offset-z] ![][platform-offset-Z]  
+
+
+[platform-offset-x]: doc/images/platform_offset_x-.png
+[platform-offset-X]: doc/images/platform_offset_x+.png
+[platform-offset-z]: doc/images/platform_offset_z-.png
+[platform-offset-Z]: doc/images/platform_offset_z+.png
 
 ------------------------------------------
 
