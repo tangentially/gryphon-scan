@@ -50,6 +50,7 @@ Is there any 3D scanner project that superseeds Horus?
 - some builtin constant values moved to settings or estimated automatically
 - movement toolbar
 - auto save/read camera calibration images (use 'r' to read previous image in current frame)
+- calibration (camera,platform,lasers) and scanning (laser,angle) data saved to .ply file to use in future mesh processing
 - some bugs fixed
 - support for OpenCV 4.x
 
