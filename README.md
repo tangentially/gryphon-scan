@@ -1,3 +1,4 @@
+
 # Gryphon Scan
 ## This is highly customizible version of Horus 3D Scan software with some advanced features support
 
@@ -174,7 +175,7 @@ _Here is how platform offset vector affect the clouds alignment:_
 #### Change X value
 The X coordinate (horizontal) mostly affect clouds scaling artifacts  
 
-![][platform-offset-x] ![][platform-offset-X]  
+<p><img height="300px" src="https://github.com/nightgryphon/gryphon-scan/raw/develop/doc/images/platform_offset_x-.png"> <img  height="300px" src="https://github.com/nightgryphon/gryphon-scan/raw/develop/doc/images/platform_offset_x+.png"></p>
 
 #### Change Y value
 The Y coordinate (vertical) mostly affect general position of mesh on the vertical axis  
@@ -182,13 +183,8 @@ The Y coordinate (vertical) mostly affect general position of mesh on the vertic
 #### Change Z value
 The Z coordinate (depth) mostly affect clouds rotation artifacts  
 
-![][platform-offset-z] ![][platform-offset-Z]  
+<p><img height="300px" src="https://github.com/nightgryphon/gryphon-scan/raw/develop/doc/images/platform_offset_z-.png"> <img  height="300px" src="https://github.com/nightgryphon/gryphon-scan/raw/develop/doc/images/platform_offset_z+.png"></p>
 
-
-[platform-offset-x]: doc/images/platform_offset_x-.png
-[platform-offset-X]: doc/images/platform_offset_x+.png
-[platform-offset-z]: doc/images/platform_offset_z-.png
-[platform-offset-Z]: doc/images/platform_offset_z+.png
 
 ------------------------------------------
 
