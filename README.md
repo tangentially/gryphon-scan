@@ -151,8 +151,10 @@ This will make calibration more precise by using larger lasers point cloud area.
 
 ------------------------------------------
 
-## Pont clouds misalignment
+## Point clouds misalignment
 Still investigating. As general workaround try to keep things symmetrical/parallel/perpendicular.  
+
+**NOTE** If cloud misalignment is _very big_ than check your hardware and connections. Check is platform rotation direction correspond the buttons? May be your stepper cable turned upside down or you misconfigure rotation direction flag?  Is there any not well fixed parts? Etc...  
 
 ### Lasers
 For Gryphon Scan laser planes position and tilt does not affect on point cloud misalignment. 
