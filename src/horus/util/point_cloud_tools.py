@@ -35,6 +35,170 @@ class TanNode(object):
         else:
             ret = (self.angle, self.bit)
 
+class Cloud(object):
+    def __init__(self, points_xyz = [], points_l = [], popints_color = [], points_rt = None):
+        self.points_xyz = points_xyz
+        self.points_rt = points_rt # polar
+        self.points_l = points_l # point scan angle
+        self.points_color = points_color # color
+        self.M = None
+        self.Mrev = None
+
+    def clear(self):
+        self.points_xyz = []
+        self.points_rt = None # polar
+        self.points_l = [] # point scan angle
+        self.points_color = [] # color
+
+    def add(self, point_xyz, point_l, point_color = [0,0,0], point_rt = None):
+        if self.points_rt is not None:
+            if point_rt is None:
+                point_rt = cart2pol([[point_xyz[0], point_xyz[1]]])[0]
+            self.points_rt.append(point_rt)
+
+        self.points_xyz.append(point_xyz)
+        self.points_rt.append(point_rt)
+        self.points_l.append(points_l)
+        self.points_color.append(points_color)
+
+        return(len(self.points_xyz))
+
+    def get_rt(self):
+        if self.points_rt is None:
+            self.points_rt = cart2pol(self.points_xyz[:,[0,1]])
+        return self.points_rt
+
+    def reduce_by_count(self, cnt=10):
+        self.points_xyz    = mean_n(np.array(self.points_xyz), cnt)
+        if self.points_rt is not None:
+            self.points_rt = mean_n(np.array(self.points_rt), cnt)
+        self.points_l      = cicrcmean_n(np.array(self.points_l), cnt)
+        self.points_color  = mean_n(np.array(self.points_color, dtype=np.uint16), cnt).astype(np.uint8)
+
+    def make_M(self):
+        c,s = np.cos(self.points_l), np.sin(self.points_l)
+        self.M = np.array([c,-s,s,c]).T.reshape((-1,2,2))
+        self.Mrev = np.array([c,s,-s,c]).T.reshape((-1,2,2))
+
+
+class ChunksPolar(object):
+    def __init__(self, width = 2., height = 2., maxvar=4., min_amount = 3):
+        self.width = width
+        self.height = height
+        self.maxvar = maxvar
+        self.min_amount = min_amount
+        self.cloud = Cloud() # avg points for chunks
+        self.src_cloud = None
+
+    def put_points(self, src_cloud):
+        self.src_cloud = src_cloud
+        self.chunks = {}
+
+        print "Build polar chunks"
+        points_rt = np.copy(src_cloud.get_rt())
+        
+        if points_rt is not None:
+            # make chunks centers
+            t = np.around(points_rt[:,1]/np.deg2rad(self.width)).astype(int)
+            z = np.around(src_cloud.points_xyz[:,2]/self.height).astype(int)
+            
+            # glue cylinder seam. theta is in [-PI ... +PI] range. 
+            # Glue +180 points to first -180 chunk.
+            mx = np.around(np.pi/np.deg2rad(width) ).astype(int) # border index
+            idx = np.where(t>=mx)
+            points_rt[idx, 1] -= 2*np.pi
+            t[idx] -= 2*mx
+
+            # group points to chunks
+            print "Grouping points"
+            for _id,(_t,_z) in enumerate(zip(t, z)):
+                self.chunks.setdefault(_z,{}).setdefault(_t,[]).\
+                       append(_id)
+        
+            # calculate chunks parameters
+            print "Calculating chunks"
+            delete = []
+            for _z,T in self.chunks.iteritems():
+                # T - current horizontal slice (Thetas list)
+                s = {}
+                for _t,D in T.iteritems():
+                    # D - current chunk point ids
+                    _var = np.var(points_rt[D], axis=0)
+                    _cnt = len(D)
+                    if _var[0] <= maxvar and \
+                       _cnt >= min_amount:
+                        avg_rt  = np.mean(points_rt[D], axis=0)
+                        avg_xyz = np.mean(src_cloud.points_xyz[D], axis=0)
+                        avg_l   = stats.circmean(src_cloud.points_l[D], axis=0)
+                        avg_c = np.mean(np.array(src_cloud.points_color[D], dtype=np.uint16), axis=0).astype(np.uint8).tolist()
+                        # point_xyz, point_l, point_color, point_rt
+                        _id = self.cloud.add(avg_xyz, avg_l, avg_c, point_rt = avg_rt)
+                        s[_t] = [_id,D]
+                # replace layer
+                if len(s)>10: # minimum amount of chunks for precise align ( minimum = 2 to solve equations )
+                    self.chunks[_z] = s
+                    print "Chunk z={0} - {1}".format(_z, len(s))
+                else:
+                    delete.append(_z)
+            for _x in delete:
+                del self.chunks[_x]
+            print "Done build chunks"
+
+
+
+class ChunksCubic(object):
+    def __init__(self, size = 2., min_amount = 3):
+        self.size = size
+        self.min_amount = min_amount
+        self.cloud = Cloud() # avg points for chunks
+        self.src_cloud = None
+
+    def put_points(self, src_cloud):
+        self.src_cloud = src_cloud
+        self.chunks = {}
+
+        print "Build cubic chunks"
+        # make chunks centers
+        xyz = np.around(src_cloud.points_xyz[:]/self.size).astype(int)
+        
+        # group points to chunks
+        print "Grouping points"
+        for _id,(_x,_y,_z) in enumerate(xyz):
+            self.chunks.setdefault(_z,{}).setdefault(_y,{}).setdefault(_x,[]).\
+                   append(_id)
+        
+        # calculate chunks parameters
+        print "Calculating chunks"
+        delete = []
+        for _z,Y in self.chunks.iteritems():
+            # T - current horizontal slice (Thetas list)
+            yy = {}
+            for _y,X in Y.iteritems():
+                xx = {}
+                for _x,D in X.iteritems():
+                    # D - current chunk point ids
+                    if len(D) >= min_amount:
+                        avg_xyz = np.mean(src_cloud.points_xyz[D], axis=0)
+                        avg_l   = stats.circmean(src_cloud.points_l[D], axis=0)
+                        avg_c = np.mean(np.array(src_cloud.points_color[D], dtype=np.uint16), axis=0).astype(np.uint8).tolist()
+                        # point_xyz, point_l, point_color, point_rt
+                        _id = self.cloud.add(avg_xyz, avg_l, avg_c)
+                        xx[_x] = [_id,D]
+                # replace layer
+                if len(xx)>0:
+                  yy[_y] = xx
+            # replace layer
+            self.chunks[_z] = yy
+        print "Done build chunks"
+
+
+
+def split_lasers( points_xyz, points_c, points_meta):
+    res = {}
+    for p in zip(points_xyz, points_c, points_meta):
+        res.setdefault(p[2][0], Cloud()).add(p[0], p[2][1][1], p[1])
+    return res
+
 
 class CloudTools(object):
     def __init__(self, mesh = None):
@@ -305,7 +469,7 @@ class CloudTools(object):
                     
         # prepare point indexes
         ls = np.array(self.cloud_meta[:,1].tolist())[:,1] # turntable L
-        delta = [0,0]
+        delta = [0] # [0,0]
         for _z,TA in chunkA.iteritems(): # horizontal slices
             if not isinstance(_z, (int, long)):
                 continue # skip metadata
@@ -317,6 +481,8 @@ class CloudTools(object):
             # TA,TB - valid horizontal slices to compare
             pA = []
             pB = []
+            lAB = []
+            Cn = []
             for _t,DA in TA.iteritems():
                 # current chunk
                 DB = TB.get(_t,None)
@@ -326,11 +492,39 @@ class CloudTools(object):
                 # D: [radial], [color], slice_l, variance, count, [orig index]
                 pA.append([ DA[0][0], DA[0][1]+DA[2] ])
                 pB.append([ DB[0][0], DB[0][1]+DB[2] ])
+                lAB.append(np.abs(DA[2]-DB[2]))
 
+                # scaling correction 
+                # assume points are at their correct angular places: A to B angle corresponds actual angle
+                Ax = DA[0][0] * np.cos(DA[0][1]+DA[2])
+                Ay = DA[0][0] * np.sin(DA[0][1]+DA[2])
+
+                Bx = DB[0][0] * np.cos(DB[0][1]+DB[2])
+                By = DB[0][0] * np.sin(DB[0][1]+DB[2])
+
+                l = 2*np.tan(np.abs(DA[2]-DB[2])/2)
+
+                Px = (Ax+Bx)/2
+                Py = (Ay+By)/2
+
+                Vx = (By-Ay)/l
+                Vy = (Ax-Bx)/l
+
+                C = np.array([[Px+Vx,Py+Vy],[Px-Vx,Py-Vy]], dtype=np.float32)
+
+                L = np.linalg.norm(C, axis=1)
+                if (L[0]<L[1]):
+                    Cn.append(C[0])
+                    #print "{0}: {1}".format(_z, C[0])
+                else:
+                    Cn.append(C[1])
+                    #print "{0}: {1}".format(_z, C[1])
             if len(pA) > 10: # amount of corresponding chunks
                 # minimum 2 required to solve. but for better precision use 10+. Also look at "build_chunks"
-                pA = pol2cart(pA)
-                pB = pol2cart(pB)
+                C = np.mean(Cn, axis=0)
+                #print "C: {0} => {1}".format(Cn, C)
+                pA = pol2cart(pA)+C
+                pB = pol2cart(pB)+C
 
                 #v = np.append(pA,pB,axis=0)
                 #v = np.array(pA,dtype=np.float32)
@@ -338,10 +532,10 @@ class CloudTools(object):
                 #res += v.tolist()
 
                 #delta = fit_correction(pA, pB, [0,0])
-                delta = fit_correction(pA, pB, delta)
+                delta = fit_correction(pA, pB, lAB, delta)
                 #res[_z] = [delta[0],delta[1], _z]
-                res.append([delta[0], delta[1], _z*height] )
-
+                res.append([C[0]+delta[0], C[1], _z*height] )
+            #res.append(np.append(np.mean(Cn, axis=0), [_z*height]) )
         return np.array(res, dtype=np.float32)
 
 
@@ -380,6 +574,23 @@ def pol2cart(radial):
     y = radial[:,0] * np.sin(radial[:,1])
     return np.array(zip(x, y), dtype=np.float32)
 
+def mean_n(arr, cnt):
+    return np.mean( arr.reshape((-1,cnt)+arr.shape[1:]), axis=1)
+
+def cicrcmean_n(arr, cnt):
+    return stats.circmean( arr.reshape((-1,cnt)+arr.shape[1:]), axis=1)
+
+def rmat2d_arr(l):
+    # l - array of radians
+    c, s = np.cos(l), np.sin(l)
+    #return np.matrix([[c, -s], [s, c]])
+    return np.array([c,-s,s,c]).T.reshape((-1,2,2))
+
+def apply_mat_arr(mat, arr):
+    # mat - array  of matrices
+    # arr - array of vectors
+    return np.einsum('ikj,ij->ik',mat,arr)
+
 # ======================================================    
 # calculate table center correction for set of points
 # assume Z change is negligible
@@ -388,18 +599,50 @@ def pol2cart(radial):
 # https://stackoverflow.com/questions/6949370/scipy-leastsq-dfun-usage
 # https://algowiki-project.org/ru/%D0%9C%D0%B5%D1%82%D0%BE%D0%B4_%D0%9D%D1%8C%D1%8E%D1%82%D0%BE%D0%BD%D0%B0_%D0%B4%D0%BB%D1%8F_%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC_%D0%BD%D0%B5%D0%BB%D0%B8%D0%BD%D0%B5%D0%B9%D0%BD%D1%8B%D1%85_%D1%83%D1%80%D0%B0%D0%B2%D0%BD%D0%B5%D0%BD%D0%B8%D0%B9
 
-def risiduals_fit_correction(parameters,pA,pB):
+def risiduals_fit_correction(parameters,pA,pB,lAB):
+    '''
     rM = (np.linalg.norm( pA[:], axis=1 ) + np.linalg.norm( pB[:], axis=1 ) )/2
-    rA = np.linalg.norm( pA[:] + parameters, axis=1 )
-    rB = np.linalg.norm( pB[:] + parameters, axis=1 )
-    return np.append(rA-rM, rB-rM)
+    A = pA[:] + parameters
+    B = pB[:] + parameters
+    rA = np.linalg.norm( A, axis=1 )
+    rB = np.linalg.norm( B, axis=1 )
+    #l = pA[:,0]**2 + pA[:,1]**2 + pB[:,0]**2 + pB[:,1]**2 - 2*np.dot(pA,pB.T)
+    #l2 = A[:,0]**2 +  A[:,1]**2 +  B[:,0]**2 +  B[:,1]**2 - 2*np.dot(pA,pB.T)
+    l1 = np.dot(A,B.T)
+    l2 = rA*rB*np.cos(lAB)
+    #return np.append(np.abs(rA-rM), np.abs(rB-rM))
+    return np.append(rA-rB, l1-l2)
+    '''
+    A = pA[:] + [parameters[0],0]
+    B = pB[:] + [parameters[0],0]
+    #rA = np.linalg.norm( A, axis=1 )
+    #rB = np.linalg.norm( B, axis=1 )
+    #print rA-rB
+    d = np.linalg.norm( A-B, axis=1 )
+    #print(d)
+    return d
 
-def fit_correction(pA, pB, prev = [0,0]):
+def fit_correction(pA, pB, lAB, prev = [0]): #[0,0]):
+    # pA,pB - cartensian coords of points reverted to capture position
+    '''
+    V = prev
+    print "Fit A {0}, B {1}, lAB {2}".format(len(pA),len(pB),len(lAB))
+    offset, ier = optimize.leastsq(risiduals_fit_correction, V, args=( (pA, pB, lAB) ))
+    print "Fit result: {0}  ier={1}  delta_r={2}".format(offset, ier, np.mean(risiduals_fit_correction(offset,pA,pB,lAB)) )
+    #print np.round( np.linalg.norm( pA[:], axis=1 ), 3)
+    #print np.round( np.linalg.norm( pA[:] + offset, axis=1 ), 3)
+    #print np.round( np.linalg.norm( pB[:] + offset, axis=1 ), 3)
+    #print np.round( risiduals_fit_correction(offset,pA,pB), 3)
+    #print np.round( cart2pol(pA)[:,0], 3)
+    #print np.round( cart2pol(pA[:] + offset)[:,0], 3)
+
+    return offset    
+    '''
     # pA,pB - cartensian coords of points reverted to capture position
     V = prev
-    print "Fit A {0}, B {1}".format(len(pA),len(pB))
-    offset, ier = optimize.leastsq(risiduals_fit_correction, V, args=( (pA, pB) ))
-    print "Fit result: {0}  ier={1}  delta_r={2}".format(offset, ier, np.mean(risiduals_fit_correction(offset,pA,pB)) )
+    #print "Fit A {0}, B {1}, lAB {2}".format(len(pA),len(pB),len(lAB))
+    offset, ier = optimize.leastsq(risiduals_fit_correction, V, args=( (pA, pB, lAB) ))
+    print "Fit result: {0}  ier={1}  delta_r={2}".format(offset, ier, np.mean(risiduals_fit_correction(offset,pA,pB,lAB)) )
     #print np.round( np.linalg.norm( pA[:], axis=1 ), 3)
     #print np.round( np.linalg.norm( pA[:] + offset, axis=1 ), 3)
     #print np.round( np.linalg.norm( pB[:] + offset, axis=1 ), 3)
