@@ -36,30 +36,62 @@ class TanNode(object):
             ret = (self.angle, self.bit)
 
 class Cloud(object):
-    def __init__(self, points_xyz = [], points_l = [], popints_color = [], points_rt = None):
-        self.points_xyz = points_xyz
-        self.points_rt = points_rt # polar
-        self.points_l = points_l # point scan angle
-        self.points_color = points_color # color
+    def __init__(self, points_xyz   = np.empty((0,3), dtype=np.float32), \
+                       points_l     = np.empty((0), dtype=np.float32), \
+                       points_color = np.empty((0,3), dtype=np.uint8), \
+                       points_rt = None):
+        self.points_xyz   = np.array(points_xyz)
+        if points_rt is not None:
+            self.points_rt    = np.array(points_rt) # polar
+        else:
+            self.points_rt    = None # polar
+        self.points_l     = np.array(points_l) # point scan angle
+        self.points_color = np.array(points_color, dtype=np.uint8) # color
         self.M = None
         self.Mrev = None
 
-    def clear(self):
-        self.points_xyz = []
+
+    def clear(self, length = 0):
+        self.points_xyz = np.array([0.,0.,0.]*length)
         self.points_rt = None # polar
-        self.points_l = [] # point scan angle
-        self.points_color = [] # color
+        self.points_l = np.array([0.]*length) # point scan angle
+        self.points_color = np.array([0,0,0]*length, dtype=np.uint8) # color
 
-    def add(self, point_xyz, point_l, point_color = [0,0,0], point_rt = None):
-        if self.points_rt is not None:
-            if point_rt is None:
-                point_rt = cart2pol([[point_xyz[0], point_xyz[1]]])[0]
-            self.points_rt.append(point_rt)
 
-        self.points_xyz.append(point_xyz)
-        self.points_rt.append(point_rt)
-        self.points_l.append(points_l)
-        self.points_color.append(points_color)
+    def add(self, points_xyz, points_l, points_color = np.array([0,0,0], dtype=np.uint8), points_rt = None):
+        if len(points_xyz.shape) <= 1:
+            # add single point
+            #print "Add: {0} {1} {2} {3}".format(points_xyz, points_l, points_color, points_rt)
+            if self.points_rt is not None:
+                if points_rt is None:
+                    points_rt = cart2pol([points_xyz[[0,1]]])
+                if len(self.points_rt) > 0:
+                    self.points_rt = np.append(self.points_rt, [points_rt], axis=0)
+                else:                                           
+                    self.points_rt = [points_rt]
+        
+            self.points_xyz   = np.append(self.points_xyz,   [points_xyz], axis=0)
+            self.points_l     = np.append(self.points_l,     [points_l], axis=0)
+            self.points_color = np.append(self.points_color, [points_color], axis=0)
+        else:
+            print "Adding {0} points".format(len(points_l))
+            # add lists
+            if self.points_rt is not None:
+                if points_rt is None:
+                    points_rt = cart2pol(points_xyz[:,[0,1]])
+                if len(self.points_rt) > 0:
+                    self.points_rt = np.append(self.points_rt, points_rt, axis=0)
+                else:
+                    self.points_rt = points_rt
+        
+            if len(self.points_xyz) > 0:
+                self.points_xyz   = np.append(self.points_xyz,   points_xyz, axis=0)
+                self.points_l     = np.append(self.points_l,     points_l, axis=0)
+                self.points_color = np.append(self.points_color, points_color, axis=0)
+            else:
+                self.points_xyz   = points_xyz
+                self.points_l     = points_l
+                self.points_color = points_color
 
         return(len(self.points_xyz))
 
@@ -69,11 +101,11 @@ class Cloud(object):
         return self.points_rt
 
     def reduce_by_count(self, cnt=10):
-        self.points_xyz    = mean_n(np.array(self.points_xyz), cnt)
+        self.points_xyz    = mean_n(self.points_xyz, cnt)
         if self.points_rt is not None:
-            self.points_rt = mean_n(np.array(self.points_rt), cnt)
-        self.points_l      = cicrcmean_n(np.array(self.points_l), cnt)
-        self.points_color  = mean_n(np.array(self.points_color, dtype=np.uint16), cnt).astype(np.uint8)
+            self.points_rt = mean_n(self.points_rt, cnt)
+        self.points_l      = cicrcmean_n(self.points_l, cnt)
+        self.points_color  = mean_n(self.points_color.astype(np.uint16), cnt).astype(np.uint8)
 
     def make_M(self):
         c,s = np.cos(self.points_l), np.sin(self.points_l)
@@ -89,10 +121,13 @@ class ChunksPolar(object):
         self.min_amount = min_amount
         self.cloud = Cloud() # avg points for chunks
         self.src_cloud = None
+        self.chunks = {}
+        self.chunks_count = 0
 
     def put_points(self, src_cloud):
         self.src_cloud = src_cloud
         self.chunks = {}
+        self.chunks_count = 0
 
         print "Build polar chunks"
         points_rt = np.copy(src_cloud.get_rt())
@@ -110,13 +145,13 @@ class ChunksPolar(object):
             t[idx] -= 2*mx
 
             # group points to chunks
-            print "Grouping points"
+            print "\tGrouping points"
             for _id,(_t,_z) in enumerate(zip(t, z)):
                 self.chunks.setdefault(_z,{}).setdefault(_t,[]).\
                        append(_id)
         
             # calculate chunks parameters
-            print "Calculating chunks"
+            print "\tCalculating chunks"
             delete = []
             for _z,T in self.chunks.iteritems():
                 # T - current horizontal slice (Thetas list)
@@ -125,50 +160,79 @@ class ChunksPolar(object):
                     # D - current chunk point ids
                     _var = np.var(points_rt[D], axis=0)
                     _cnt = len(D)
-                    if _var[0] <= maxvar and \
-                       _cnt >= min_amount:
-                        avg_rt  = np.mean(points_rt[D], axis=0)
-                        avg_xyz = np.mean(src_cloud.points_xyz[D], axis=0)
+                    if _var[0] <= self.maxvar and \
+                       _cnt >= self.min_amount:
+                        avg_rt  =        np.mean(points_rt[D], axis=0)
+                        avg_xyz =        np.mean(src_cloud.points_xyz[D], axis=0)
                         avg_l   = stats.circmean(src_cloud.points_l[D], axis=0)
-                        avg_c = np.mean(np.array(src_cloud.points_color[D], dtype=np.uint16), axis=0).astype(np.uint8).tolist()
+                        avg_c   =        np.mean(src_cloud.points_color.astype(np.uint16)[D], axis=0).astype(np.uint8)
                         # point_xyz, point_l, point_color, point_rt
                         _id = self.cloud.add(avg_xyz, avg_l, avg_c, point_rt = avg_rt)
                         s[_t] = [_id,D]
+                        self.chunks_count += 1
                 # replace layer
                 if len(s)>10: # minimum amount of chunks for precise align ( minimum = 2 to solve equations )
                     self.chunks[_z] = s
-                    print "Chunk z={0} - {1}".format(_z, len(s))
+                    print "\tChunk z={0} - {1}".format(_z, len(s))
                 else:
                     delete.append(_z)
             for _x in delete:
                 del self.chunks[_x]
-            print "Done build chunks"
+        print "[Done] build {0} chunks".format(self.chunks_count)
 
+
+    def intersect(self, chunksB):
+        buf=[0,0]*np.min(self.chunks_count, chunksB.chunks_count)
+        cnt = 0
+        res={}
+        for _z,TA in self.chunks.iteritems(): # horizontal slices
+            TB = chunksB.chunks.get(_z,None)
+            if TB is None:
+                continue # no matching chunk in B
+
+            for _t,DA in TA.iteritems():
+                DB = TB.get(_t,None)
+                if DB is None:
+                    continue
+
+                res[cnt] = [[DA[0], DB[0]]]
+                cnt += 1
+
+            if cnt>0:
+                res[_z] = buf[0:cnt]
+                cnt = 0
+        return res
 
 
 class ChunksCubic(object):
-    def __init__(self, size = 2., min_amount = 3):
-        self.size = size
+    def __init__(self, width = 2., height = 2., min_amount = 3):
+        self.width = width
+        self.height = height
         self.min_amount = min_amount
         self.cloud = Cloud() # avg points for chunks
         self.src_cloud = None
+        self.chunks = {}
+        self.chunks_count = 0
 
     def put_points(self, src_cloud):
         self.src_cloud = src_cloud
         self.chunks = {}
+        self.chunks_count = 0
 
         print "Build cubic chunks"
         # make chunks centers
-        xyz = np.around(src_cloud.points_xyz[:]/self.size).astype(int)
+        print src_cloud.points_xyz.shape
+        xyz = np.around(src_cloud.points_xyz/np.array([self.width, self.width, self.height])).astype(int)
+        print xyz.shape
         
         # group points to chunks
-        print "Grouping points"
+        print "\tGrouping points"
         for _id,(_x,_y,_z) in enumerate(xyz):
             self.chunks.setdefault(_z,{}).setdefault(_y,{}).setdefault(_x,[]).\
                    append(_id)
         
         # calculate chunks parameters
-        print "Calculating chunks"
+        print "\tCalculating chunks"
         delete = []
         for _z,Y in self.chunks.iteritems():
             # T - current horizontal slice (Thetas list)
@@ -177,25 +241,65 @@ class ChunksCubic(object):
                 xx = {}
                 for _x,D in X.iteritems():
                     # D - current chunk point ids
-                    if len(D) >= min_amount:
-                        avg_xyz = np.mean(src_cloud.points_xyz[D], axis=0)
+                    if len(D) >= self.min_amount:
+                        #print "1 -> {0}".format(len(D))
+                        avg_xyz =        np.mean(src_cloud.points_xyz[D], axis=0)
                         avg_l   = stats.circmean(src_cloud.points_l[D], axis=0)
-                        avg_c = np.mean(np.array(src_cloud.points_color[D], dtype=np.uint16), axis=0).astype(np.uint8).tolist()
+                        avg_c   =        np.mean(src_cloud.points_color.astype(np.uint32)[D], axis=0).astype(np.uint8)
+                        #print "2"
                         # point_xyz, point_l, point_color, point_rt
                         _id = self.cloud.add(avg_xyz, avg_l, avg_c)
                         xx[_x] = [_id,D]
+                        self.chunks_count += 1
                 # replace layer
                 if len(xx)>0:
                   yy[_y] = xx
+                #print "\t\tChunk y={0} -> {1}".format(_y, len(xx))
             # replace layer
-            self.chunks[_z] = yy
-        print "Done build chunks"
+            if len(yy)>0:
+                self.chunks[_z] = yy
+                print "\tChunk z={0} -> {1}".format(_z,len(yy))
+            else:
+                delete.append(_z)
+        for _z in delete:
+            del self.chunks[_z]
+        print "[Done] build {0} chunks".format(self.chunks_count)
+
+
+    def intersect(self, chunksB):
+        print "Intersect chunks {0} vs {1}".format(self.chunks_count, chunksB.chunks_count)
+        buf=[0,0] * min(self.chunks_count, chunksB.chunks_count)
+        cnt = 0
+        res = {}
+        for _z,YA in self.chunks.iteritems(): # horizontal slices
+            YB = chunksB.chunks.get(_z,None)
+            if YB is None:
+                continue # no matching chunk in B
+
+            for _y,XA in YA.iteritems():
+                XB = YB.get(_y,None)
+                if XB is None:
+                    continue
+
+                for _x,DA in XA.iteritems():
+                    DB = XB.get(_x,None)
+                    if DB is None:
+                        continue
+
+                    buf[cnt] = [[DA[0], DB[0]]]
+                    cnt += 1
+            if cnt>0:
+                print "\tChunk z={0} -> {1}".format(_z,cnt)
+                res[_z] = buf[0:cnt]
+                cnt = 0
+        return res
 
 
 
-def split_lasers( points_xyz, points_c, points_meta):
+def split_mesh(mesh):
+    print "Splitting mesh by laser id"
     res = {}
-    for p in zip(points_xyz, points_c, points_meta):
+    for p in zip(mesh.vertexes, mesh.colors, mesh.vertexes_meta)[0:mesh.vertex_count]:
         res.setdefault(p[2][0], Cloud()).add(p[0], p[2][1][1], p[1])
     return res
 
@@ -218,13 +322,13 @@ class CloudTools(object):
             self.colors       = self.mesh.colors
             self.normal       = self.mesh.normal
             self.vertex_count = self.mesh.vertex_count
-            self.cloud_meta   = self.mesh.cloud_meta
+            self.vertexes_meta   = self.mesh.vertexes_meta
         else:
             self.vertexes     = None
             self.colors       = None
             self.normal       = None
             self.vertex_count = 0
-            self.cloud_meta   = None
+            self.vertexes_meta   = None
 
     def to_mesh(self):
         if self.mesh is None:
@@ -234,7 +338,7 @@ class CloudTools(object):
         mesh.vertex_count = len(self.vertexes)
         mesh.colors       = self.colors
         mesh.normal       = self.normal
-        mesh.cloud_meta   = self.cloud_meta
+        mesh.vertexes_meta   = self.vertexes_meta
 
     # Unwrap point cloud to cylindrical coords
     def make_radial(self):
@@ -259,7 +363,7 @@ class CloudTools(object):
             self.mesh.vertex_count = len(vertexes)
             self.mesh.colors       = self.colors
             self.mesh.normal       = self.normal
-            self.mesh.cloud_meta   = self.cloud_meta
+            self.mesh.vertexes_meta   = self.vertexes_meta
 
 
     def flatten_mesh(self, width = 360., scale_z=1.):
@@ -272,10 +376,10 @@ class CloudTools(object):
         if not self.have_slices():
             self.reconstruct_slices()
 
-        #ll = self.cloud_meta[:,0] # laser
+        #ll = self.vertexes_meta[:,0] # laser
         #col = np.array( [ ll*255, ll*255, ll*255 ], dtype=np.uint8).T
 
-        l = np.array(self.cloud_meta[:,1].tolist(),dtype=np.float32)[:,1] # angle
+        l = np.array(self.vertexes_meta[:,1].tolist(),dtype=np.float32)[:,1] # angle
         #l = l*0xFF/2/np.pi 
         #col = np.array( [ l, l, l ], dtype=np.uint8).T
 
@@ -287,23 +391,23 @@ class CloudTools(object):
             self.mesh.vertex_count = len(vertexes)
             self.mesh.colors       = self.colors
             self.mesh.normal       = self.normal
-            self.mesh.cloud_meta   = self.cloud_meta
+            self.mesh.vertexes_meta   = self.vertexes_meta
 
 
     def have_slices(self):
         if len(self.vertexes)<=0:
             return None
-        return self.cloud_meta[0][1] is not None
+        return self.vertexes_meta[0][1] is not None
 
     def reconstruct_slices(self, step = None):
         print "Reconstruct slices"
         # step - scanning step in radians
         #step = np.deg2rad(0.9)
-        first_laser = np.min(self.cloud_meta[:,0])
+        first_laser = np.min(self.vertexes_meta[:,0])
         cur_slice = 0
         prev_laser = first_laser
         prev_z = 65535
-        for m,v in zip(self.cloud_meta,self.vertexes):
+        for m,v in zip(self.vertexes_meta,self.vertexes):
             if m[0] != prev_laser and m[0] == first_laser:
                 cur_slice += 1
             elif m[0] == prev_laser and v[2]-5 > prev_z:
@@ -318,8 +422,8 @@ class CloudTools(object):
 
         if step is None and cur_slice > 0:
             step = 2*np.pi/(cur_slice)
-            #for m,c in zip(self.cloud_meta, self.colors):
-            for m in self.cloud_meta:
+            #for m,c in zip(self.vertexes_meta, self.colors):
+            for m in self.vertexes_meta:
                 m[1] = (m[1][0], m[1][0]*step)
                 #c[0] = int(m[1][0]*255/801)
                 #c[1] = c[0]
@@ -334,7 +438,7 @@ class CloudTools(object):
         assert self.radial is not None, "No input vertices (self.radial == None)"
         print "Get corrected {0}, {1} points".format(delta, len(vert))
 
-        l = np.array(self.cloud_meta[:,1].tolist(),dtype=np.float32)[:,1] # angle
+        l = np.array(self.vertexes_meta[:,1].tolist(),dtype=np.float32)[:,1] # angle
         res = np.copy(vert) # keep original data intact
         res[:,1] += l
         res = pol2cart(res)
@@ -372,7 +476,7 @@ class CloudTools(object):
             print "Grouping points"
             #for _id,(_r,_t,_z,_c,_m) in enumerate(zip(self.radial, t, z, \
             for _id,(_r,_t,_z,_c,_m) in enumerate(zip(rad, t, z, \
-                 self.colors, self.cloud_meta)): # radial, chunk_theta, chunk_z, color, laser num
+                 self.colors, self.vertexes_meta)): # radial, chunk_theta, chunk_z, color, laser num
                 self.chunks.setdefault(_m[0],{'width': width, 'height': height}).\
                               setdefault(_z,{}).\
                                 setdefault(_t,[]).\
@@ -468,7 +572,7 @@ class CloudTools(object):
         res = [] #{'width': width, 'height': height}
                     
         # prepare point indexes
-        ls = np.array(self.cloud_meta[:,1].tolist())[:,1] # turntable L
+        ls = np.array(self.vertexes_meta[:,1].tolist())[:,1] # turntable L
         delta = [0] # [0,0]
         for _z,TA in chunkA.iteritems(): # horizontal slices
             if not isinstance(_z, (int, long)):
@@ -552,9 +656,9 @@ class CloudTools(object):
             map(lambda x: map(lambda y: list(), x), z[:])
              d.setdefault(6,[]).append(5)
             #np.put(image, (t[ind], z[ind]), r[ind])
-            image[ t[ind], z[ind] ] = zip(r[ind], colors[ind], cloud_meta[ind])
+            image[ t[ind], z[ind] ] = zip(r[ind], colors[ind], vertexes_meta[ind])
     
-            # m.colors[i, 0], m.colors[i, 1], m.colors[i, 2], m.cloud_meta[i]))
+            # m.colors[i, 0], m.colors[i, 1], m.colors[i, 2], m.vertexes_meta[i]))
         return image
     '''
 
@@ -590,6 +694,9 @@ def apply_mat_arr(mat, arr):
     # mat - array  of matrices
     # arr - array of vectors
     return np.einsum('ikj,ij->ik',mat,arr)
+
+
+# https://math.stackexchange.com/questions/1365622/adding-two-polar-vectors
 
 # ======================================================    
 # calculate table center correction for set of points
