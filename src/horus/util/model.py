@@ -102,12 +102,12 @@ class Mesh(object):
 
     def __init__(self, obj):
         self.vertexes = np.zeros((0, 3), np.float32)
+        self.vertexes_meta = None
         self.colors = None
         self.normal = None
         self.vertex_count = 0
         self.vbo = None
         self._obj = obj
-        self.cloud_meta = None
         self.current_cloud_index = 0
         self.metadata = None
 
@@ -115,7 +115,7 @@ class Mesh(object):
         if index is None:
             index=self.current_cloud_index
         n = self.vertex_count
-        self.vertexes[n], self.colors[n], self.cloud_meta[n] = (x, y, z), (r, g, b), (index, _slice)
+        self.vertexes[n], self.colors[n], self.vertexes_meta[n] = (x, y, z), (r, g, b), (index, _slice)
         self.vertex_count += 1
 
     def _add_pointcloud(self, cloud_vertex, cloud_color, index=None, _slice = None):
@@ -132,12 +132,12 @@ class Mesh(object):
             #print "Add Shapes {0} + {1}".format(self.vertexes.dtype, cloud_vertex.dtype)
             self.vertexes   = np.append( self.vertexes,   cloud_vertex, axis=0)
             self.colors     = np.append( self.colors,     cloud_color, axis=0)
-            self.cloud_meta = np.append( self.cloud_meta, [(index, _slice)] * cloud_vertex.shape[0], axis=0)
-            #print "V {0} C {1} M {2}".format(self.vertexes.shape, self.colors.shape, self.cloud_meta.shape)
+            self.vertexes_meta = np.append( self.vertexes_meta, [(index, _slice)] * cloud_vertex.shape[0], axis=0)
+            #print "V {0} C {1} M {2}".format(self.vertexes.shape, self.colors.shape, self.vertexes_meta.shape)
         else:
             self.vertexes[n:m] = cloud_vertex
             self.colors[n:m] = cloud_color
-            self.cloud_meta[n:m] = [[index, _slice]] * cloud_vertex.shape[0]
+            self.vertexes_meta[n:m] = [[index, _slice]] * cloud_vertex.shape[0]
         self.vertex_count = m
 
     def _add_face(self, x0, y0, z0, x1, y1, z1, x2, y2, z2):
@@ -152,7 +152,7 @@ class Mesh(object):
         self.vertexes = np.zeros((vertex_number, 3), np.float32)
         self.colors = np.zeros((vertex_number, 3), np.int32)
         self.normal = np.zeros((vertex_number, 3), np.float32)
-        self.cloud_meta = np.array([(0,None)]*vertex_number)
+        self.vertexes_meta = np.array([(0,None)]*vertex_number)
         self.vertex_count = 0
 
     def _prepare_face_count(self, face_number):

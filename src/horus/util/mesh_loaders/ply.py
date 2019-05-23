@@ -109,8 +109,7 @@ def _load_binary_vertex(mesh, stream, dtype, count):
     else:
         cloud_index = [0]*count
 
-    mesh.cloud_meta = np.array(zip(cloud_index,slices))
-    print "PLY meta {0}".format(mesh.cloud_meta[610])
+    mesh.vertexes_meta = np.array(zip(cloud_index,slices))
 
 
 # ------------ Mesh Metadata ---------------
@@ -287,23 +286,23 @@ def save_scene_stream(stream, _object):
         if m.vertex_count > 0:
             if binary:
                 for i in xrange(m.vertex_count):
-                    _slice = m.cloud_meta[i][1]
+                    _slice = m.vertexes_meta[i][1]
                     if _slice is None: 
                         _slice=(-1,0)
                     stream.write(struct.pack("<fffBBBBif",
                                              m.vertexes[i, 0], m.vertexes[i, 1], m.vertexes[i, 2],
                                              m.colors[i, 0], m.colors[i, 1], m.colors[i, 2], 
-                                             m.cloud_meta[i][0], _slice[0], _slice[1]))
+                                             m.vertexes_meta[i][0], _slice[0], _slice[1]))
                 if m.metadata is not None:
                     stream.write(metadata)
             else:
                 for i in xrange(m.vertex_count):
-                    _slice = m.cloud_meta[i][1]
+                    _slice = m.vertexes_meta[i][1]
                     if _slice is None: 
                         _slice=(-1,0)
                     stream.write("{0} {1} {2} {3} {4} {5} {6} {7} {8}\n".format(
                                  m.vertexes[i, 0], m.vertexes[i, 1], m.vertexes[i, 2],
                                  m.colors[i, 0], m.colors[i, 1], m.colors[i, 2]),
-                                 m.cloud_meta[i][0], _slice[0], _slice[1])
+                                 m.vertexes_meta[i][0], _slice[0], _slice[1])
                 if m.metadata is not None:
                     stream.write("{0}\n".format(metadata))
