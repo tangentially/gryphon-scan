@@ -225,9 +225,13 @@ class ImageCapture(object):
                 flush = self._flush_laser
             image_background = self.capture_image(flush=flush)
         # Capture lasers
-        images = [None, None, image_background]
-        images[0] = self._capture_laser(0)
-        images[1] = self._capture_laser(1)
+        images = []
+        for i in range(len(self.calibration_data.laser_planes)):
+            images += [self._capture_laser(i)]
+        images += [image_background]
+        #images = [None, None, image_background]
+        #images[0] = self._capture_laser(0)
+        #images[1] = self._capture_laser(1)
 
         #print "capture lasers capture: {0} ms".format(int((time.time() - tbegin) * 1000))
         #tbegin = time.time()
