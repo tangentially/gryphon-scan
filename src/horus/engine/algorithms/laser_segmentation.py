@@ -132,6 +132,7 @@ class LaserSegmentation(object):
         elif self.laser_color_detector == 'R (HSV)':
             ret = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
             # lower mask (0-10)
+            # TODO Use separate threshold value or 0 for 'V'
             lower_red = np.array([0,50,self.threshold_value])
             upper_red = np.array([10,255,255])
             mask0 = cv2.inRange(ret, lower_red, upper_red)
