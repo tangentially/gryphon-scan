@@ -60,17 +60,29 @@ class CalibrationData(object):
         self.camera_matrix = profile.settings['camera_matrix']
         self.distortion_vector = profile.settings['distortion_vector']
 
-    def read_profile_calibration(self):
+    def read_profile_laser(self):
         self.laser_planes[0].distance = profile.settings['distance_left']
         self.laser_planes[0].normal = profile.settings['normal_left']
-#        self.laser_planes[0].correction = profile.settings['cloud_correction_left']
 
         self.laser_planes[1].distance = profile.settings['distance_right']
         self.laser_planes[1].normal = profile.settings['normal_right']
-#        self.laser_planes[1].correction = profile.settings['cloud_correction_right']
 
+    def save_profile_laser(self):
+        profile.settings['distance_left'] = self.laser_planes[0].distance
+        profile.settings['normal_left'] = self.laser_planes[0].normal
+
+        profile.settings['distance_right'] = self.laser_planes[1].distance
+        profile.settings['normal_right'] = self.laser_planes[1].normal
+
+        profile.settings['laser_triangulation_hash'] = self.md5_hash()
+
+    def read_profile_platform(self):
         self.platform_rotation = profile.settings['rotation_matrix']
         self.platform_translation = profile.settings['translation_vector']
+
+    def read_profile_calibration(self):
+        self.read_profile_laser()
+        self.read_profile_platform()
 
     def set_resolution(self, width, height):
         if self.width != width or self.height != height:
