@@ -102,42 +102,49 @@ class Mesh(object):
 
     def __init__(self, obj):
         self.vertexes = np.zeros((0, 3), np.float32)
-        self.vertexes_meta = None
-        self.colors = None
-        self.normal = None
+        self.vertexes_meta = np.empty((0, 2), 'O')
+        self.colors = np.zeros((0, 3), np.uint8)
+        self.normal = np.zeros((0, 3), np.float32)
         self.vertex_count = 0
+
         self.vbo = None
         self._obj = obj
         self.current_cloud_index = 0
         self.metadata = None
 
-    def _add_vertex(self, x, y, z, r=255, g=255, b=255, index=None, _slice = None):
-        if index is None:
-            index=self.current_cloud_index
+    def _add_vertex(self, x, y, z, r=255, g=255, b=255, laser_index=None, _slice = None):
+        if laser_index is None:
+            laser_index=self.current_cloud_index
         n = self.vertex_count
-        self.vertexes[n], self.colors[n], self.vertexes_meta[n] = (x, y, z), (r, g, b), (index, _slice)
+        self.vertexes[n], self.colors[n], self.vertexes_meta[n] = (x, y, z), (r, g, b), (laser_index, _slice)
         self.vertex_count += 1
 
-    def _add_pointcloud(self, cloud_vertex, cloud_color, index=None, _slice = None):
+    def _add_pointcloud(self, cloud_vertex, cloud_color, laser_index=None, _slice = None):
         if cloud_vertex is None or \
            cloud_vertex.shape[0] <= 0:
             return
-
-        if index is None:
-            index=self.current_cloud_index
+        #print "Add {0} to {1}".format(cloud_vertex.shape, self.vertexes.shape)
+        if laser_index is None:
+            laser_index=self.current_cloud_index
         n = self.vertex_count
         m = n + cloud_vertex.shape[0]
-        #print "Add [{0}:{1}] = {2}".format(n,m,cloud_vertex.shape)
-        if m >= len(self.vertexes):
-            #print "Add Shapes {0} + {1}".format(self.vertexes.dtype, cloud_vertex.dtype)
+        if m >= self.vertexes.shape[0]:
+            if self.vertexes.shape[0] > n:
+                # shrink and append
+                self.vertexes.resize((n,3))
+                self.colors.resize((n,3))
+                #self.normal.resize((n,3))
+                self.vertexes_meta.resize((n,)+self.vertexes_meta.shape[1:])
+                #print "\tresize to {0}".format(self.vertexes.shape)
+
             self.vertexes   = np.append( self.vertexes,   cloud_vertex, axis=0)
             self.colors     = np.append( self.colors,     cloud_color, axis=0)
-            self.vertexes_meta = np.append( self.vertexes_meta, [(index, _slice)] * cloud_vertex.shape[0], axis=0)
-            #print "V {0} C {1} M {2}".format(self.vertexes.shape, self.colors.shape, self.vertexes_meta.shape)
+            self.vertexes_meta = np.append( self.vertexes_meta, [(laser_index, _slice)] * cloud_vertex.shape[0], axis=0)
         else:
             self.vertexes[n:m] = cloud_vertex
             self.colors[n:m] = cloud_color
-            self.vertexes_meta[n:m] = [[index, _slice]] * cloud_vertex.shape[0]
+            self.vertexes_meta[n:m] = [[laser_index, _slice]] * cloud_vertex.shape[0]
+
         self.vertex_count = m
 
     def _add_face(self, x0, y0, z0, x1, y1, z1, x2, y2, z2):
@@ -154,6 +161,7 @@ class Mesh(object):
         self.normal = np.zeros((vertex_number, 3), np.float32)
         self.vertexes_meta = np.array([(0,None)]*vertex_number)
         self.vertex_count = 0
+        return self
 
     def _prepare_face_count(self, face_number):
         # Set the amount of faces before loading data in them. This way we can
@@ -169,4 +177,7 @@ class Mesh(object):
         normals /= np.linalg.norm(normals)
         n = np.concatenate((np.concatenate((normals, normals), axis=1), normals), axis=1)
         self.normal = n.reshape(self.vertex_count, 3)
+
+    def get_vertexes(self):
+        return self.vertexes[0:self.vertex_count]
 
