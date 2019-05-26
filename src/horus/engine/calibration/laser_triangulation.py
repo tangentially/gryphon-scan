@@ -16,6 +16,9 @@ import cv2
 from horus import Singleton
 from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
+from horus.engine.calibration.calibration_data import CalibrationData
+from horus.util.model import Mesh
+from horus.util.mesh_loaders import ply
 
 from horus.gui.util.augmented_view import augmented_pattern_mask
 from horus.util.gryphon_util import apply_mask
@@ -43,11 +46,15 @@ class LaserTriangulation(MovingCalibration):
     """
 
     def __init__(self):
+        self.calibration_data = CalibrationData()
+
         self.image = None
         self.points_image = None
         self.has_image = False
-        self._point_cloud = [None, None]
-        self.laser_calibration_angles = np.float32( [ (-90,90), (-90,90) ])
+
+        self._point_cloud = {}
+        self.calibration_num = 0
+
         self.continue_calibration = False
         MovingCalibration.__init__(self)
 
@@ -55,14 +62,15 @@ class LaserTriangulation(MovingCalibration):
         self.image = None
         self.has_image = True
         self.image_capture.stream = False
+        self.calibration_num += 1
         if not self.continue_calibration:
             self.points_image = None
-            self._point_cloud = [None, None]
+            self._point_cloud = {}
+            self.calibration_num = 0
         self.continue_calibration = False
 
     def read_profile(self):
         MovingCalibration.read_profile(self)
-        self.laser_calibration_angles = profile.settings['laser_calibration_angles']
         
     def _capture(self, angle):
         self.image_capture.stream = False
@@ -71,57 +79,39 @@ class LaserTriangulation(MovingCalibration):
         plane = self.image_detection.detect_pattern_plane(pose)
         if plane is not None:
             distance, normal, corners = plane
-            # Angle between the pattern and the camera
-            # measure angle within camera XZ plane. 
-            # Negative angle for pattern face turned to the left from camera
-            alpha = -np.rad2deg(math.acos(normal[2]/np.linalg.norm( (normal[0], normal[2]) ))) * math.copysign(1, normal[0])
-            lasers = np.where(np.logical_and(
-                self.laser_calibration_angles[:,0]<alpha,
-                self.laser_calibration_angles[:,1]>alpha ))[0]
-            if lasers.size > 0:
-#                self.image_capture.flush_laser()
-#                self.image_capture.flush_laser()
-                images = self.image_capture.capture_lasers()[:-1]
 
-                if self.points_image is None:
-                    self.points_image = np.zeros(images[0].shape, dtype = "uint8")
-                self.image = np.copy(self.points_image)
-                #self.image = image
-                colors = [(255,255,0), (0,255,255), (255,0,255)]
+            if self.points_image is None:
+                self.points_image = np.zeros(image.shape, dtype = "uint8")
+            self.image = np.copy(self.points_image)
+            colors = [(255,0,0), (0,255,255), (255,255,0), (0,0,255)]
 
-                for i in lasers:
-                    image = images[i]
-                    if image is not None:
-                        image = self.image_detection.pattern_mask(image, corners)
-                      
-                        np.maximum(self.image, image, out = self.image)
-                      
-                        points_2d, image = self.laser_segmentation.compute_2d_points(image)
-                        self.points_image[points_2d[1],np.rint(points_2d[0]).astype(int)] = colors[i]
-                        #points_2d = self.point_cloud_generation.undistort_points(points_2d)
-                        point_3d = self.point_cloud_generation.compute_camera_point_cloud(
+            images = self.image_capture.capture_lasers()[:-1]
+            for i,image in enumerate(images):
+                if image is not None:
+                    image = self.image_detection.pattern_mask(image, corners)
+                    np.maximum(self.image, image, out = self.image)
+                  
+                    points_2d, image = self.laser_segmentation.compute_2d_points(image)
+                    if len(points_2d[0])>0: 
+                        points_3d = self.point_cloud_generation.compute_camera_point_cloud(
                             points_2d, distance, normal)
-                        if self._point_cloud[i] is None:
-                            self._point_cloud[i] = point_3d.T
-                        else:
-                            self._point_cloud[i] = np.concatenate(
-                                (self._point_cloud[i], point_3d.T))
-
-                        # test line detection: draw 3D points back on image
-                        '''
-                        if point_3d.shape[1]>0:
-                            p, jac = cv2.projectPoints(np.float32(point_3d.T),
-                                np.identity(3),
-                                np.zeros(3),
-                                self.calibration_data.camera_matrix,
-                                self.calibration_data.distortion_vector)
-                            p.reshape(-1,2)
-                            for pp in p.astype(np.int):
-                                self.image[pp[0][1], pp[0][0]] = [255,0,0]
-                        '''
-            else:
-                self.image = image
-                print("Skip calibration at "+str(alpha))
+                        self._point_cloud.setdefault(i,Mesh(None)._prepare_vertex_count(100))._add_pointcloud( \
+                               points_3d.T, [colors[i]]*len(points_3d[0]), \
+                               self.calibration_num, (int(angle/self.motor_step),np.deg2rad(angle)) )
+                        self.points_image[points_2d[1],np.rint(points_2d[0]).astype(int)] = colors[i]
+                  
+                    # test line detection: draw 3D points back on image
+                    '''
+                    if points_3d.shape[1]>0:
+                        p, jac = cv2.projectPoints(np.float32(points_3d.T),
+                            np.identity(3),
+                            np.zeros(3),
+                            self.calibration_data.camera_matrix,
+                            self.calibration_data.distortion_vector)
+                        p.reshape(-1,2)
+                        for pp in p.astype(np.int):
+                            self.image[pp[0][1], pp[0][0]] = [255,0,0]
+                    '''
         else:
             self.image = image
 
@@ -130,25 +120,21 @@ class LaserTriangulation(MovingCalibration):
         self.image_capture.stream = True
 
         # Save point clouds
-        #for i in xrange(2):
-        #    save_point_cloud('PC' + str(i) + '.ply', self._point_cloud[i])
+        for i,mesh in self._point_cloud.iteritems():
+            ply.save_scene('laser_triangulation' + str(i) + '.ply', self._point_cloud[i])
 
-        self.distance = [None, None]
-        self.normal = [None, None]
-        self.std = [None, None]
+        self.planes = {}
 
         # Compute planes
-        for i in xrange(2):
+        for i,mesh in self._point_cloud.iteritems():
             if self._is_calibrating:
-                plane = compute_plane(i, self._point_cloud[i])
-                self.distance[i], self.normal[i], self.std[i] = plane
+                # distance, normal, std
+                self.planes[i] = compute_plane(i, mesh.get_vertexes())
 
         if self._is_calibrating:
-            if self.std[0] < 1.0 and self.std[1] < 1.0 and \
-               self.normal[0] is not None and self.normal[1] is not None:
-                response = (True, ((self.distance[0], self.normal[0], self.std[0]),
-                                   (self.distance[1], self.normal[1], self.std[1]),
-                                   self._point_cloud))
+            if all(np.array(self.planes.values())[:,2] < 1.0) and \
+               all(np.array(self.planes.values())[:,0]):
+                response = (True, (self.planes, self._point_cloud))
             else:
                 response = (False, LaserTriangulationError())
         else:
@@ -160,9 +146,9 @@ class LaserTriangulation(MovingCalibration):
         return response
 
     def accept(self):
-        for i in xrange(2):
-            self.calibration_data.laser_planes[i].distance = self.distance[i]
-            self.calibration_data.laser_planes[i].normal = self.normal[i]
+        for i,p in self.planes.iteritems():
+            self.calibration_data.laser_planes[i].distance = p[0]
+            self.calibration_data.laser_planes[i].normal = p[1]
 
 
 # ========================================================
@@ -247,29 +233,3 @@ def ransac(data, model_class, min_samples, threshold, max_trials=500):
     return best_model, best_inliers
 
 
-# ========================================================
-
-def save_point_cloud(filename, point_cloud):
-    if point_cloud is not None:
-        f = open(filename, 'wb')
-        save_point_cloud_stream(f, point_cloud)
-        f.close()
-
-
-def save_point_cloud_stream(stream, point_cloud):
-    frame = "ply\n"
-    frame += "format binary_little_endian 1.0\n"
-    frame += "comment Generated by Horus software\n"
-    frame += "element vertex {0}\n".format(len(point_cloud))
-    frame += "property float x\n"
-    frame += "property float y\n"
-    frame += "property float z\n"
-    frame += "property uchar red\n"
-    frame += "property uchar green\n"
-    frame += "property uchar blue\n"
-    frame += "element face 0\n"
-    frame += "property list uchar int vertex_indices\n"
-    frame += "end_header\n"
-    for point in point_cloud:
-        frame += struct.pack("<fffBBB", point[0], point[1], point[2], 255, 0, 0)
-    stream.write(frame)

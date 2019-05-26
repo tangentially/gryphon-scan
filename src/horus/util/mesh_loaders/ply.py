@@ -243,7 +243,13 @@ def save_scene(filename, _object):
 
 
 def save_scene_stream(stream, _object):
-    m = _object._mesh
+    if isinstance(_object, model.Model):
+        m = _object._mesh
+    elif isinstance(_object, model.Mesh):
+        m = _object
+    else:
+        print "Unknown object type '{0}'. Unable to save".format(type(_object))
+        return
 
     binary = True
 

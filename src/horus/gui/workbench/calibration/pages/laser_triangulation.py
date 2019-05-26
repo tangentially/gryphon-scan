@@ -96,7 +96,7 @@ class LaserTriangulationPages(wx.Panel):
                                               lambda p: wx.CallAfter(self.progress_calibration, p),
                                               lambda r: wx.CallAfter(self.after_calibration, r))
 
-            if laser_triangulation._point_cloud[0] is not None:
+            if len(laser_triangulation._point_cloud)>0:
                 dlg = wx.MessageDialog(
                     self,
                     _("Previous calibration results found. Continue previous calibration?\n"
@@ -152,12 +152,7 @@ class ResultPage(Page):
 
     def on_accept(self):
         laser_triangulation.accept()
-        dL, nL, dR, nR = self.result
-        profile.settings['distance_left'] = dL
-        profile.settings['normal_left'] = nL
-        profile.settings['distance_right'] = dR
-        profile.settings['normal_right'] = nR
-        profile.settings['laser_triangulation_hash'] = calibration_data.md5_hash()
+        calibration_data.save_profile_laser()
         if self.exit_callback is not None:
             self.exit_callback()
         self.plot_panel.clear()
@@ -166,22 +161,17 @@ class ResultPage(Page):
         ret, result = response
 
         if ret:
-            dL = result[0][0]
-            nL = result[0][1]
-            stdL = result[0][2]
-            dR = result[1][0]
-            nR = result[1][1]
-            stdR = result[1][2]
-            points = result[2]
-            self.result = (dL, nL, dR, nR)
+            self.result = result[0]
+
+            text = ""
             np.set_printoptions(formatter={'float': '{:g}'.format})
-            text = ' L: {0} {1}  R: {2} {3}'.format(
-                   round(dL, 3), np.round(nL, 3),
-                   round(dR, 3), np.round(nR, 3))
+            for i,p in result[0].iteritems():
+                text += ' L{0}: {1} {2} '.format(i, round(p[0], 3), np.round(p[1], 3))
             np.set_printoptions()
+
             self.desc_text.SetLabel(text)
             self.plot_panel.clear()
-            self.plot_panel.add((dL, nL, stdL, dR, nR, stdR, points))
+            self.plot_panel.add(result)
             self.plot_panel.Show()
             self.Layout()
             dlg = wx.MessageDialog(
@@ -225,24 +215,23 @@ class LaserTriangulation3DPlot(wx.Panel):
         self.Layout()
 
     def add(self, args):
-        dL, nL, stdL, dR, nR, stdR, points = args
+        planes, points = args
+        colors = [(255,0,0), (0,255,255), (255,255,0), (0,0,255)]
+        colors = (np.array(colors)/255).astype(np.float32).tolist()
 
-        p = points[0][np.random.randint(points[0].shape[0], size=100), :]
-        self.ax.scatter(p[:,0], p[:,2], p[:,1], c='r', marker='.')
+        for i,pts in points.iteritems():
+            p = pts.vertexes[np.random.randint(pts.vertex_count, size=100), :]
+            self.ax.scatter(p[:,0], p[:,2], p[:,1], c=[colors[i]], marker='.')
 
-        p = points[1][np.random.randint(points[1].shape[0], size=100), :]
-        self.ax.scatter(p[:,0], p[:,2], p[:,1], c='b', marker='.')
+        for i,plane in planes.iteritems():
+            r = np.cross(np.array([0, 0, 1]), plane[1])
+            s = np.cross(r, plane[1])
+            R = np.array([r, s, plane[1]])
+            p = plane[0] * plane[1]
+            self.addPlane(R, p)
+            self.ax.text(p[0], p[2], p[1], str(round(plane[2], 5)), fontsize=15)
 
-        rL = np.cross(np.array([0, 0, 1]), nL)
-        sL = np.cross(rL, nL)
-        RL = np.array([rL, sL, nL])
 
-        rR = np.cross(np.array([0, 0, 1]), nR)
-        sR = np.cross(rR, nR)
-        RR = np.array([rR, sR, nR])
-
-        self.addPlane(RL, dL * nL)
-        self.addPlane(RR, dR * nR)
 
         self.ax.plot([0, 50], [0, 0], [0, 0], linewidth=2.0, color='red')
         self.ax.plot([0, 0], [0, 0], [0, 50], linewidth=2.0, color='green')
@@ -251,9 +240,6 @@ class LaserTriangulation3DPlot(wx.Panel):
         self.ax.set_xlabel('X')
         self.ax.set_ylabel('Z')
         self.ax.set_zlabel('Y')
-
-        self.ax.text(-100, 0, 0, str(round(stdL, 5)), fontsize=15)
-        self.ax.text(100, 0, 0, str(round(stdR, 5)), fontsize=15)
 
         self.ax.set_xlim(-150, 150)
         self.ax.set_ylim(0, 400)
