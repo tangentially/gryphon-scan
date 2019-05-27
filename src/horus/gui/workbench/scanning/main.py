@@ -17,7 +17,7 @@ from horus.gui.engine import driver, image_capture, laser_segmentation, calibrat
 from horus.gui.workbench.workbench import Workbench
 from horus.gui.workbench.scanning.view_page import ViewPage
 from horus.gui.workbench.scanning.panels import ScanParameters, RotatingPlatform, \
-    PointCloudROI, PointCloudColor, Photogrammetry
+    PointCloudROI, PointCloudColor, Photogrammetry, MeshCorrection
 
 
 class ScanningWorkbench(Workbench):
@@ -58,6 +58,7 @@ class ScanningWorkbench(Workbench):
         self.add_panel('point_cloud_roi', PointCloudROI)
         self.add_panel('point_cloud_color', PointCloudColor)
         self.add_panel('photogrammetry', Photogrammetry)
+        self.add_panel('mesh_correction',MeshCorrection)
 
     def add_pages(self):
         self.add_page('view_page', ViewPage(self, self.get_image))

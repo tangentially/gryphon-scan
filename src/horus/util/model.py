@@ -100,7 +100,7 @@ class Mesh(object):
     A "VBO" can be associated with this object, which is used for rendering this object.
     """
 
-    def __init__(self, obj):
+    def __init__(self, obj = None):
         self.vertexes = np.zeros((0, 3), np.float32)
         self.vertexes_meta = np.empty((0, 2), 'O')
         self.colors = np.zeros((0, 3), np.uint8)
@@ -180,4 +180,25 @@ class Mesh(object):
 
     def get_vertexes(self):
         return self.vertexes[0:self.vertex_count]
+
+    def copy(self, mesh):
+        self.vertexes      = np.copy(mesh.vertexes)
+        self.vertexes_meta = np.copy(mesh.vertexes_meta)
+        self.colors        = np.copy(mesh.colors)
+        self.normal        = np.copy(mesh.normal)
+        self.vertex_count  = mesh.vertex_count
+
+        self.vbo = None
+        self._obj = mesh._obj
+        self.current_cloud_index = mesh.current_cloud_index
+        if mesh.metadata is not None:
+            self.metadata = mesh.metadata.copy()
+
+        return self
+
+    def clear_vbo(self):
+        if self.vbo is not None:
+            self.vbo.release()
+            self.vbo = None
+
 

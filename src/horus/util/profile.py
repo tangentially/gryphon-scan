@@ -636,7 +636,7 @@ class Settings(collections.MutableMapping):
                     unicode, u'scan_parameters',
                     possible_values=(u'scan_parameters', u'rotating_platform',
                                      u'point_cloud_roi', u'point_cloud_color', 
-                                     u'photogrammetry')))
+                                     u'photogrammetry', u'mesh_correction')))
 
         self._add_setting(
             Setting('view_scanning_panel', _('View scanning panel'), 'preferences', bool, False))
@@ -714,6 +714,16 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('ph_save_divider', 'Save every N\'th frame', 'preferences', int, 2, min_value=1, max_value=9999))
 
+
+        # ------------- Mesh Correction ---------------
+        self._add_setting(
+            Setting('mesh_correction_offset', _('Center Offset (model space)'), 'no_settings',
+                    np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
+
+        self._add_setting(
+            Setting('mesh_correction_apply', _('Apply'), 'no_settings', unicode, u''))
+        self._add_setting(
+            Setting('mesh_correction_reset', _('Reset'), 'no_settings', unicode, u''))
 
         # ----------- Engine ----------
         self._add_setting(
