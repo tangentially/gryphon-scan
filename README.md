@@ -189,6 +189,15 @@ The Z coordinate (depth) mostly affect clouds rotation artifacts
 <p><img height="300px" src="https://github.com/nightgryphon/gryphon-scan/raw/develop/doc/images/platform_offset_z-.png"> <img  height="300px" src="https://github.com/nightgryphon/gryphon-scan/raw/develop/doc/images/platform_offset_z+.png"></p>
 
 
+### Model correction tool  
+You can manually adjust model after scan or load and correct existing .ply. 
+Tool allow to apply platform center offset to manually compensate calibration error. 
+Also you can do a test scan and manually find offset to adjust platform calibration for further scans.  
+To adjust saved .ply it has to be saved with Gryphon Scan and contain scanning metadata. 
+
+<p><img height="300px" src="https://github.com/nightgryphon/gryphon-scan/raw/develop/doc/images/ScanCorrection_in.png"> <img  height="300px" src="https://github.com/nightgryphon/gryphon-scan/raw/develop/doc/images/ScanCorrection_out.png"></p>
+
+
 ------------------------------------------
 
 ## Capture performance 
