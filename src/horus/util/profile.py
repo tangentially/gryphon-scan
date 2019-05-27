@@ -188,13 +188,40 @@ class Settings(collections.MutableMapping):
 
     def _initialize_settings(self):
 
-        # -- Scan Settings
+        # ============== CONNECTION Preferences ========
 
+        self._add_setting(
+            Setting('serial_name', _('Serial name'), 'preferences', unicode, u''))
+        self._add_setting(
+            Setting('baud_rate', _('Baud rate'), 'preferences', int, 115200,
+                    possible_values=(9600, 14400, 19200, 38400, 57600, 115200)))
+        self._add_setting(
+            Setting('camera_id', _('Camera ID'), 'preferences', unicode, u''))
+        self._add_setting(
+            Setting('board', _('Board'), 'preferences', unicode, u'BT ATmega328',
+                    possible_values=(u'Arduino Uno', u'BT ATmega328')))
+        self._add_setting(
+            Setting('firmware_string', 'Firmware version string', 'preferences', unicode, u"Horus 0.2 ['$' for help]"))
+        self._add_setting(
+            Setting('init_string', 'Board init string', 'preferences', unicode, u''))
+        self._add_setting(
+            Setting('invert_motor', _('Invert motor'), 'preferences', bool, False))
+        self._add_setting(
+            Setting('language', _('Language'), 'preferences', unicode, u'English',
+                    possible_values=(u'English', u'Español', u'Français',
+                                     u'Deutsch', u'Italiano', u'Português'),
+                    tooltip=_('Change the language of Horus. '
+                              'Switching language will require a program restart')))
+
+
+        # ========== Camera profiles ===========
         # Hack to translate combo boxes:
         _('Very high')
         _('High')
         _('Medium')
         _('Low')
+
+        # ------- Control -----------
         self._add_setting(
             Setting('luminosity', _('Luminosity'), 'profile_settings',
                     unicode, u'Medium', possible_values=(u'High', u'Medium', u'Low')))
@@ -217,134 +244,7 @@ class Settings(collections.MutableMapping):
             Setting('light2_control', _('Lamp 2 brightness'), 'profile_settings',
                     int, 0, min_value=0, max_value=255))
 
-
-        self._add_setting(
-            Setting('light1_texture_scanning', _('Lamp 1 brightness'), 'profile_settings',
-                    int, 0, min_value=0, max_value=255))
-        self._add_setting(
-            Setting('light2_texture_scanning', _('Lamp 2 brightness'), 'profile_settings',
-                    int, 0, min_value=0, max_value=255))
-
-        self._add_setting(
-            Setting('light1_laser_scanning', _('Lamp 1 brightness'), 'profile_settings',
-                    int, 0, min_value=0, max_value=255))
-        self._add_setting(
-            Setting('light2_laser_scanning', _('Lamp 2 brightness'), 'profile_settings',
-                    int, 0, min_value=0, max_value=255))
-
-        self._add_setting(
-            Setting('light1_pattern_calibration', _('Lamp 1 brightness'), 'profile_settings',
-                    int, 0, min_value=0, max_value=255))
-        self._add_setting(
-            Setting('light2_pattern_calibration', _('Lamp 2 brightness'), 'profile_settings',
-                    int, 0, min_value=0, max_value=255))
-
-        self._add_setting(
-            Setting('light1_laser_calibration', _('Lamp 1 brightness'), 'profile_settings',
-                    int, 0, min_value=0, max_value=255))
-        self._add_setting(
-            Setting('light2_laser_calibration', _('Lamp 2 brightness'), 'profile_settings',
-                    int, 0, min_value=0, max_value=255))
-
-        self._add_setting(
-            Setting('frame_rate', _('Frame rate'), 'profile_settings',
-                    int, 30, possible_values=(30, 25, 20, 15, 10, 5)))
-        self._add_setting(
-            Setting('motor_step_control', _(u'Step (º)'), 'profile_settings',
-                    float, 90.0))
-        self._add_setting(
-            Setting('motor_speed_control', _(u'Speed (º/s)'), 'profile_settings',
-                    float, 200.0, min_value=1.0, max_value=1000.0))
-        self._add_setting(
-            Setting('motor_acceleration_control', _(u'Acceleration (º/s²)'), 'profile_settings',
-                    float, 200.0, min_value=1.0, max_value=1000.0))
-
-        self._add_setting(
-            Setting('current_panel_control', u'camera_control', 'profile_settings',
-                    unicode, u'camera_control',
-                    possible_values=(u'camera_control', u'laser_control',
-                                     u'ldr_value', u'motor_control', u'gcode_control')))
-
-        # Hack to translate combo boxes:
-        _('Texture')
-        _('Laser')
-        self._add_setting(
-            Setting('capture_mode_scanning', _('Capture mode'), 'profile_settings',
-                    unicode, u'Texture', possible_values=(u'Texture', u'Laser')))
-
-        self._add_setting(
-            Setting('brightness_texture_scanning', _('Brightness'), 'profile_settings',
-                    int, 128, min_value=0, max_value=255))
-        self._add_setting(
-            Setting('contrast_texture_scanning', _('Contrast'), 'profile_settings',
-                    int, 32, min_value=0, max_value=255))
-        self._add_setting(
-            Setting('saturation_texture_scanning', _('Saturation'), 'profile_settings',
-                    int, 50, min_value=0, max_value=255))
-        self._add_setting(
-            Setting('exposure_texture_scanning', _('Exposure'), 'profile_settings',
-                    int, 16, min_value=1, max_value=64))
-#        self._add_setting(
-#            Setting('light_texture_scanning', _('Lamps'), 'profile_settings',
-#                    np.ndarray, np.ndarray(shape=(2), buffer=np.array([0, 0])) ))
-
-        self._add_setting(
-            Setting('brightness_laser_scanning', _('Brightness'), 'profile_settings',
-                    int, 0, min_value=0, max_value=255))
-        self._add_setting(
-            Setting('contrast_laser_scanning', _('Contrast'), 'profile_settings',
-                    int, 100, min_value=0, max_value=255))
-        self._add_setting(
-            Setting('saturation_laser_scanning', _('Saturation'), 'profile_settings',
-                    int, 100, min_value=0, max_value=255))
-        self._add_setting(
-            Setting('exposure_laser_scanning', _('Exposure'), 'profile_settings',
-                    int, 8, min_value=1, max_value=64))
-#        self._add_setting(
-#            Setting('light_laser_scanning', _('Lamps'), 'profile_settings',
-#                    np.ndarray, np.ndarray(shape=(2), buffer=np.array([0, 0])) ))
-
-        self._add_setting(
-            Setting('remove_background_scanning', _('Remove background'),
-                    'profile_settings', bool, True))
-        self._add_setting(
-            Setting('draw_line_scanning', _('Draw line'), 'profile_settings', bool, True))
-        self._add_setting(
-            Setting('laser_color_detector_scanning', _('Laser color detector'), 'profile_settings',
-                    unicode, u'R (HSV)',
-                    possible_values=(u'R (RGB)', u'G (RGB)', u'B (RGB)', u'R (HSV)', u'Cr (YCrCb)', u'U (YUV)')))
-        self._add_setting(
-            Setting('threshold_enable_scanning', _('Enable threshold'),
-                    'profile_settings', bool, True))
-        self._add_setting(
-            Setting('threshold_value_scanning', _('Threshold'), 'profile_settings',
-                    int, 50, min_value=0, max_value=255))
-        self._add_setting(
-            Setting('blur_enable_scanning', _('Enable blur'),
-                    'profile_settings', bool, True))
-        self._add_setting(
-            Setting('blur_value_scanning', _('Blur'), 'profile_settings',
-                    int, 2, min_value=0, max_value=10))
-        self._add_setting(
-            Setting('window_enable_scanning', _('Enable window'),
-                    'profile_settings', bool, True))
-        self._add_setting(
-            Setting('window_value_scanning', _('Window'), 'profile_settings',
-                    int, 8, min_value=0, max_value=30))
-        self._add_setting(
-            Setting('refinement_scanning', _('Refinement'), 'profile_settings',
-                    unicode, u'SGF',
-                    possible_values=(u'None', u'SGF')))
-        _('Open')
-        _('Enable open')
-
-        # Hack to translate combo boxes:
-        _('Pattern')
-        _('Laser')
-        self._add_setting(
-            Setting('capture_mode_calibration', _('Capture mode'), 'profile_settings',
-                    unicode, u'Pattern', possible_values=(u'Pattern', u'Laser')))
-
+        # -------- Calibration --------
         self._add_setting(
             Setting('brightness_pattern_calibration', _('Brightness'), 'profile_settings',
                     int, 128, min_value=0, max_value=255))
@@ -357,9 +257,12 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('exposure_pattern_calibration', _('Exposure'), 'profile_settings',
                     int, 16, min_value=1, max_value=64))
-#        self._add_setting(
-#            Setting('light_pattern_calibration', _('Lamps'), 'profile_settings',
-#                    np.ndarray, np.ndarray(shape=(2), buffer=np.array([0, 0])) ))
+        self._add_setting(
+            Setting('light1_pattern_calibration', _('Lamp 1 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('light2_pattern_calibration', _('Lamp 2 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
 
         self._add_setting(
             Setting('brightness_laser_calibration', _('Brightness'), 'profile_settings',
@@ -373,16 +276,90 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('exposure_laser_calibration', _('Exposure'), 'profile_settings',
                     int, 8, min_value=1, max_value=64))
-#        self._add_setting(
-#            Setting('light_laser_calibration', _('Lamps'), 'profile_settings',
-#                    np.ndarray, np.ndarray(shape=(2), buffer=np.array([0, 0])) ))
+        self._add_setting(
+            Setting('light1_laser_calibration', _('Lamp 1 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('light2_laser_calibration', _('Lamp 2 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
 
         self._add_setting(
             Setting('remove_background_calibration', _('Remove background'),
                     'profile_settings', bool, True))
 
+        # ------- Scanning ------
         self._add_setting(
-            Setting('draw_line_calibration', _('Draw line'), 'profile_settings', bool, True))
+            Setting('brightness_texture_scanning', _('Brightness'), 'profile_settings',
+                    int, 128, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('contrast_texture_scanning', _('Contrast'), 'profile_settings',
+                    int, 32, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('saturation_texture_scanning', _('Saturation'), 'profile_settings',
+                    int, 50, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('exposure_texture_scanning', _('Exposure'), 'profile_settings',
+                    int, 16, min_value=1, max_value=64))
+        self._add_setting(
+            Setting('light1_texture_scanning', _('Lamp 1 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('light2_texture_scanning', _('Lamp 2 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+
+
+        self._add_setting(
+            Setting('brightness_laser_scanning', _('Brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('contrast_laser_scanning', _('Contrast'), 'profile_settings',
+                    int, 100, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('saturation_laser_scanning', _('Saturation'), 'profile_settings',
+                    int, 100, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('exposure_laser_scanning', _('Exposure'), 'profile_settings',
+                    int, 8, min_value=1, max_value=64))
+        self._add_setting(
+            Setting('light1_laser_scanning', _('Lamp 1 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('light2_laser_scanning', _('Lamp 2 brightness'), 'profile_settings',
+                    int, 0, min_value=0, max_value=255))
+
+        self._add_setting(
+            Setting('remove_background_scanning', _('Remove background'),
+                    'profile_settings', bool, True))
+
+
+        # ============ Video flush profiles ==============
+        # [ texture, laser, pattern, change mode ]
+        # - Linux
+        self._add_setting(
+            Setting('flush_linux', 'Flush Linux', 'preferences',
+                    np.ndarray, np.ndarray(shape=(4,), dtype=int, buffer=np.array([3, 2, 3, 0]))))
+        self._add_setting(
+            Setting('flush_stream_linux', 'Flush stream Linux', 'preferences',
+                    np.ndarray, np.ndarray(shape=(4,), dtype=int, buffer=np.array([0, 3, 3, 0]))))
+        # - Darwin
+        self._add_setting(
+            Setting('flush_darwin', 'Flush Darwin', 'preferences',
+                    np.ndarray, np.ndarray(shape=(4,), dtype=int, buffer=np.array([4, 3, 4, 0]))))
+        self._add_setting(
+            Setting('flush_stream_darwin', 'Flush stream Darwin', 'preferences',
+                    np.ndarray, np.ndarray(shape=(4,), dtype=int, buffer=np.array([0, 3, 3, 0]))))
+        # - Windows
+        self._add_setting(
+            Setting('flush_windows', 'Flush Windows', 'preferences',
+                    np.ndarray, np.ndarray(shape=(4,), dtype=int, buffer=np.array([4, 3, 4, 0]))))
+        self._add_setting(
+            Setting('flush_stream_windows', 'Flush stream Windows', 'preferences',
+                    np.ndarray, np.ndarray(shape=(4,), dtype=int, buffer=np.array([0, 3, 3, 0]))))
+
+
+        # ========== Segmentation profiles ===========
+
+        # -------- Calibration --------
         self._add_setting(
             Setting('laser_color_detector_calibration', _('Laser color detector'), 'profile_settings',
                     unicode, u'R (HSV)',
@@ -410,80 +387,57 @@ class Settings(collections.MutableMapping):
                     unicode, u'RANSAC',
                     possible_values=(u'None', u'SGF', u'RANSAC')))
 
+        # -------- Scanning --------
         self._add_setting(
-            Setting('current_video_mode_adjustment', u'Texture', 'profile_settings',
-                    unicode, u'Texture',
-                    possible_values=(u'Texture', u'Pattern', u'Laser', u'Gray')))
+            Setting('laser_color_detector_scanning', _('Laser color detector'), 'profile_settings',
+                    unicode, u'R (HSV)',
+                    possible_values=(u'R (RGB)', u'G (RGB)', u'B (RGB)', u'R (HSV)', u'Cr (YCrCb)', u'U (YUV)')))
+        self._add_setting(
+            Setting('threshold_enable_scanning', _('Enable threshold'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('threshold_value_scanning', _('Threshold'), 'profile_settings',
+                    int, 50, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('blur_enable_scanning', _('Enable blur'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('blur_value_scanning', _('Blur'), 'profile_settings',
+                    int, 2, min_value=0, max_value=10))
+        self._add_setting(
+            Setting('window_enable_scanning', _('Enable window'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('window_value_scanning', _('Window'), 'profile_settings',
+                    int, 8, min_value=0, max_value=30))
+        self._add_setting(
+            Setting('refinement_scanning', _('Refinement'), 'profile_settings',
+                    unicode, u'SGF',
+                    possible_values=(u'None', u'SGF')))
+
+
+        # ==================== CONTROL workbench ================
 
         self._add_setting(
-            Setting('current_panel_adjustment', u'scan_capture', 'profile_settings',
-                    unicode, u'scan_capture',
-                    possible_values=(u'scan_capture', u'scan_segmentation',
-                                     u'calibration_capture', u'calibration_segmentation')))
-
-
-        # ---------- Scan settings ----------
+            Setting('current_panel_control', u'camera_control', 'profile_settings',
+                    unicode, u'camera_control',
+                    possible_values=(u'camera_control', u'laser_control',
+                                     u'ldr_value', u'motor_control', u'gcode_control')))
 
         self._add_setting(
-            Setting('texture_mode', _('Texture'), 'profile_settings', 
-                    unicode, u'Texture',
-                    possible_values=(u'Flat color', u'Multi color', u'Capture', u'Laser BG')))
+            Setting('frame_rate', _('Frame rate'), 'profile_settings',
+                    int, 30, possible_values=(30, 25, 20, 15, 10, 5)))
 
         self._add_setting(
-            Setting('point_cloud_color', _('Cloud color'), 'profile_settings',
-                    list, [170,170,170]))
+            Setting('motor_step_control', _(u'Step (º)'), 'profile_settings',
+                    float, 90.0))
         self._add_setting(
-            Setting('point_cloud_color_l', _('Left color'), 'profile_settings',
-                    list, [255,0,0]))
-        self._add_setting(
-            Setting('point_cloud_color_r', _('Right color'), 'profile_settings',
-                    list, [0,255,255]))
-
-        # Hack to translate combo boxes:
-        _('Left')
-        _('Right')
-        _('Both')
-        self._add_setting(
-            Setting('use_laser', _('Use laser'), 'profile_settings',
-                    unicode, u'Both', possible_values=(u'Left', u'Right', u'Both')))
-
-        self._add_setting(
-            Setting('motor_step_scanning', _(u'Step (º)'), 'profile_settings',
-                    float, 0.45))
-        self._add_setting(
-            Setting('motor_speed_scanning', _(u'Speed (º/s)'), 'profile_settings',
+            Setting('motor_speed_control', _(u'Speed (º/s)'), 'profile_settings',
                     float, 200.0, min_value=1.0, max_value=1000.0))
         self._add_setting(
-            Setting('motor_acceleration_scanning', _(u'Acceleration (º/s²)'), 'profile_settings',
+            Setting('motor_acceleration_control', _(u'Acceleration (º/s²)'), 'profile_settings',
                     float, 200.0, min_value=1.0, max_value=1000.0))
 
-        self._add_setting(
-            Setting('show_center', _('Show center'), 'profile_settings', bool, True))
-        self._add_setting(
-            Setting('use_roi', _('Use ROI'), 'profile_settings', bool, False))
-        self._add_setting(
-            Setting('roi_diameter', _('Diameter (mm)'), 'profile_settings',
-                    int, 300, min_value=0, max_value=350))
-        self._add_setting(
-            Setting('roi_height', _('Height (mm)'), 'profile_settings',
-                    int, 400, min_value=0, max_value=350))
-
-        self._add_setting(
-            Setting('scan_sleep', _(u'Wait milliseconds after each scan capture step'), 'profile_settings',
-                    float, 0.0, min_value=0.0, max_value=1000.0))
-
-        self._add_setting(
-            Setting('scan_sync_threads', _('Synchronize capture and process threads'),
-                    'profile_settings', bool, False))
-
-        # Hack to translate combo boxes:
-        _('Texture')
-        _('Laser')
-        _('Gray')
-        _('Line')
-        self._add_setting(
-            Setting('video_scanning', _('Video'), 'profile_settings',
-                    unicode, u'Texture', possible_values=(u'Texture', u'Laser', u'Gray', u'Line')))
 
         self._add_setting(
             Setting('save_image_button', _('Save image'), 'no_settings', unicode, u''))
@@ -501,15 +455,52 @@ class Settings(collections.MutableMapping):
             Setting('gcode_gui', _('Send'), 'no_settings', unicode, u''))
         self._add_setting(
             Setting('ldr_value', _('Send'), 'no_settings', unicode, u''))
-        self._add_setting(
-            Setting('autocheck_button', _('Perform autocheck'), 'no_settings', unicode, u''))
-        self._add_setting(
-            Setting('set_resolution_button', _('Set resolution'), 'no_settings', unicode, u''))
-        self._add_setting(
-            Setting('auto_resolution', _('Use MAX resolution'), 'no_settings', bool, False))
 
-        # -- Calibration Settings
 
+
+        # ==================== ADJUSTMENT workbench ================
+
+        self._add_setting(
+            Setting('current_panel_adjustment', u'scan_capture', 'profile_settings',
+                    unicode, u'scan_capture',
+                    possible_values=(u'scan_capture', u'scan_segmentation',
+                                     u'calibration_capture', u'calibration_segmentation')))
+
+        # Hack to translate combo boxes:
+        _('Pattern')
+        _('Laser')
+        self._add_setting(
+            Setting('current_video_mode_adjustment', u'Texture', 'profile_settings',
+                    unicode, u'Texture',
+                    possible_values=(u'Texture', u'Pattern', u'Laser', u'Gray')))
+
+        _('Texture')
+        _('Laser')
+        self._add_setting(
+            Setting('capture_mode_scanning', _('Capture mode'), 'profile_settings',
+                    unicode, u'Texture', possible_values=(u'Texture', u'Laser')))
+        self._add_setting(
+            Setting('draw_line_scanning', _('Draw line'), 'profile_settings', bool, True))
+
+        self._add_setting(
+            Setting('capture_mode_calibration', _('Capture mode'), 'profile_settings',
+                    unicode, u'Pattern', possible_values=(u'Pattern', u'Laser')))
+        self._add_setting(
+            Setting('draw_line_calibration', _('Draw line'), 'profile_settings', bool, True))
+
+
+
+        # ==================== CALIBRATION workbench ================
+
+        self._add_setting(
+            Setting('current_panel_calibration', u'pattern_settings', 'profile_settings',
+                    unicode, u'pattern_settings',
+                    possible_values=(u'pattern_settings', u'camera_intrinsics',
+                                     u'scanner_autocheck', u'rotating_platform_settings',
+                                     u'laser_triangulation', u'platform_extrinsics',
+                                     u'video_settings'))) #, u'cloud_correction')))
+
+        # ----- Pattern Settings ---------
         self._add_setting(
             Setting('pattern_rows', _('Pattern rows'), 'calibration_settings',
                     int, 6, min_value=2, max_value=50))
@@ -535,6 +526,11 @@ class Settings(collections.MutableMapping):
             Setting('pattern_border_b', _('Border Bottom (mm)'), 'calibration_settings',
                     float, 5.0, min_value=0.0))
 
+        # ----- Scanner Autocheck ---------
+        self._add_setting(
+            Setting('autocheck_button', _('Perform autocheck'), 'no_settings', unicode, u''))
+
+        # ----- Rotating Platform ---------
         self._add_setting(
             Setting('motor_step_calibration', _(u'Step (º)'), 'calibration_settings',
                     float, 4.5))
@@ -546,17 +542,44 @@ class Settings(collections.MutableMapping):
                     'calibration_settings', float, 200.0, min_value=1.0, max_value=1000.0))
 
         self._add_setting(
+            Setting('after_calibration_position', _('Platform position after calibration'), 'calibration_settings',
+                    unicode, u'Return', possible_values=(u'Keep', u'Return', u'Perpendicular')))
+
+        # ----- Laser Triangulation ---------
+        self._add_setting(
+            Setting('distance_left', _('Distance left (mm)'), 'calibration_settings', float, 0.0))
+        self._add_setting(
+            Setting('normal_left', _('Normal left'), 'calibration_settings',
+                    np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
+
+        self._add_setting(
+            Setting('distance_right', _('Distance right (mm)'), 'calibration_settings', float, 0.0))
+        self._add_setting(
+            Setting('normal_right', _('Normal right'), 'calibration_settings',
+                    np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
+
+        self._add_setting(
+            Setting('laser_triangulation_hash', '', 'calibration_settings', unicode, u''))
+
+        self._add_setting(
             Setting('laser_calibration_angles', _('Laser on pattern visibility angle ranges'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(2, 2), buffer=np.array([[-90.0, 90.0],
                                                                           [-90.0, 90.0]]))))
 
+        # ----- Platform extrinsics ---------
         self._add_setting(
-            Setting('after_calibration_position', _('Platform position after calibration'), 'calibration_settings',
-                    unicode, u'Return', possible_values=(u'Keep', u'Return', u'Perpendicular')))
+            Setting('rotation_matrix', _('Rotation matrix'), 'calibration_settings',
+                    np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[0.0, 0.0, 0.0],
+                                                                          [0.0, 0.0, 0.0],
+                                                                          [0.0, 0.0, 0.0]]))))
+        self._add_setting(
+            Setting('translation_vector', _('Translation vector (mm)'), 'calibration_settings',
+                    np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
 
         self._add_setting(
-            Setting('adjust_laser', _('Adjust laser'), 'calibration_settings', bool, True))
+            Setting('platform_extrinsics_hash', '', 'calibration_settings', unicode, u''))
 
+        # ----- Video settings ---------
         self._add_setting(
             Setting('camera_width', _('Width'), 'calibration_settings',
                     int, -1, min_value=-1, max_value=10000))
@@ -574,7 +597,12 @@ class Settings(collections.MutableMapping):
             Setting('camera_hflip', _('Horizontal flip'), 'calibration_settings', bool, True))
         self._add_setting(
             Setting('camera_vflip', _('Vertical flip'), 'calibration_settings', bool, False))
+        self._add_setting(
+            Setting('set_resolution_button', _('Set resolution'), 'no_settings', unicode, u''))
+        self._add_setting(
+            Setting('auto_resolution', _('Use MAX resolution'), 'no_settings', bool, False))
 
+        # ----- Camera intrinsics ---------
         self._add_setting(
             Setting('camera_matrix', _('Camera matrix'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1430.0, 0.0, 480.0],
@@ -600,58 +628,105 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('apply_new_camera_button', _('Apply calculated camera data'), 'no_settings', unicode, u''))
 
-        # --- Lasers
-        self._add_setting(
-            Setting('distance_left', _('Distance left (mm)'), 'calibration_settings', float, 0.0))
-        self._add_setting(
-            Setting('normal_left', _('Normal left'), 'calibration_settings',
-                    np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
-#        self._add_setting(
-#            Setting('cloud_correction_left', _('Correction matrix left'), 'calibration_settings',
-#                    np.ndarray, np.ndarray(shape=(3, 4), buffer=np.array([[1.0, 0.0, 0.0, 0.0],
-#                                                                          [0.0, 1.0, 0.0, 0.0],
-#                                                                          [0.0, 0.0, 1.0, 0.0]]))))
+
+        # ==================== SCANNING workbench ================
 
         self._add_setting(
-            Setting('distance_right', _('Distance right (mm)'), 'calibration_settings', float, 0.0))
-        self._add_setting(
-            Setting('normal_right', _('Normal right'), 'calibration_settings',
-                    np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
-#        self._add_setting(
-#            Setting('cloud_correction_right', _('Correction matrix right'), 'calibration_settings',
-#                    np.ndarray, np.ndarray(shape=(3, 4), buffer=np.array([[1.0, 0.0, 0.0, 0.0],
-#                                                                          [0.0, 1.0, 0.0, 0.0],
-#                                                                          [0.0, 0.0, 1.0, 0.0]]))))
+            Setting('current_panel_scanning', u'scan_parameters', 'profile_settings',
+                    unicode, u'scan_parameters',
+                    possible_values=(u'scan_parameters', u'rotating_platform',
+                                     u'point_cloud_roi', u'point_cloud_color', 
+                                     u'photogrammetry')))
 
         self._add_setting(
-            Setting('laser_triangulation_hash', '', 'calibration_settings', unicode, u''))
-
-        # --- Turntable
+            Setting('view_scanning_panel', _('View scanning panel'), 'preferences', bool, False))
         self._add_setting(
-            Setting('rotation_matrix', _('Rotation matrix'), 'calibration_settings',
-                    np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[0.0, 0.0, 0.0],
-                                                                          [0.0, 0.0, 0.0],
-                                                                          [0.0, 0.0, 0.0]]))))
+            Setting('view_scanning_video', _('View scanning video'), 'preferences', bool, False))
         self._add_setting(
-            Setting('translation_vector', _('Translation vector (mm)'), 'calibration_settings',
-                    np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
+            Setting('view_scanning_scene', _('View scanning scene'), 'preferences', bool, True))
+
+        # Hack to translate combo boxes:
+        _('Open')
+        _('Enable open')
+
+        # Hack to translate combo boxes:
+        _('Texture')
+        _('Laser')
+        _('Gray')
+        _('Line')
+        self._add_setting(
+            Setting('video_scanning', _('Video'), 'profile_settings',
+                    unicode, u'Texture', possible_values=(u'Texture', u'Laser', u'Gray', u'Line')))
+
+        # ----------- Scan parameters ----------
+        # Hack to translate combo boxes:
+        _('Left')
+        _('Right')
+        _('Both')
+        self._add_setting(
+            Setting('use_laser', _('Use laser'), 'profile_settings',
+                    unicode, u'Both', possible_values=(u'Left', u'Right', u'Both')))
+
+        # ----------- Rotating platform ----------
+        self._add_setting(
+            Setting('motor_step_scanning', _(u'Step (º)'), 'profile_settings',
+                    float, 0.45))
+        self._add_setting(
+            Setting('motor_speed_scanning', _(u'Speed (º/s)'), 'profile_settings',
+                    float, 200.0, min_value=1.0, max_value=1000.0))
+        self._add_setting(
+            Setting('motor_acceleration_scanning', _(u'Acceleration (º/s²)'), 'profile_settings',
+                    float, 200.0, min_value=1.0, max_value=1000.0))
+
+        # ----------- Point cloud ROI ----------
+        self._add_setting(
+            Setting('show_center', _('Show center'), 'profile_settings', bool, True))
+        self._add_setting(
+            Setting('use_roi', _('Use ROI'), 'profile_settings', bool, False))
+        self._add_setting(
+            Setting('roi_diameter', _('Diameter (mm)'), 'profile_settings',
+                    int, 300, min_value=0, max_value=350))
+        self._add_setting(
+            Setting('roi_height', _('Height (mm)'), 'profile_settings',
+                    int, 400, min_value=0, max_value=350))
+
+        # ----------- Point cloud color ----------
+        self._add_setting(
+            Setting('texture_mode', _('Texture'), 'profile_settings', 
+                    unicode, u'Texture',
+                    possible_values=(u'Flat color', u'Multi color', u'Capture', u'Laser BG')))
 
         self._add_setting(
-            Setting('estimated_size', _('Estimated size'), 'calibration_settings',
-                    np.ndarray, np.ndarray(shape=(3,), buffer=np.array([-5.0, 90.0, 320.0]))))
+            Setting('point_cloud_color', _('Cloud color'), 'profile_settings',
+                    list, [170,170,170]))
+        self._add_setting(
+            Setting('point_cloud_color_l', _('Left color'), 'profile_settings',
+                    list, [255,0,0]))
+        self._add_setting(
+            Setting('point_cloud_color_r', _('Right color'), 'profile_settings',
+                    list, [0,255,255]))
+
+        # ------------- Photogrammetry ---------------
+        self._add_setting(
+            Setting('ph_save_enable', _('Save photos'), 'preferences', bool, False))
+        self._add_setting(
+            Setting('ph_save_folder', _('Images folder'), 'preferences', unicode, u'photo/' ))
+        self._add_setting(
+            Setting('ph_save_divider', 'Save every N\'th frame', 'preferences', int, 2, min_value=1, max_value=9999))
+
+
+        # ----------- Engine ----------
+        self._add_setting(
+            Setting('scan_sleep', _(u'Wait milliseconds after each scan capture step'), 'profile_settings',
+                    float, 0.0, min_value=0.0, max_value=1000.0))
 
         self._add_setting(
-            Setting('platform_extrinsics_hash', '', 'calibration_settings', unicode, u''))
+            Setting('scan_sync_threads', _('Synchronize capture and process threads'),
+                    'profile_settings', bool, False))
 
-        self._add_setting(
-            Setting('current_panel_calibration', u'pattern_settings', 'profile_settings',
-                    unicode, u'pattern_settings',
-                    possible_values=(u'pattern_settings', u'camera_intrinsics',
-                                     u'scanner_autocheck', u'rotating_platform_settings',
-                                     u'laser_triangulation', u'platform_extrinsics',
-                                     u'video_settings'))) #, u'cloud_correction')))
 
-        # -- Machine Settings
+
+        # ========== MACHINE Profile ==============
 
         self._add_setting(
             Setting('machine_diameter', _('Machine diameter'), 'machine_settings', int, 304))
@@ -661,6 +736,7 @@ class Settings(collections.MutableMapping):
             Setting('machine_height', _('Machine height'), 'machine_settings', int, 200))
         self._add_setting(
             Setting('machine_depth', _('Machine depth'), 'machine_settings', int, 200))
+
         # Hack to translate combo boxes:
         _('Circular')
         _('Rectangular')
@@ -687,104 +763,40 @@ class Settings(collections.MutableMapping):
             Setting('platform_markers_diameter', 'Platform markers diameter', 'machine_settings', int, 276))
         self._add_setting(
             Setting('platform_markers_z', 'Platform markers draw z offset', 'machine_settings', int, 0))
-        # self._add_setting(
-        #     Setting('roi_width', _('Width (mm)'), 'machine_settings',
-        #             int, 200, min_value=0, max_value=250))
-        # self._add_setting(
-        #     Setting('roi_depth', _('Depth (mm)'), 'machine_settings',
-        #             int, 200, min_value=0, max_value=250))
 
-        self._add_setting(
-            Setting('current_panel_scanning', u'scan_parameters', 'profile_settings',
-                    unicode, u'scan_parameters',
-                    possible_values=(u'scan_parameters', u'rotating_platform',
-                                     u'point_cloud_roi', u'point_cloud_color', 
-                                     u'photogrammetry')))
-
-        # -- Preferences
-
-        self._add_setting(
-            Setting('serial_name', _('Serial name'), 'preferences', unicode, u''))
-        self._add_setting(
-            Setting('baud_rate', _('Baud rate'), 'preferences', int, 115200,
-                    possible_values=(9600, 14400, 19200, 38400, 57600, 115200)))
-        self._add_setting(
-            Setting('camera_id', _('Camera ID'), 'preferences', unicode, u''))
-        self._add_setting(
-            Setting('board', _('Board'), 'preferences', unicode, u'BT ATmega328',
-                    possible_values=(u'Arduino Uno', u'BT ATmega328')))
-        self._add_setting(
-            Setting('firmware_string', 'Firmware version string', 'preferences', unicode, u"Horus 0.2 ['$' for help]"))
-        self._add_setting(
-            Setting('init_string', 'Board init string', 'preferences', unicode, u''))
-        self._add_setting(
-            Setting('invert_motor', _('Invert motor'), 'preferences', bool, False))
-        self._add_setting(
-            Setting('language', _('Language'), 'preferences', unicode, u'English',
-                    possible_values=(u'English', u'Español', u'Français',
-                                     u'Deutsch', u'Italiano', u'Português'),
-                    tooltip=_('Change the language of Horus. '
-                              'Switching language will require a program restart')))
-
-        # Video flush values
-        # [ texture, laser, pattern, change mode ]
-        # - Linux
-        self._add_setting(
-            Setting('flush_linux', 'Flush Linux', 'preferences',
-                    np.ndarray, np.ndarray(shape=(4,), dtype=int, buffer=np.array([3, 2, 3, 0]))))
-        self._add_setting(
-            Setting('flush_stream_linux', 'Flush stream Linux', 'preferences',
-                    np.ndarray, np.ndarray(shape=(4,), dtype=int, buffer=np.array([0, 3, 3, 0]))))
-        # - Darwin
-        self._add_setting(
-            Setting('flush_darwin', 'Flush Darwin', 'preferences',
-                    np.ndarray, np.ndarray(shape=(4,), dtype=int, buffer=np.array([4, 3, 4, 0]))))
-        self._add_setting(
-            Setting('flush_stream_darwin', 'Flush stream Darwin', 'preferences',
-                    np.ndarray, np.ndarray(shape=(4,), dtype=int, buffer=np.array([0, 3, 3, 0]))))
-        # - Windows
-        self._add_setting(
-            Setting('flush_windows', 'Flush Windows', 'preferences',
-                    np.ndarray, np.ndarray(shape=(4,), dtype=int, buffer=np.array([4, 3, 4, 0]))))
-        self._add_setting(
-            Setting('flush_stream_windows', 'Flush stream Windows', 'preferences',
-                    np.ndarray, np.ndarray(shape=(4,), dtype=int, buffer=np.array([0, 3, 3, 0]))))
 
         self._add_setting(
             Setting('point_size', 'Point size', 'preferences', int, 2, min_value=1, max_value=4))
 
-        # Hack to translate combo boxes:
+
+        # =============== GUI General ================
         self._add_setting(
             Setting('workbench', _('Workbench'), 'preferences', unicode, u'scanning',
                     possible_values=(u'control', u'adjustment', u'calibration', u'scanning')))
+
         self._add_setting(
             Setting('show_welcome', _('Show welcome'), 'preferences', bool, True))
         self._add_setting(
             Setting('check_for_updates', _('Check for updates'), 'preferences', bool, True))
-        self._add_setting(
-            Setting('basic_mode', _('Basic mode'), 'preferences', bool, False))
-        self._add_setting(
-            Setting('view_control_panel', _('View control panel'), 'preferences', bool, True))
-        self._add_setting(
-            Setting('view_control_video', _('View control panel'), 'preferences', bool, True))
-        self._add_setting(
-            Setting('view_adjustment_panel', _('View adjustment panel'),
-                    'preferences', bool, True))
-        self._add_setting(
-            Setting('view_adjustment_video', _('View adjustment video'),
-                    'preferences', bool, True))
-        self._add_setting(
-            Setting('view_calibration_panel', _('View calibration panel'),
-                    'preferences', bool, True))
-        self._add_setting(
-            Setting('view_calibration_video', _('View calibration video'),
-                    'preferences', bool, True))
-        self._add_setting(
-            Setting('view_scanning_panel', _('View scanning panel'), 'preferences', bool, False))
-        self._add_setting(
-            Setting('view_scanning_video', _('View scanning video'), 'preferences', bool, False))
-        self._add_setting(
-            Setting('view_scanning_scene', _('View scanning scene'), 'preferences', bool, True))
+
+        #self._add_setting(
+        #    Setting('basic_mode', _('Basic mode'), 'preferences', bool, False))
+        #self._add_setting(
+        #    Setting('view_control_panel', _('View control panel'), 'preferences', bool, True))
+        #self._add_setting(
+        #    Setting('view_control_video', _('View control panel'), 'preferences', bool, True))
+        #self._add_setting(
+        #    Setting('view_adjustment_panel', _('View adjustment panel'),
+        #            'preferences', bool, True))
+        #self._add_setting(
+        #    Setting('view_adjustment_video', _('View adjustment video'),
+        #            'preferences', bool, True))
+        #self._add_setting(
+        #    Setting('view_calibration_panel', _('View calibration panel'),
+        #            'preferences', bool, True))
+        #self._add_setting(
+        #    Setting('view_calibration_video', _('View calibration video'),
+        #            'preferences', bool, True))
 
         self._add_setting(
             Setting('view_mode_advanced', _('Advanced mode'), 'preferences', bool, True))
@@ -800,18 +812,13 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('last_profile', _('Last profile'), 'preferences', unicode, u''))
         self._add_setting(
-            Setting('model_color', _('Model color'), 'preferences', unicode, u'888888'))
+            Setting('model_color', _('Default model color'), 'preferences', unicode, u'888888'))
         self._add_setting(
             Setting('last_clear_log_date', _('Last clear log date'), 'preferences', unicode, u''))
 
-        # Photogrammetry
+        # wizard
         self._add_setting(
-            Setting('ph_save_enable', _('Save photos'), 'preferences', bool, False))
-        self._add_setting(
-            Setting('ph_save_folder', _('Images folder'), 'preferences', unicode, u'photo/' ))
-        self._add_setting(
-            Setting('ph_save_divider', 'Save every N\'th frame', 'preferences', int, 2, min_value=1, max_value=9999))
-
+            Setting('adjust_laser', _('Adjust laser'), 'calibration_settings', bool, True))
 
 
 
