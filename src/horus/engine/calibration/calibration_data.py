@@ -17,13 +17,12 @@ from horus.engine.driver.driver import Driver
 
 class LaserPlane(object):
 
-    def __init__(self):
+    def __init__(self, name):
         self.normal = None
         self.distance = None
-#        self.correction = None
-#        self.correction = np.array([[1.0, 0.0, 0.0, 0.0],
-#                                    [0.0, 1.0, 0.0, 0.0],
-#                                    [0.0, 0.0, 1.0, 0.0]])
+        self.name = name
+        self.calibration_segmentation_profile = 0
+        self.capture_segmentation_profile = 0
 
     def is_empty(self):
         if self.distance is None or self.normal is None:
@@ -31,6 +30,16 @@ class LaserPlane(object):
         if self.distance == 0.0 or np.all(self.normal == 0.0):
             return True
         return False
+
+    def read_profile(self):
+        self.distance = profile.settings['distance_'+self.name]
+        self.normal   = profile.settings['normal_'+self.name]
+
+    def save_profile(self):
+        profile.settings['distance_'+self.name] = self.distance
+        profile.settings['normal_'+self.name]   = self.normal
+
+        profile.settings['laser_triangulation_hash'] = self.md5_hash()
 
 
 @Singleton
@@ -48,7 +57,7 @@ class CalibrationData(object):
 
         self._md5_hash = None
 
-        self.laser_planes = [LaserPlane(), LaserPlane()]
+        self.laser_planes = [LaserPlane('left'), LaserPlane('right')]
         self.platform_rotation = None
         self.platform_translation = None
 
@@ -61,20 +70,14 @@ class CalibrationData(object):
         self.distortion_vector = profile.settings['distortion_vector']
 
     def read_profile_laser(self):
-        self.laser_planes[0].distance = profile.settings['distance_left']
-        self.laser_planes[0].normal = profile.settings['normal_left']
-
-        self.laser_planes[1].distance = profile.settings['distance_right']
-        self.laser_planes[1].normal = profile.settings['normal_right']
+        for l in self.laser_planes:
+            l.read_profile()
 
     def save_profile_laser(self):
-        profile.settings['distance_left'] = self.laser_planes[0].distance
-        profile.settings['normal_left'] = self.laser_planes[0].normal
+        for l in self.laser_planes:
+            l.save_profile()
 
-        profile.settings['distance_right'] = self.laser_planes[1].distance
-        profile.settings['normal_right'] = self.laser_planes[1].normal
-
-        profile.settings['laser_triangulation_hash'] = self.md5_hash()
+        #profile.settings['laser_triangulation_hash'] = self.md5_hash()
 
     def read_profile_platform(self):
         self.platform_rotation = profile.settings['rotation_matrix']

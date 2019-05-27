@@ -22,6 +22,7 @@ class CameraSettings(object):
 
     def __init__(self):
         self.driver = Driver()
+        self.calibration_data = CalibrationData()
 
         self.selected = False
         self.brightness = 0
@@ -31,7 +32,7 @@ class CameraSettings(object):
         # Photo lamps
         self.light = [0,0]
         # Laser capture background
-        self.laser_bg = [None, None]
+        self.laser_bg = [None]*len(self.calibration_data.laser_planes)
         self.laser_bg_enable = False
 
     def set_brightness(self, value):
