@@ -10,7 +10,7 @@ import numpy as np
 
 from horus.util import profile
 
-from horus.gui.engine import pattern, calibration_data, platform_extrinsics, image_capture, image_detection
+from horus.gui.engine import pattern, calibration_data, platform_extrinsics, image_capture, image_detection, aruco_detection
 from horus.gui.util.pattern_distance_window import PatternDistanceWindow
 from horus.engine.calibration.platform_extrinsics import PlatformExtrinsicsError
 
@@ -95,7 +95,7 @@ class PlatformExtrinsicsPages(wx.Panel):
         else:
             image = image_capture.capture_pattern()
             pose = image_detection.detect_pose(image)
-            corners, ids = image_detection.aruco_detect(image)
+            corners, ids = aruco_detection.aruco_detect(image)
             if pose or corners:
                 # start from optimal angle for pattern
                 if pose:

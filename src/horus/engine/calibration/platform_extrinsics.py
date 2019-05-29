@@ -14,7 +14,8 @@ from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
 from horus.gui.util.augmented_view import augmented_draw_pattern
 from horus.util.gryphon_util import rigid_transform_3D, PointOntoLine, capture_precise_corners
-
+#from horus.engine.calibration.calibration_data import calibration_data
+from horus.engine.algorithms.aruco_detection import aruco_detection
 
 import logging
 logger = logging.getLogger(__name__)
@@ -226,7 +227,7 @@ class PlatformExtrinsics(MovingCalibration):
         corners = self.image_detection.detect_corners(image)
         if corners is not None:
             self.use_chessboard = True
-        corners, ids = self.image_detection.aruco_detect(image)
+        corners, ids = aruco_detection.aruco_detect(image)
         if corners:
             self.use_aruco = True
         if not self.use_chessboard and not self.use_aruco:
@@ -327,9 +328,9 @@ class PlatformExtrinsics(MovingCalibration):
         # ============ ARUCO markers ===========
         corners = None
         if self.use_aruco:
-            corners, ids = self.image_detection.aruco_detect(image)
+            corners, ids = aruco_detection.aruco_detect(image)
         if corners is not None:
-            image, rvecs, tvecs = self.image_detection.aruco_draw_markers(image, corners, ids)
+            image, rvecs, tvecs = aruco_detection.aruco_draw_markers(image, corners, ids)
             #print(rvecs.shape)
             tvecs = np.squeeze(tvecs, axis=1)
             print(tvecs.shape)

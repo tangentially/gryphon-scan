@@ -11,8 +11,8 @@ from horus.util import resources
 import numpy as np
 import cv2
 
-from horus.gui.engine import image_capture, image_detection, scanner_autocheck, laser_triangulation, \
-    platform_extrinsics, calibration_data
+from horus.gui.engine import image_capture, image_detection, aruco_detection, scanner_autocheck, \
+    laser_triangulation, platform_extrinsics, calibration_data
 
 from horus.gui.workbench.calibration.pages.page import Page
 from horus.gui.util.image_view import ImageView
@@ -114,9 +114,9 @@ class VideoPage(Page):
                     A = M.T.dot(pose[1].T[0] - P) # A in platform coords
                     cv2.putText(image, "R: "+str(np.round(np.linalg.norm(A[0:2]),2)), (10,160), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 0), lineType=cv2.LINE_AA)
 
-                corners, ids = image_detection.aruco_detect(image)
+                corners, ids = aruco_detection.aruco_detect(image)
                 if corners:
-                    image,_,_ = image_detection.aruco_draw_markers(image, corners, ids)
+                    image,_,_ = aruco_detection.aruco_draw_markers(image, corners, ids)
 
         augmented_draw_platform(image)
         return image

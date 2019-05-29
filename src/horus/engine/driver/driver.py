@@ -64,3 +64,6 @@ class Driver(object):
     def set_callbacks(self, before, after):
         self._before_callback = before
         self._after_callback = after
+
+
+driver = Driver()

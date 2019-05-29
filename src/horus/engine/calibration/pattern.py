@@ -114,3 +114,5 @@ class Pattern(object):
                 return 0.0
         except:
             return 0.0
+
+pattern = Pattern()

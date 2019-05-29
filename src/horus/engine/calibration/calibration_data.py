@@ -165,3 +165,6 @@ class CalibrationData(object):
 
     def md5_hash(self):
         return self._md5_hash
+
+
+calibration_data = CalibrationData()
