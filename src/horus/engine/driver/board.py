@@ -62,6 +62,7 @@ class Board(object):
         self._serial_port = None
         self._is_connected = False
         self._laser_number = 2
+        self._light = [0,0]
 
         self.reset_state();
 
@@ -294,15 +295,28 @@ class Board(object):
 
 
     def set_light(self, idx, brightness):
-        if self._is_connected and \
-           idx < len(self._light) and idx >= 0:
-            self._light[idx] = brightness
-            if self._light[idx] > 255:
-                self._light[idx] = 255
+        if not self._is_connected:
+           return False
 
-            if self._light[idx] > 0:
-                self.parent.board._send_command("M71T"+str(idx+3)+"F" + str(self._light[idx])) # Laser on with brightness
+        try:
+            if self._light[idx] == brightness:
+                return False
+
+            if brightness > 0:
+                if brightness > 255:
+                    brightness = 255
+                self._light[idx] = brightness
+                self.parent.board._send_command("M71T{0}F{1}".format(idx+3, brightness)) # Laser on with brightness
             else:
                 self._light[idx] = 0
-                self.parent.board._send_command("M70T"+str(idx+3)) # Laser off
+                self.parent.board._send_command("M70T{0}".format(idx+3)) # Laser off
+            return True
+        except IndexError:
+            pass
+
+        return False
+
+    def lights_off(self):
+        for i in xrange(len(self._light)):
+            self.set_light(i,0)
 
