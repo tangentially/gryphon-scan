@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # This file is part of the Horus Project
 
-__author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
-__copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
+__author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>, Mikhail Klimushin <gryphon@night-gryphon.ru>'
+__copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L., Copyright (C) 2018-2019 Mikhail Klimushin'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 from horus.util import profile
@@ -53,9 +53,9 @@ class Camera_usb(Camera):
 
         if system == 'Windows':
             self._number_frames_fail = 3
-            self._max_brightness = 1.
-            self._max_contrast = 1.
-            self._max_saturation = 1.
+            self._max_brightness = 255. #1.
+            self._max_contrast   = 255. #1.
+            self._max_saturation = 255. #1.
         elif system == 'Darwin':
             self._number_frames_fail = 3
             self._max_brightness = 255.
@@ -132,6 +132,9 @@ class Camera_usb(Camera):
         if self._capture.isOpened():
             self._is_connected = True
 
+            if profile.settings['camera_capture_before_set']:
+                self._check_video()
+
             # set initial resolution to auto, FPS to 30
             # assume BEFORE any frames captured set resolution and FPS applicable for all backends (?)
             logger.info("  set initial resolution/FPS")
@@ -163,6 +166,7 @@ class Camera_usb(Camera):
             self._check_video()
 
             logger.info("  check adjust exposure/brightness")
+            self.DetectLimits()
             self._check_camera()
 
             #logger.info("  check win driver bug")
@@ -210,10 +214,10 @@ class Camera_usb(Camera):
                 c_exp = exposure >= 1.9
 
             # Check brightness
-            self.set_brightness(2)
+            self.set_brightness(128) #2)
             brightness = self.get_brightness()
             if brightness is not None:
-                c_bri = brightness >= 2
+                c_bri = brightness > 0 #>= 2
         except:
             raise WrongCamera()
 
@@ -284,6 +288,32 @@ class Camera_usb(Camera):
         else:
             return None
 
+    # ------------- Probe limits ----------
+    def DetectPropMax(self, min, max, prop_id):
+        if prop_id is None:
+            return
+        while min < max-1:
+            v=int((min+max)/2)
+            ret = self._capture.set(prop_id, v)
+            if ret:
+                min = v
+            else:
+                max = v
+        return min
+
+    def DetectLimits(self):
+        if not self._is_connected:
+            return
+
+        if system == 'Windows':
+            self._max_brightness = self.DetectPropMax(0, 255, self.CV_CAP_PROP_BRIGHTNESS)
+            self._max_contrast   = self.DetectPropMax(0, 255, self.CV_CAP_PROP_CONTRAST)
+            self._max_exposure   = self.DetectPropMax(-255, 255, self.CV_CAP_PROP_EXPOSURE)
+            self._max_saturation = self.DetectPropMax(0, 255, self.CV_CAP_PROP_SATURATION)
+            print "Max Bri {0} Contr {1} Exp {2} Sat {3}".format(
+                self._max_brightness, self._max_contrast,
+                self._max_exposure, self._max_saturation)
+
     # ------------- Brightness control ------------
     def get_brightness(self):
         if self._is_connected:
@@ -292,7 +322,8 @@ class Camera_usb(Camera):
                 value = ctl.get_val()
             else:
                 value = self._capture.get(self.CV_CAP_PROP_BRIGHTNESS)
-                value *= self._max_brightness
+                #value = value * self._max_brightness
+                value = value * 255. / self._max_brightness
             return value
 
     def set_brightness(self, value):
@@ -304,11 +335,14 @@ class Camera_usb(Camera):
                     ctl = self.controls['UVCC_REQ_BRIGHTNESS_ABS']
                     ctl.set_val(self._line(value, 0, self._max_brightness, ctl.min, ctl.max))
                 else:
-                    value = int(value) / self._max_brightness
+                    #value = int(value) / self._max_brightness
+                    value = value * self._max_brightness / 255.
                     ret = self._capture.set(self.CV_CAP_PROP_BRIGHTNESS, value)
                     if system == 'Linux' and ret:
                         raise InputOutputError()
                 self._updating = False
+                return True
+        return False
 
     # ------------- Contrast control ------------
     def set_contrast(self, value):
@@ -320,11 +354,13 @@ class Camera_usb(Camera):
                     ctl = self.controls['UVCC_REQ_CONTRAST_ABS']
                     ctl.set_val(self._line(value, 0, self._max_contrast, ctl.min, ctl.max))
                 else:
-                    value = int(value) / self._max_contrast
+                    value = value * self._max_contrast / 255.
                     ret = self._capture.set(self.CV_CAP_PROP_CONTRAST, value)
                     if system == 'Linux' and ret:
                         raise InputOutputError()
                 self._updating = False
+                return True
+        return False
 
     # ------------- Saturation control ------------
     def set_saturation(self, value):
@@ -336,11 +372,15 @@ class Camera_usb(Camera):
                     ctl = self.controls['UVCC_REQ_SATURATION_ABS']
                     ctl.set_val(self._line(value, 0, self._max_saturation, ctl.min, ctl.max))
                 else:
-                    value = int(value) / self._max_saturation
+                    value = value * self._max_saturation / 255.
                     ret = self._capture.set(self.CV_CAP_PROP_SATURATION, value)
                     if system == 'Linux' and ret:
                         raise InputOutputError()
-                self._updating = False
+                    if system == 'Windows' and not ret:
+                        print "ERROR Set Exposure {0}".format(value)
+                    self._updating = False
+                return True
+        return False
 
     # ------------- Exposure control ------------
     def get_exposure(self):
@@ -352,6 +392,7 @@ class Camera_usb(Camera):
             elif system == 'Windows':
                 value = self._capture.get(self.CV_CAP_PROP_EXPOSURE)
                 value = 2 ** -value
+                #value = value / self._max_exposure * 64
             else:
                 value = self._capture.get(self.CV_CAP_PROP_EXPOSURE)
                 value *= self._max_exposure
@@ -362,7 +403,7 @@ class Camera_usb(Camera):
             if self._exposure != value or force:
                 self._updating = True
                 self._exposure = value
-                value *= self._luminosity
+                #value *= self._luminosity
                 if value < 1:
                     value = 1
                 if system == 'Darwin' and self.controls is not None:
@@ -373,6 +414,7 @@ class Camera_usb(Camera):
                     self.set_anti_flicker(1)
                 elif system == 'Windows':
                     value = int(round(-math.log(value) / math.log(2)))
+                    #value = value / 64 * self._max_exposure
                     self._capture.set(self.CV_CAP_PROP_EXPOSURE, value)
                 else:
                     value = int(value) / self._max_exposure
@@ -380,10 +422,12 @@ class Camera_usb(Camera):
                     if system == 'Linux' and ret:
                         raise InputOutputError()
                 self._updating = False
+                return True
+        return False
 
     def set_luminosity(self, value):
         Camera.set_luminosity(self, value)
-        self.set_exposure(self._exposure, force=True)
+        return self.set_exposure(self._exposure, force=True)
 
     # ------------- Anti flicker ------------
     def set_anti_flicker(self, value):
@@ -495,7 +539,8 @@ class Camera_usb(Camera):
         if self.parent is not None and \
            not self.parent.unplugged and \
            self.parent.board is not None:
-            self.parent.board.set_light(idx,brightness)
+            return self.parent.board.set_light(idx,brightness)
+        return False
 
     def _success(self):
         self._tries = 0
