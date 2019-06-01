@@ -13,7 +13,8 @@ from horus.gui.engine import driver, pattern, calibration_data, laser_triangulat
 from horus.util import profile, system as sys
 from horus.gui.util.custom_panels import ExpandablePanel, Slider, CheckBox, \
     FloatTextBox, FloatTextBoxArray, FloatLabel, FloatLabelArray, Button, \
-    IntLabel, IntTextBox, ComboBox, Header
+    IntLabel, IntTextBox, ComboBox
+from horus.gui.util.gryphon_controls import Header
 
 
 class PatternSettings(ExpandablePanel):

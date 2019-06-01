@@ -140,8 +140,8 @@ class MainWindow(wx.Frame):
         # Menu Help
         self.menu_help = wx.Menu()
         self.menu_welcome = self.menu_help.Append(wx.ID_ANY, _("Welcome"))
-        if profile.settings['check_for_updates']:
-            self.menu_updates = self.menu_help.Append(wx.ID_ANY, _("Updates"))
+        #if profile.settings['check_for_updates']:
+        #    self.menu_updates = self.menu_help.Append(wx.ID_ANY, _("Updates"))
         self.menu_sources = self.menu_help.Append(wx.ID_ANY, _("Sources"))
         self.menu_about = self.menu_help.Append(wx.ID_ABOUT, _("About"))
         self.menu_bar.Append(self.menu_help, _("Help"))
@@ -180,10 +180,10 @@ class MainWindow(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.on_about, self.menu_about)
         self.Bind(wx.EVT_MENU, self.on_welcome, self.menu_welcome)
-        if profile.settings['check_for_updates']:
-            self.Bind(wx.EVT_MENU, self.on_updates, self.menu_updates)
+        #if profile.settings['check_for_updates']:
+        #    self.Bind(wx.EVT_MENU, self.on_updates, self.menu_updates)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
-            'https://github.com/bqlabs/horus'), self.menu_sources)
+            'https://github.com/nightgryphon/gryphon-scan'), self.menu_sources)
 
     def on_launch_wizard(self, event):
         self.workbench[profile.settings['workbench']].on_close()
@@ -499,16 +499,16 @@ class MainWindow(wx.Frame):
         info = wx.AboutDialogInfo()
         icon = wx.Icon(resources.get_path_for_image("horus.ico"), wx.BITMAP_TYPE_ICO)
         info.SetIcon(icon)
-        info.SetName(u'Horus')
+        info.SetName(u'Horus / Gryphon Scan')
         info.SetVersion(__version__)
-        tech_description = _('Horus is an Open Source 3D Scanner manager')
+        tech_description = _('Gryphon scan is highly customized fork of Horus, an Open Source 3D Scanner manager')
         tech_description += '\nVersion: ' + __version__
         tech_description += '\nDatetime: ' + __datetime__
         tech_description += '\nCommit: ' + __commit__
         info.SetDescription(tech_description)
-        info.SetCopyright(u'(C) 2014-2016 Mundo Reader S.L.')
-        info.SetWebSite(u'http://www.bq.com')
-        info.SetLicence("Horus is free software; you can redistribute it and/or modify it\n"
+        info.SetCopyright(u'(C) 2014-2016 Mundo Reader S.L., (C) 2018-2019 Mikhail Klimushin')
+        info.SetWebSite(u'https://github.com/nightgryphon/gryphon-scan')
+        info.SetLicence("Gryphon Scan / Horus is free software; you can redistribute it and/or modify it\n"
                         "under the terms of the GNU General Public License as published by\n"
                         "the Free Software Foundation; either version 2 of the License,\n"
                         "or (at your option) any later version.\n"
@@ -519,8 +519,8 @@ class MainWindow(wx.Frame):
                         "received a copy of the GNU General Public License along with\n"
                         "File Hunter; if not, write to the Free Software Foundation,\n"
                         "Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA")
-        info.AddDeveloper(u'Jesús Arroyo, Irene Sanz, Jorge Robles')
-        info.AddDocWriter(u'Jesús Arroyo, Ángel Larrañaga')
+        info.AddDeveloper(u'Mikhail Klimushin, Jesús Arroyo, Irene Sanz, Jorge Robles')
+        info.AddDocWriter(u'Mikhail Klimushin, Jesús Arroyo, Ángel Larrañaga')
         info.AddArtist(u'Nestor Toribio')
         info.AddTranslator(u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva, '
                            'Camille Montgolfier, Markus Hoedl, Andrea Fantini, Maria Albuquerque, '

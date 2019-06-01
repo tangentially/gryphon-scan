@@ -17,7 +17,9 @@ from horus.gui.engine import driver, image_capture, laser_segmentation, calibrat
 from horus.gui.workbench.workbench import Workbench
 from horus.gui.workbench.scanning.view_page import ViewPage
 from horus.gui.workbench.scanning.panels import ScanParameters, RotatingPlatform, \
-    PointCloudROI, PointCloudColor, Photogrammetry, MeshCorrection
+    PointCloudROI
+from horus.gui.workbench.scanning.gryphon_panels import PointCloudColor, Photogrammetry, \
+    MeshCorrection
 
 
 class ScanningWorkbench(Workbench):

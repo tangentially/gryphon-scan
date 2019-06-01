@@ -31,6 +31,7 @@ class ExpandableCollection(wx.Panel):
         panel.set_expand_callback(self._expand_callback)
         self.expandable_panels.update({name: panel})
         self.vbox.Add(panel, 0, wx.ALL ^ wx.TOP | wx.EXPAND, 3)
+        return panel
 
     def init_panels_layout(self):
         values = self.expandable_panels.values()
@@ -369,62 +370,6 @@ class ControlPanel(wx.Panel):
             self.engine_callback(value)
 
 
-class Header(ControlPanel):
-
-    def __init__(self, parent, name, tooltip=None):
-        #ControlPanel.__init__(self, parent, name, engine_callback)
-        wx.Panel.__init__(self, parent)
-        self.name = name
-        if tooltip:
-            self.SetToolTip(wx.ToolTip(tooltip))
-
-        self.control = None
-        self.undo_values = []
-        self.engine_callback = None
-        self.append_undo_callback = None
-        self.release_undo_callback = None
-
-        # Elements
-        self.label = wx.StaticText(self, label=name)
-        font = self.label.GetFont()
-        font.SetWeight(wx.BOLD)
-        #font = wx.Font(18, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
-        self.label.SetFont(font)
-        self.line = wx.StaticLine(self)
-
-        # Layout
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(self.label, 0, wx.ALL ^ wx.TOP ^ wx.BOTTOM | wx.EXPAND, 10)
-        vbox.Add(self.line, 1, wx.ALL | wx.EXPAND, 8)
-        self.SetSizer(vbox)
-        self.Layout()
-
-    def append_undo(self):
-        pass
-
-    def release_undo(self):
-        pass
-
-    def release_restore(self):
-        pass
-
-    def undo(self):
-        pass
-
-    def reset_profile(self):
-        pass
-
-    def update_from_profile(self):
-        pass
-
-    def update_to_profile(self, value):
-        pass
-
-    def set_engine(self, value):
-        pass
-
-
-
 class Slider(ControlPanel):
 
     def __init__(self, parent, name, engine_callback=None):
@@ -611,41 +556,6 @@ class TextBox(ControlPanel):
         self.release_restore()
         event.Skip(True)
 
-
-class DirPicker(ControlPanel):
-
-    def __init__(self, parent, name, engine_callback=None):
-        def _bound_SetValue(self, value):
-            self.SetPath(value)
-        
-        def _bound_GetValue(self, value):
-            return self.GetPath()
-
-        ControlPanel.__init__(self, parent, name, engine_callback)
-
-        # Elements
-        label = wx.StaticText(self, size=(140, -1), label=_(self.setting._label))
-        self.control = wx.DirPickerCtrl(self, size=(120, -1), style= wx.DIRP_USE_TEXTCTRL ) #| wx.DIRP_SMALL ) # | wx.DIRP_DIR_MUST_EXIST)
-        self.control.SetPath(profile.settings[self.name])
-        self.control.SetValue = types.MethodType(_bound_SetValue, self.control)
-        self.control.GetValue = types.MethodType(_bound_GetValue, self.control)
-
-        # Layout
-        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox.Add(label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
-        self.hbox.AddStretchSpacer()
-        self.hbox.Add(self.control, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        self.SetSizer(self.hbox)
-        self.Layout()
-
-        # Events
-        self.control.Bind(wx.EVT_DIRPICKER_CHANGED, self._on_dir_changed)
-
-    def _on_dir_changed(self, event):
-        value = self.control.GetPath()
-        self.update_to_profile(value)
-        self.set_engine(value)
-        self.release_restore()
 
 class IntLabel(ControlPanel):
 
@@ -1018,79 +928,5 @@ class ToggleButton(ControlPanel):
 
             if self.engine_callback[function] is not None:
                 self.engine_callback[function]()
-
-class ColorPicker(ControlPanel):
-
-    def __init__(self, parent, name, engine_callback=None):
-        ControlPanel.__init__(self, parent, name, engine_callback)
-        # Elements
-        label = wx.StaticText(self, size=(130, -1), label=_(self.setting._label))
-        self.control = wx.Button(self, label="", size=(150, -1), style=wx.BORDER_NONE)
-        self.update_from_profile()
-
-        # Layout
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
-        hbox.AddStretchSpacer()
-        hbox.Add(self.control, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        self.SetSizer(hbox)
-        self.Layout()
-
-        # Events
-        self.control.Bind(wx.EVT_BUTTON, self._on_btn_click)
-
-
-    def update_from_profile(self):
-        value = self.decode_color(self.setting.value)
-        if self.control is not None:
-            self.set_control_value(value)
-            self.set_engine(value)
-
-    def decode_color(self, value):
-        if isinstance(value, basestring):
-            ret = struct.unpack('BBB', value.decode('hex'))
-        elif isinstance(value, (tuple,list)) and \
-             len(value) == 3 and \
-             all(isinstance(x, int) for x in value):
-           ret = value
-        else:
-           ret = (0,0,0)
-        return ret
-
-
-    def update_to_profile(self, value):
-        if issubclass(self.setting._type, basestring):
-            profile.settings[self.name] = unicode("".join(map(chr, value)).encode('hex'))
-        elif issubclass(self.setting._type, list):
-            profile.settings[self.name] = value
-        elif issubclass(self.setting._type, tuple):
-            profile.settings[self.name] = tuple(value)
-
-
-    def set_control_value(self, value):
-        self.control.SetBackgroundColour(wx.Colour(value[0] & 0xFF, value[1] & 0xFF, value[2] & 0xFF))
-        self.control.SetLabel( "#{0}\n{1} {2} {3}".format("".join(map(chr, value)).encode('hex'), \
-                  value[0] & 0xFF, value[1] & 0xFF, value[2] & 0xFF ) )
-
-    def _on_btn_click(self, event):
-        v = self.pick_color()
-        if v is not None:
-            self.set_control_value(v)
-            self.update_to_profile(v)
-            self.set_engine(v)
-
-    def pick_color(self):
-        ret = None
-        data = wx.ColourData()
-        data.SetColour(self.setting.value)
-        dialog = wx.ColourDialog(self, data)
-        dialog.GetColourData().SetChooseFull(True)
-        if dialog.ShowModal() == wx.ID_OK:
-            data = dialog.GetColourData()
-            ret = list(data.GetColour().Get())
-        dialog.Destroy()
-        return ret
-
-
 
 
