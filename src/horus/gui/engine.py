@@ -10,7 +10,7 @@ from horus.engine.driver.driver import driver
 from horus.engine.scan.ciclop_scan import CiclopScan
 from horus.engine.scan.current_video import CurrentVideo
 from horus.engine.calibration.pattern import pattern
-from horus.engine.calibration.calibration_data import CalibrationData
+from horus.engine.calibration.calibration_data import calibration_data
 from horus.engine.calibration.camera_intrinsics import CameraIntrinsics
 from horus.engine.calibration.autocheck import Autocheck
 from horus.engine.calibration.laser_triangulation import LaserTriangulation
@@ -25,8 +25,6 @@ from horus.engine.algorithms.laser_segmentation import LaserSegmentation
 from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
 from horus.engine.algorithms.point_cloud_roi import PointCloudROI
 
-from horus.engine.algorithms.segmentation_manager import SegmentationManager
-
 
 # Instances of engine modules
 
@@ -34,7 +32,7 @@ from horus.engine.algorithms.segmentation_manager import SegmentationManager
 ciclop_scan = CiclopScan()
 current_video = CurrentVideo() # no params
 #pattern = Pattern()
-calibration_data = CalibrationData()
+#calibration_data = CalibrationData()
 camera_intrinsics = CameraIntrinsics() # no params
 scanner_autocheck = Autocheck() # no params
 laser_triangulation = LaserTriangulation()

@@ -143,6 +143,7 @@ class Settings(collections.MutableMapping):
         with open(filepath, 'w') as f:
             f.write(
                 json.dumps(self._to_json_dict(categories, initial_json), sort_keys=True, indent=4))
+        logger.info("Saving settings to {0}".format(filepath))
 
     def _to_json_dict(self, categories, initial_json=None):
         if initial_json is None:
@@ -160,6 +161,7 @@ class Settings(collections.MutableMapping):
                 continue
             if cur_setting._category not in json_dict:
                 json_dict[cur_setting._category] = dict()
+                #print "Profile category {0}".format(cur_setting._category)
             json_dict[cur_setting._category][key] = cur_setting._to_json_dict()
         return json_dict
 
@@ -184,7 +186,8 @@ class Settings(collections.MutableMapping):
                 self.__setitem__(key, self.get_default(key))
 
     def _add_setting(self, setting):
-        self._settings_dict[setting._id] = setting
+        if not setting._id in self._settings_dict:
+            self._settings_dict[setting._id] = setting
 
     def _initialize_settings(self):
 
@@ -466,16 +469,11 @@ class Settings(collections.MutableMapping):
                     possible_values=(u'scan_capture', u'scan_segmentation',
                                      u'calibration_capture', u'calibration_segmentation')))
 
-        # Hack to translate combo boxes:
-        _('Pattern')
-        _('Laser')
         self._add_setting(
             Setting('current_video_mode_adjustment', u'Texture', 'profile_settings',
                     unicode, u'Texture',
                     possible_values=(u'Texture', u'Pattern', u'Laser', u'Gray')))
 
-        _('Texture')
-        _('Laser')
         self._add_setting(
             Setting('capture_mode_scanning', _('Capture mode'), 'profile_settings',
                     unicode, u'Texture', possible_values=(u'Texture', u'Laser')))
@@ -580,6 +578,11 @@ class Settings(collections.MutableMapping):
             Setting('platform_extrinsics_hash', '', 'calibration_settings', unicode, u''))
 
         # ----- Video settings ---------
+
+        # some cameras like "Lenovo EasyCamera" require to grab frame before update settings
+        self._add_setting(
+            Setting('camera_capture_before_set', _('Capture a frame right after connect before setting camera'), 'profile_settings', bool, False))
+
         self._add_setting(
             Setting('camera_width', _('Width'), 'calibration_settings',
                     int, -1, min_value=-1, max_value=10000))
