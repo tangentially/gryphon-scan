@@ -23,15 +23,15 @@ def package_data_dirs(source, basedir='/usr/share/horus'):
 
 
 setup(
-    name='Horus',
+    name='Horus / Gryphon Scan',
     version=__version__,
-    author='Jesús Arroyo Torrens',
-    author_email='jesus.arroyo@bq.com',
-    description='Horus is a full software solution for 3D scanning',
+    author='Jesús Arroyo Torrens, Mikhail Nikolaevich Klimushin',
+    author_email='jesus.arroyo@bq.com, gryphon@night-gryphon.ru',
+    description='Gryphon Scan is an advanced fork of Horus project, a full software solution for 3D scanning',
 
     license='GPLv2',
-    keywords="horus ciclop scanning 3d",
-    url='https://github.com/bqlabs/horus',
+    keywords="gryphon scan horus ciclop scanning 3d",
+    url='https://github.com/nightgryphon/gryphon-scan',
 
     packages=find_packages('src'),
     package_dir={'': 'src'},

@@ -228,6 +228,8 @@ class Board(object):
                         ret = self.read(read_lines)
                         #print(ret)
                         time.sleep(0.01)
+                    if ret.lower().rstrip("\r\n") != 'ok':
+                        logger.warn("[ WARN board command ] '{0}' => '{1}'".format(req, ret.rstrip("\r\n")))
                     self._success()
                 except:
                     if hasattr(self, '_serial_port'):

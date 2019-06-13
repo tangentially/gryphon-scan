@@ -72,23 +72,6 @@ class PointCloudGeneration(object):
         return R.T * Xc - R.T * t
 
 
-    def undistort_points(self, points_2d):
-        # correct camera distortion
-        #   points_2d = [u,v]
-
-        if len(points_2d[0]) == 0:
-            return points_2d
-
-	cam = self.calibration_data.camera_matrix
-        d = self.calibration_data.distortion_vector
-
-        pts = np.expand_dims(np.float32(points_2d).transpose(), axis=1)
-
-        rs = cv2.undistortPoints(pts, cam, d, P=cam)
-        rs = tuple(rs.reshape(-1,2).T)
-        return rs
-
-
     def compute_camera_point_cloud_horus(self, points_2d, d, n):
         # Load calibration values
         fx = self.calibration_data.camera_matrix[0][0]

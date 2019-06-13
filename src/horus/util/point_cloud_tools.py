@@ -7,6 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import numpy as np
 from scipy import optimize, stats, spatial
+from itertools import chain
 
 #from horus.util import model
 
@@ -956,4 +957,10 @@ def fit_clouds(PA, MAneg, PB, MBneg, prev = np.array([0.,0.])):
     #print "-----------------------------\nFit result: {0}\n===============================\n".format(res)
 
     return offset
+
+
+# https://stackoverflow.com/questions/17973507/why-is-converting-a-long-2d-list-to-numpy-array-so-slow
+def longlist2ndarray(longlist):
+    flat = np.fromiter(chain.from_iterable(longlist), np.array(longlist[0][0]).dtype, -1) # Without intermediate list:)
+    return flat.reshape((len(longlist), -1))
 

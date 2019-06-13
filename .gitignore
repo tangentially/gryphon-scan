@@ -32,3 +32,5 @@ doc/readthedocs/_build
 python/
 horus.bat
 src/horus/*.json
+*.bak
+*.bk

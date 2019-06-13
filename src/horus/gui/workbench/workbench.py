@@ -67,11 +67,12 @@ class Workbench(wx.Panel):
         raise NotImplementedError
 
     def add_panel(self, name, panel, on_selected_callback=None):
-        self.panels_collection.add_panel(name, panel, on_selected_callback)
+        return self.panels_collection.add_panel(name, panel, on_selected_callback)
 
     def add_page(self, name, page):
         self.pages_collection[name] = page
         self.hbox.Add(page, 1, wx.ALL | wx.EXPAND, 2)
+        return page
 
     def enable_content(self):
         self.scroll_panel.Enable()

@@ -278,3 +278,16 @@ def capture_precise_corners(steps = 3):
     return image, np.mean(corners, axis=0), np.max(np.std(corners, axis=0))
         
 
+# ================================================
+# check and decode color setting to RGB 
+
+def decode_color(value, default=(0,0,0)):
+    ret = default
+    if isinstance(value, basestring):
+        ret = struct.unpack('BBB', value.decode('hex'))
+    elif isinstance(value, (tuple,list)) and \
+         len(value) == 3 and \
+         all(isinstance(x, int) for x in value):
+       ret = value
+
+    return ret
