@@ -192,7 +192,7 @@ The Z coordinate (depth) mostly affect clouds rotation artifacts
 ### Model correction tool  
 You can manually adjust model after scan or load and correct existing .ply. 
 Tool allow to apply platform center offset to manually compensate calibration error.  
-Also you can do a test scan and manually find offset to adjust platform calibration for further scans. Correction coordinates are in _MODEL_ space. For Ciclop MODEL(X,Y,Z) ~ CAMERA(Y,-Z,-X)  
+Also you can do a test scan and manually find offset to adjust platform calibration for further scans.  
 To adjust saved .ply it has to be saved with Gryphon Scan and contain scanning metadata. 
 
 <p><img height="270px" src="https://github.com/nightgryphon/gryphon-scan/raw/develop/doc/images/ScanCorrection_in.png"> <img  height="270px" src="https://github.com/nightgryphon/gryphon-scan/raw/develop/doc/images/ScanCorrection_out.png"></p>

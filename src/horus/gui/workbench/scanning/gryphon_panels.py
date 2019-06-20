@@ -122,7 +122,7 @@ class MeshCorrection(ExpandablePanel):
             self.Mrev = np.array([ c, s, -s,c]).T.reshape((-1,2,2))
 
         #print "self.offset {0} {1}".format(self.offset.shape, self.offset.dtype)
-        delta = np.full( (mesh.vertexes.shape[0],3), self.offset)
+        delta = np.full( (mesh.vertexes.shape[0],3), [ -self.offset[2], self.offset[0], -self.offset[1]])
         #print "{0} {1}".format(delta.shape, delta.dtype)
         #print "{0} {1}".format(self.Mrev[:].shape, self.Mrev[:].dtype)
         delta[:,[0,1]] =  np.einsum('ikj,ij->ik',self.Mrev, delta[:,[0,1]])
