@@ -128,6 +128,7 @@ class MeshCorrection(ExpandablePanel):
         delta[:,[0,1]] =  np.einsum('ikj,ij->ik',self.Mrev, delta[:,[0,1]])
         mesh.vertexes = self.mesh.vertexes + delta.astype(np.float32)
         mesh.clear_vbo()
+        self.main.scene_view.Refresh()
 
 
     def reset_correction(self):
@@ -139,4 +140,5 @@ class MeshCorrection(ExpandablePanel):
         self.mesh.clear_vbo()
         self.main.scene_view._object._mesh = self.mesh
         self.mesh = None
+        self.main.scene_view.Refresh()
 
