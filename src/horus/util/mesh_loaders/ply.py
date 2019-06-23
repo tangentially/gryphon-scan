@@ -121,7 +121,6 @@ def _load_binary_metadata(mesh, stream, dtype, count):
 def _load_binary_metadata(mesh, stream, dtype, count):
     data = np.fromfile(stream, dtype=dtype, count=count)
 
-    print data.view('S{0}'.format(count))[0:10]
     mesh.metadata = pickle.loads(data.view('S{0}'.format(count))[0])
     print mesh.metadata
 
