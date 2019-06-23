@@ -95,9 +95,9 @@ class LaserTriangulation(MovingCalibration):
                     if len(points_2d[0])>0: 
                         points_3d = self.point_cloud_generation.compute_camera_point_cloud(
                             points_2d, distance, normal)
-                        self._point_cloud.setdefault(i,Mesh(None)._prepare_vertex_count(100))._add_pointcloud( \
-                               points_3d.T, [colors[i]]*len(points_3d[0]), \
-                               self.calibration_num, (int(angle/self.motor_step),np.deg2rad(angle)) )
+                        self._point_cloud.setdefault(i,Mesh(None)._prepare_vertex_count(100)).add_pointcloud(
+                               points_3d.T, [colors[i]]*len(points_3d[0]),
+                               (self.calibration_num, int(angle/self.motor_step), np.deg2rad(angle)) )
                         self.points_image[points_2d[1],np.rint(points_2d[0]).astype(int)] = colors[i]
                   
                     # test line detection: draw 3D points back on image

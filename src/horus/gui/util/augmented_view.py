@@ -235,3 +235,16 @@ def augmented_draw_lasers_on_pattern(image, pose):
             cv2.line(image, tuple(p[0]), tuple(p[1]), (255,0,0), 2)
 
 
+def draw_2d_points(image, points, color):
+    if image is not None and \
+            points is not None:
+        (u, v) = points
+        u = np.around(u).astype(int)
+        image[v, u] = color
+        try:
+            image[v, u - 1] = color
+            image[v, u + 1] = color
+        except IndexError:
+            pass
+
+    return image

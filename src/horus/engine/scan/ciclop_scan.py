@@ -14,10 +14,11 @@ import os
 import threading
 
 from horus import Singleton
-from horus.engine.scan.scan import Scan
+from horus.engine.scan.scan import Scan, ScanError
 from horus.engine.scan.scan_capture import ScanCapture
 from horus.engine.scan.current_video import CurrentVideo
 from horus.engine.calibration.calibration_data import CalibrationData
+from horus.util.gryphon_util import decode_color
 
 from horus.util import profile
 
@@ -26,12 +27,6 @@ logger = logging.getLogger(__name__)
 
 import platform
 system = platform.system()
-
-
-class ScanError(Exception):
-
-    def __init__(self):
-        Exception.__init__(self, "Scan Error")
 
 
 @Singleton
@@ -109,22 +104,11 @@ class CiclopScan(Scan):
         else:
             self.texture_mode = 2
 
-    def decode_color(self, value):
-        if isinstance(value, basestring):
-            ret = struct.unpack('BBB', value.decode('hex'))
-        elif isinstance(value, (tuple,list)) and \
-             len(value) == 3 and \
-             all(isinstance(x, int) for x in value):
-           ret = value
-        else:
-           ret = (0,0,0)
-        return ret
-
     def set_color(self, value):
-        self.color = self.decode_color(value) 
+        self.color = decode_color(value) 
 
     def set_colors(self, index, value):
-        self.colors[index] = self.decode_color(value) 
+        self.colors[index] = decode_color(value) 
 
     def set_use_left_laser(self, value):
         self.laser[0] = value
@@ -387,7 +371,7 @@ class CiclopScan(Scan):
 
                 if self.point_cloud_callback:
                     self.point_cloud_callback(self._range, self._progress,
-                                              (point_cloud, texture), i, (capture.count,capture.theta))
+                                              (point_cloud, texture), (i, capture.count, capture.theta))
 
                 if self.semaphore is not None:
                     self.semaphore.release()
@@ -404,7 +388,7 @@ class CiclopScan(Scan):
 
         # Set current video images
         self.current_video.set_gray(capture.lasers[:-1])
-        self.current_video.set_line(points, image)
+        self.current_video.set_line(points, capture.lasers[-1])
         if self.semaphore is not None:
             self.semaphore.release()
 

@@ -8,7 +8,7 @@ import numpy as np
 
 from horus.util import profile
 from horus.util import model
-from horus.gui.engine import driver, ciclop_scan, point_cloud_roi
+from horus.gui.engine import ciclop_scan, calibration_data
 from horus.gui.util.custom_panels import ExpandablePanel, ComboBox, \
      CheckBox, IntTextBox, Button, FloatTextBoxArray
 from horus.gui.util.gryphon_controls import DirPicker, ColorPicker
@@ -111,27 +111,38 @@ class MeshCorrection(ExpandablePanel):
             return
 
         mesh = self.main.scene_view._object._mesh
-        if self.mesh is None:
-            self.mesh = model.Mesh().copy(mesh)
 
-            points_l = np.array(mesh.vertexes_meta[:,1].tolist())[:,1]
-            #print "points_l {0} {1}".format(points_l.shape, points_l.dtype)
+        if mesh.metadata is None or \
+           'rotation_matrix' not in mesh.metadata.keys():
+            return
+
+        if self.mesh is None or \
+           not hasattr(mesh, 'correcting'):
+            mesh.correcting = True
+            self.mesh = model.Mesh().copy(mesh)
+            points_l = mesh.get_meta()['slice_l']
             c,s = np.cos(points_l), np.sin(points_l)
-            #print "c {0} {1}".format(c.shape, c.dtype)
             self.M    = np.array([ c,-s,  s,c]).T.reshape((-1,2,2))
             self.Mrev = np.array([ c, s, -s,c]).T.reshape((-1,2,2))
 
-        #print "self.offset {0} {1}".format(self.offset.shape, self.offset.dtype)
-        delta = np.full( (mesh.vertexes.shape[0],3), [ -self.offset[2], self.offset[0], -self.offset[1]])
-        #print "{0} {1}".format(delta.shape, delta.dtype)
-        #print "{0} {1}".format(self.Mrev[:].shape, self.Mrev[:].dtype)
+        R = np.matrix(mesh.metadata['rotation_matrix'])# calibration_data.platform_rotation)
+        d = R.T * (np.matrix([ self.offset[0], self.offset[1], self.offset[2]]).T)
+        delta = np.full( (mesh.vertex_count,3), -d.T) # [ self.offset[2], -self.offset[0], self.offset[1]]
         delta[:,[0,1]] =  np.einsum('ikj,ij->ik',self.Mrev, delta[:,[0,1]])
-        mesh.vertexes = self.mesh.vertexes + delta.astype(np.float32)
+        mesh.vertexes[0:self.mesh.vertex_count] = self.mesh.get_vertexes() + delta.astype(np.float32)
         mesh.clear_vbo()
         self.main.scene_view.Refresh()
 
 
     def reset_correction(self):
+        if self.mesh is None:
+            return
+
+        if not hasattr(self.main.scene_view._object._mesh, 'correcting'):
+            self.mesh.clear_vbo()
+            self.mesh = None
+            return
+
         if self.main.scene_view._object is None or \
            not self.main.scene_view._object._is_point_cloud:
             return

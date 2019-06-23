@@ -15,6 +15,12 @@ from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
 from horus.engine.algorithms.point_cloud_roi import PointCloudROI
 
 
+class ScanError(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, "Scan Error")
+
+
 class Scan(object):
 
     """Generic class for threading scanning"""

@@ -129,18 +129,18 @@ class ScanningWorkbench(Workbench):
                 image = point_cloud_roi.draw_roi(image)
             return image
 
-    def point_cloud_callback(self, range, progress, point_cloud, index, _slice):
+    def point_cloud_callback(self, range, progress, point_cloud, point_meta):
         point_cloud = point_cloud_roi.mask_point_cloud(*point_cloud)
         wx.CallAfter(self._point_cloud_callback,
-                     range, progress, point_cloud, index, _slice)
+                     range, progress, point_cloud, point_meta)
 
-    def _point_cloud_callback(self, range, progress, point_cloud, index, _slice):
+    def _point_cloud_callback(self, range, progress, point_cloud, meta):
         if range > 0:
             self.gauge.SetRange(range)
             self.gauge.SetValue(progress)
         if point_cloud is not None:
             (points, texture) = point_cloud
-            self.scene_view.append_point_cloud(points, texture, index, _slice)
+            self.scene_view.append_point_cloud(points, texture, meta = meta)
 
     def on_play_tool_clicked(self, event):
         if ciclop_scan._inactive:

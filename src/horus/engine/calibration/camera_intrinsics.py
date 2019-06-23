@@ -96,13 +96,6 @@ class CameraIntrinsics(Calibration):
 
         if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
             newObjPoints = np.array([], dtype=np.float64)
-            #print(self.pattern.columns-1)
-            #print(np.array(self.object_points).shape)
-            #print( self.object_points)
-            #print(np.array(self.image_points).shape)
-            #print(self.shape)
-            #print(self.object_points.dtype)
-            #print(self.image_points.dtype)
             '''
             # https://github.com/opencv/opencv/issues/14469
             print("-1-")

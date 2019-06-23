@@ -8,6 +8,8 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import cv2
 import numpy as np
 import math
+from scipy import optimize
+
 from horus.util import profile
 import horus.gui.engine
 
@@ -31,6 +33,46 @@ def overlay_mask(image, mask, color=(255,0,0)):
         overlayImg[:,:] = color
         overlayMask = cv2.bitwise_and(overlayImg, overlayImg, mask=mask)
         cv2.addWeighted(overlayMask, 1, image, 1, 0, image)
+
+
+# ================================================
+# Multiple measurements corner capture
+
+def capture_precise_corners(steps = 3):
+    corners = []
+    image_capture = horus.gui.engine.image_capture
+    stream_save = image_capture.stream
+    image_capture.stream = False
+    for i in xrange(steps):
+        print(i)
+        image = image_capture.capture_pattern()
+        if image is not None:
+            c = horus.gui.engine.image_detection.detect_corners(image)
+            if c is not None:
+                corners += [c] # [c.reshape(-1,2)]
+            elif i>=1 and len(corners) == 0:
+                # two captures with no corners
+                return image, None, None
+    image_capture.stream = stream_save
+    if len(corners) == 0:
+        return image, None, None
+    corners = np.float32(corners)
+    return image, np.mean(corners, axis=0), np.max(np.std(corners, axis=0))
+        
+
+# ================================================
+# check and decode color setting to RGB 
+
+def decode_color(value, default=(0,0,0)):
+    ret = default
+    if isinstance(value, basestring):
+        ret = struct.unpack('BBB', value.decode('hex'))
+    elif isinstance(value, (tuple,list)) and \
+         len(value) == 3 and \
+         all(isinstance(x, int) for x in value):
+       ret = value
+
+    return ret
 
 
 # ================================================
@@ -66,6 +108,7 @@ def estimate_platform_angle_from_pattern(pose, use_camera_space = False):
             v = np.float32([(0,0,1)]).dot(pose[0]) # camera Z axis to pattern space
             return math.copysign(np.rad2deg(math.acos(v[0,2]/np.linalg.norm( (v[0,0], v[0,2]) ))), v[0,0]) 
     return None
+
 
 # ================================================
 # Convert plane from Rmat+t to n+d format
@@ -212,6 +255,7 @@ def rigid_transform_3D(A, B):
 
     return R, t, centroid_A, centroid_B
 
+
 # ================================================
 # Point to line projection
 #  a, v - line point and vector 
@@ -253,41 +297,51 @@ def FitLine3D(points):
     return datamean, vv[0]
 
 
-# ================================================
-# Multiple measurements corner capture
+# -----------------------------------------------------------
+# https://stackoverflow.com/questions/17973507/why-is-converting-a-long-2d-list-to-numpy-array-so-slow
+def longlist2ndarray(longlist):
+    flat = np.fromiter(chain.from_iterable(longlist), np.array(longlist[0][0]).dtype, -1) # Without intermediate list:)
+    return flat.reshape((len(longlist), -1))
 
-def capture_precise_corners(steps = 3):
-    corners = []
-    image_capture = horus.gui.engine.image_capture
-    stream_save = image_capture.stream
-    image_capture.stream = False
-    for i in xrange(steps):
-        print(i)
-        image = image_capture.capture_pattern()
-        if image is not None:
-            c = horus.gui.engine.image_detection.detect_corners(image)
-            if c is not None:
-                corners += [c] # [c.reshape(-1,2)]
-            elif i>=1 and len(corners) == 0:
-                # two captures with no corners
-                return image, None, None
-    image_capture.stream = stream_save
-    if len(corners) == 0:
-        return image, None, None
-    corners = np.float32(corners)
-    return image, np.mean(corners, axis=0), np.max(np.std(corners, axis=0))
-        
 
-# ================================================
-# check and decode color setting to RGB 
+# -----------------------------------------------------------
+def fit_plane_svd(points):
+    if not isinstance(points, np.ndarray):
+        points = np.array(points)
+    c = np.mean(points, axis=0)
+    data = points.T-c
+    u, sigma, v = np.linalg.svd(data)
+    normal = v[2]                                 
+    normal /= np.linalg.norm(normal)
+    d = np.dot(normal, c)
 
-def decode_color(value, default=(0,0,0)):
-    ret = default
-    if isinstance(value, basestring):
-        ret = struct.unpack('BBB', value.decode('hex'))
-    elif isinstance(value, (tuple,list)) and \
-         len(value) == 3 and \
-         all(isinstance(x, int) for x in value):
-       ret = value
+    return c, normal, d
 
-    return ret
+
+# ------------- fit plane with point = center of mass -------
+def fit_plane_leastsq(points):
+    if not isinstance(points, np.ndarray):
+        points = np.array(points)
+    c = np.mean(points, axis=0)
+    normal = fit_normal_leastsq(points - c)
+    d = np.dot(normal, c)
+
+    return c, normal, d
+
+
+# --------- estimate plane normal for set of inplane vectors ----------
+def residuals_normal(parameters, data_vectors):
+    # minimize projections to estimating axis
+    theta, phi = parameters
+    v = [np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)]
+    distances =  [np.abs(np.dot(v, [x, y, z])) for x, y, z in data_vectors]
+    return distances
+
+
+def fit_normal_leastsq(data):
+    estimate = [-np.pi/2, np.pi/2]  # theta, phi
+    best_fit_values, ier = optimize.leastsq(residuals_normal, estimate, args=(data*1000))
+    tF, pF = best_fit_values
+    v = np.array([np.sin(tF) * np.cos(pF), np.sin(tF) * np.sin(pF), np.cos(tF)])
+    return v
+

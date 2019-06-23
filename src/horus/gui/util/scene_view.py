@@ -10,7 +10,7 @@ import os
 import gc
 import wx
 import math
-import numpy
+import numpy as np
 import traceback
 
 import OpenGL
@@ -20,7 +20,6 @@ from OpenGL.GL import *
 
 from horus.util import profile, mesh_loader, model, system as sys
 from horus.gui.util import opengl_helpers, opengl_gui
-
 
 class SceneView(opengl_gui.glGuiPanel):
 
@@ -37,8 +36,8 @@ class SceneView(opengl_gui.glGuiPanel):
         self._mouse_x = -1
         self._mouse_y = -1
         self._mouse_state = None
-        self._mouse_3d_pos = numpy.array([0, 0, 0], numpy.float32)
-        self._view_target = numpy.array([0, 0, 0], numpy.float32)
+        self._mouse_3d_pos = np.array([0, 0, 0], np.float32)
+        self._view_target = np.array([0, 0, 0], np.float32)
         self._anim_view = None
         self._anim_zoom = None
         self._platform_mesh = {}
@@ -103,14 +102,15 @@ class SceneView(opengl_gui.glGuiPanel):
         self._object = model.Model(None, is_point_cloud=True)
         self._object._add_mesh()
         self._object._mesh._prepare_vertex_count(4000000)
+        return self._object
 
-    def append_point_cloud(self, point, color, index=None, _slice=None):
+    def append_point_cloud(self, point, color, meta=None):
 #        self._object_point_cloud.append(point)
 #        self._object_texture.append(color)
         # TODO: optimize
         if self._object is not None:
             if self._object._mesh is not None:
-                self._object._mesh._add_pointcloud(point.T, color.T, index, _slice)
+                self._object._mesh.add_pointcloud(point.T, color.T, meta = meta)
             # Conpute Z center
             if point.shape[1] > 0:
                 zmax = max(point[2])
@@ -138,7 +138,7 @@ class SceneView(opengl_gui.glGuiPanel):
         height = self._object.get_size()[2] / 2
         if abs(height) > abs(self._h_offset):
             height -= self._h_offset
-        new_view_pos = numpy.array(
+        new_view_pos = np.array(
             [self._object.get_position()[0],
              self._object.get_position()[1],
              height - self._z_offset])
@@ -165,26 +165,26 @@ class SceneView(opengl_gui.glGuiPanel):
 
     def center_object(self):
         if self._object is None:
-            new_view_pos = numpy.array([0, 0, -self._z_offset], numpy.float32)
+            new_view_pos = np.array([0, 0, -self._z_offset], np.float32)
             new_zoom = 300
         else:
             height = self._object.get_size()[2] / 2
             if abs(height) > abs(self._h_offset):
                 height -= self._h_offset
-            new_view_pos = numpy.array(
+            new_view_pos = np.array(
                 [self._object.get_position()[0],
                  self._object.get_position()[1],
                  height - self._z_offset])
             new_zoom = self._object.get_boundary_circle() * 4
 
-        if new_zoom > numpy.max(self._machine_size) * 3:
-            new_zoom = numpy.max(self._machine_size) * 3
+        if new_zoom > np.max(self._machine_size) * 3:
+            new_zoom = np.max(self._machine_size) * 3
 
         self._anim_zoom = opengl_gui.animation(self, self._zoom, new_zoom, 0.5)
         self._anim_view = opengl_gui.animation(self, self._view_target.copy(), new_view_pos, 0.5)
 
     def update_profile_to_controls(self):
-        self._machine_size = numpy.array([profile.settings['machine_width'],
+        self._machine_size = np.array([profile.settings['machine_width'],
                                           profile.settings['machine_depth'],
                                           profile.settings['machine_height']])
         color_string = profile.settings['model_color']
@@ -210,8 +210,8 @@ class SceneView(opengl_gui.glGuiPanel):
         if key_code == wx.WXK_DOWN:
             if wx.GetKeyState(wx.WXK_SHIFT):
                 self._zoom *= 1.2
-                if self._zoom > numpy.max(self._machine_size) * 3:
-                    self._zoom = numpy.max(self._machine_size) * 3
+                if self._zoom > np.max(self._machine_size) * 3:
+                    self._zoom = np.max(self._machine_size) * 3
             elif wx.GetKeyState(wx.WXK_CONTROL):
                 self._z_offset += 5
             else:
@@ -242,8 +242,8 @@ class SceneView(opengl_gui.glGuiPanel):
         elif key_code == wx.WXK_NUMPAD_SUBTRACT or key_code == wx.WXK_SUBTRACT or \
                 key_code == ord('-'):
             self._zoom *= 1.2
-            if self._zoom > numpy.max(self._machine_size) * 3:
-                self._zoom = numpy.max(self._machine_size) * 3
+            if self._zoom > np.max(self._machine_size) * 3:
+                self._zoom = np.max(self._machine_size) * 3
             self.queue_refresh()
         elif key_code == wx.WXK_HOME:
             self._yaw = 30
@@ -338,8 +338,8 @@ class SceneView(opengl_gui.glGuiPanel):
                 self._zoom += e.GetY() - self._mouse_y
                 if self._zoom < 1:
                     self._zoom = 1
-                if self._zoom > numpy.max(self._machine_size) * 3:
-                    self._zoom = numpy.max(self._machine_size) * 3
+                if self._zoom > np.max(self._machine_size) * 3:
+                    self._zoom = np.max(self._machine_size) * 3
 
         self._mouse_x = e.GetX()
         self._mouse_y = e.GetY()
@@ -353,8 +353,8 @@ class SceneView(opengl_gui.glGuiPanel):
             self._zoom *= 1.0 - delta / 10.0
             if self._zoom < 1.0:
                 self._zoom = 1.0
-            if self._zoom > numpy.max(self._machine_size) * 3:
-                self._zoom = numpy.max(self._machine_size) * 3
+            if self._zoom > np.max(self._machine_size) * 3:
+                self._zoom = np.max(self._machine_size) * 3
         self.Refresh()
 
     def on_mouse_leave(self, e):
@@ -362,7 +362,7 @@ class SceneView(opengl_gui.glGuiPanel):
 
     def get_mouseay(self, x, y):
         if self._viewport is None:
-            return numpy.array([0, 0, 0], numpy.float32), numpy.array([0, 0, 1], numpy.float32)
+            return np.array([0, 0, 0], np.float32), np.array([0, 0, 1], np.float32)
 
         p0 = opengl_helpers.unproject(
             x, self._viewport[1] + self._viewport[3] - y, 0,
@@ -375,7 +375,7 @@ class SceneView(opengl_gui.glGuiPanel):
             p1 -= self._view_target
             return p0, p1
         else:
-            return numpy.array([0, 0, 0], numpy.float32), numpy.array([0, 0, 1], numpy.float32)
+            return np.array([0, 0, 0], np.float32), np.array([0, 0, 1], np.float32)
 
     def _init_3d_view(self):
         # set viewing projection
@@ -400,7 +400,7 @@ class SceneView(opengl_gui.glGuiPanel):
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         aspect = float(size.GetWidth()) / float(size.GetHeight())
-        gluPerspective(45.0, aspect, 1.0, numpy.max(self._machine_size) * 4)
+        gluPerspective(45.0, aspect, 1.0, np.max(self._machine_size) * 4)
 
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
@@ -627,11 +627,11 @@ class SceneView(opengl_gui.glGuiPanel):
             pass
 
         mesh._matrix /= machine_scale
-        self._platform_mesh[machine_model_path]._draw_offset = numpy.array(
+        self._platform_mesh[machine_model_path]._draw_offset = np.array(
             [profile.settings[ 'machine_model_offset_x'],
             profile.settings[ 'machine_model_offset_y'],
             profile.settings[ 'machine_model_offset_z'] 
-            ], numpy.float32) / machine_scale
+            ], np.float32) / machine_scale
         glColor4f(0.6, 0.6, 0.6, 0.5)
         self._object_shader.bind()
         self._render_object(self._platform_mesh[machine_model_path])

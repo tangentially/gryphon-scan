@@ -53,27 +53,24 @@ def _load_ascii_vertex(mesh, stream, dtype, count):
     if 'nz' in fields:
         nz = fields.index('nz')
 
-    idx = -1
+    idx = -2
     if 'scalar_Original_cloud_index' in fields:
         idx = fields.index('scalar_Original_cloud_index')
 
-    sn = -1
+    sn = -2
     sa = -1
     if 'slice_num' in fields:
-        idx = fields.index('slice_num')
+        sn = fields.index('slice_num')
     if 'slice_angle' in fields:
-        idx = fields.index('slice_angle')
+        sa = fields.index('slice_angle')
 
 
     for i in range(count):
         data = stream.readline().split(' ')
-        data.append(0) # default value for '-1' index
+        data.append(-1) # default value for '-2' index
+        data.append(np.nan) # default value for '-1' index
         if data is not None:
-            if sn >= 0:
-                _slice = (data[sn], data[sa])
-            else:
-                _slice = None
-            mesh._add_vertex(data[x], data[y], data[z], data[nx], data[ny], data[nz], data[idx], _slice)
+            mesh._add_vertex(data[x], data[y], data[z], data[nx], data[ny], data[nz], data[idx], data[sn], data[sa])
 
 
 def _load_binary_vertex(mesh, stream, dtype, count):
@@ -98,18 +95,19 @@ def _load_binary_vertex(mesh, stream, dtype, count):
         mesh.colors = 255 * np.ones((count, 3))
 
     if 'slice_index' in fields:
-        slices = zip(data['slice_index'], data['slice_angle'])
-        slices = [None if el[0]<0 else el for el in slices]
-        print "Slices loaded: {0}...{1}".format(np.min(np.array(slices)[:,0]), np.max(np.array(slices)[:,0]))
+        slice_n = data['slice_index']
+        slice_l = data['slice_angle']
+        slice_n, slice_l = zip(*map(lambda x,y: (-1,np.nan) if x<0 else (x,y), slice_n, slice_l))
     else:
-        slices = [None]*count
+        slice_n = [-1]*count
+        slice_l = [np.nan]*count
 
     if 'scalar_Original_cloud_index' in fields:
         cloud_index = data['scalar_Original_cloud_index']
     else:
-        cloud_index = [0]*count
+        cloud_index = [-1]*count
 
-    mesh.vertexes_meta = np.array(zip(cloud_index,slices))
+    mesh.vertexes_meta = np.array(zip(cloud_index, slice_n, slice_l), dtype=mesh.vertexes_meta.dtype)
 
 
 # ------------ Mesh Metadata ---------------
@@ -123,12 +121,13 @@ def _load_binary_metadata(mesh, stream, dtype, count):
 def _load_binary_metadata(mesh, stream, dtype, count):
     data = np.fromfile(stream, dtype=dtype, count=count)
 
+    print data.view('S{0}'.format(count))[0:10]
     mesh.metadata = pickle.loads(data.view('S{0}'.format(count))[0])
-
+    print mesh.metadata
 
 # ======================================
 def _load_element(mesh, stream, format, element, dtype, count):
-    print "Load elements: '{0}' x {1} format {2}".format(element,count,format)
+    print "Load elements: '{0}' x {1} format {2} @ {3}".format(element,count,format,stream.tell())
                                                                       
     if len(dtype)<=0 or \
         element is None or \
@@ -222,7 +221,7 @@ def load_scene(filename):
                         logger.error("PLY load Error: 'list' not supported.")
                         if format == 'ascii':
                             for i in xrange(count):
-                                stream.readline()
+                                f.readline()
                         else:
                             return obj
                     else:
@@ -292,23 +291,17 @@ def save_scene_stream(stream, _object):
         if m.vertex_count > 0:
             if binary:
                 for i in xrange(m.vertex_count):
-                    _slice = m.vertexes_meta[i][1]
-                    if _slice is None: 
-                        _slice=(-1,0)
                     stream.write(struct.pack("<fffBBBBif",
                                              m.vertexes[i, 0], m.vertexes[i, 1], m.vertexes[i, 2],
-                                             m.colors[i, 0], m.colors[i, 1], m.colors[i, 2], 
-                                             m.vertexes_meta[i][0], _slice[0], _slice[1]))
+                                             m.colors[i, 0], m.colors[i, 1], m.colors[i, 2],
+                                             m.vertexes_meta[i][0], m.vertexes_meta[i][1], m.vertexes_meta[i][2]))
                 if m.metadata is not None:
                     stream.write(metadata)
             else:
                 for i in xrange(m.vertex_count):
-                    _slice = m.vertexes_meta[i][1]
-                    if _slice is None: 
-                        _slice=(-1,0)
                     stream.write("{0} {1} {2} {3} {4} {5} {6} {7} {8}\n".format(
                                  m.vertexes[i, 0], m.vertexes[i, 1], m.vertexes[i, 2],
                                  m.colors[i, 0], m.colors[i, 1], m.colors[i, 2]),
-                                 m.vertexes_meta[i][0], _slice[0], _slice[1])
+                                 m.vertexes_meta[i][0], m.vertexes_meta[i][1], m.vertexes_meta[i][2])
                 if m.metadata is not None:
                     stream.write("{0}\n".format(metadata))

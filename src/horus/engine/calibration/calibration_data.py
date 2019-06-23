@@ -39,7 +39,7 @@ class LaserPlane(object):
         profile.settings['distance_'+self.name] = self.distance
         profile.settings['normal_'+self.name]   = self.normal
 
-        profile.settings['laser_triangulation_hash'] = self.md5_hash()
+        profile.settings['laser_triangulation_hash'] = calibration_data.md5_hash()
 
 
 @Singleton
@@ -82,6 +82,11 @@ class CalibrationData(object):
     def read_profile_platform(self):
         self.platform_rotation = profile.settings['rotation_matrix']
         self.platform_translation = profile.settings['translation_vector']
+
+    def save_profile_platform(self):
+        profile.settings['rotation_matrix'] = self.platform_rotation
+        profile.settings['translation_vector'] = self.platform_translation
+        profile.settings['platform_extrinsics_hash'] = self.md5_hash()
 
     def read_profile_calibration(self):
         self.read_profile_laser()

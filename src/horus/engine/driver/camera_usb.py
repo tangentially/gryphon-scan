@@ -162,6 +162,8 @@ class Camera_usb(Camera):
             # Anti flicker
             self.set_anti_flicker(1)
 
+            self._capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+
             logger.info("  check read frame")
             self._check_video()
 

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # This file is part of the Horus Project
+from numpy.core._multiarray_umath import ndarray
 
 __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.\
@@ -99,10 +100,11 @@ class Mesh(object):
     Each triangle has 3 vertexes. It can be also a point cloud.
     A "VBO" can be associated with this object, which is used for rendering this object.
     """
+    vertexes_meta = None  # type: ndarray
 
     def __init__(self, obj = None):
         self.vertexes = np.zeros((0, 3), np.float32)
-        self.vertexes_meta = np.empty((0, 2), 'O')
+        self.vertexes_meta = np.empty((0,), dtype=[('laser_id',np.int8),('slice_no','int'),('slice_l',np.float32)])
         self.colors = np.zeros((0, 3), np.uint8)
         self.normal = np.zeros((0, 3), np.float32)
         self.vertex_count = 0
@@ -112,20 +114,32 @@ class Mesh(object):
         self.current_cloud_index = 0
         self.metadata = None
 
-    def _add_vertex(self, x, y, z, r=255, g=255, b=255, laser_index=None, _slice = None):
+    def _add_vertex(self, x, y, z, r=255, g=255, b=255, laser_index=None, slice_no = None, slice_l = None):
         if laser_index is None:
             laser_index=self.current_cloud_index
         n = self.vertex_count
-        self.vertexes[n], self.colors[n], self.vertexes_meta[n] = (x, y, z), (r, g, b), (laser_index, _slice)
+        # TODO extend array if required
+        self.vertexes[n] = (x, y, z)
+        self.colors[n]   = (r, g, b)
+        self.vertexes_meta[n] = (laser_index, slice_no, slice_l)
         self.vertex_count += 1
 
-    def _add_pointcloud(self, cloud_vertex, cloud_color, laser_index=None, _slice = None):
+    def add_pointcloud(self, cloud_vertex, cloud_color, meta=None ):
         if cloud_vertex is None or \
            cloud_vertex.shape[0] <= 0:
             return
         #print "Add {0} to {1}".format(cloud_vertex.shape, self.vertexes.shape)
-        if laser_index is None:
-            laser_index=self.current_cloud_index
+        #if laser_index < 0:
+        #    laser_index=self.current_cloud_index
+
+        _meta = np.empty((), dtype=object)
+        if meta is None:
+            #_meta[()] = (laser_index, slice_no, slice_l)
+            _meta[()] = (-1, -1, np.nan)
+        else:
+            _meta[()] = meta
+        _meta = np.full(cloud_vertex.shape[0], _meta)
+
         n = self.vertex_count
         m = n + cloud_vertex.shape[0]
         if m >= self.vertexes.shape[0]:
@@ -134,16 +148,15 @@ class Mesh(object):
                 self.vertexes.resize((n,3))
                 self.colors.resize((n,3))
                 #self.normal.resize((n,3))
-                self.vertexes_meta.resize((n,)+self.vertexes_meta.shape[1:])
-                #print "\tresize to {0}".format(self.vertexes.shape)
+                self.vertexes_meta.resize(n, refcheck=False) #+self.vertexes_meta.shape[1:])
 
-            self.vertexes   = np.append( self.vertexes,   cloud_vertex, axis=0)
-            self.colors     = np.append( self.colors,     cloud_color, axis=0)
-            self.vertexes_meta = np.append( self.vertexes_meta, [(laser_index, _slice)] * cloud_vertex.shape[0], axis=0)
+            self.vertexes      = np.append( self.vertexes,      cloud_vertex, axis=0)
+            self.colors        = np.append( self.colors,        cloud_color,  axis=0)
+            self.vertexes_meta = np.append( self.vertexes_meta, _meta,        axis=0)
         else:
             self.vertexes[n:m] = cloud_vertex
             self.colors[n:m] = cloud_color
-            self.vertexes_meta[n:m] = [[laser_index, _slice]] * cloud_vertex.shape[0]
+            self.vertexes_meta[n:m] = _meta
 
         self.vertex_count = m
 
@@ -159,7 +172,9 @@ class Mesh(object):
         self.vertexes = np.zeros((vertex_number, 3), np.float32)
         self.colors = np.zeros((vertex_number, 3), np.int32)
         self.normal = np.zeros((vertex_number, 3), np.float32)
-        self.vertexes_meta = np.array([(0,None)]*vertex_number)
+        meta = np.empty((), dtype=object)
+        meta[()] = (-1, -1, np.nan)
+        self.vertexes_meta = np.full(vertex_number, meta, dtype=self.vertexes_meta.dtype)
         self.vertex_count = 0
         return self
 
@@ -180,6 +195,9 @@ class Mesh(object):
 
     def get_vertexes(self):
         return self.vertexes[0:self.vertex_count]
+
+    def get_meta(self):
+        return self.vertexes_meta[0:self.vertex_count]
 
     def copy(self, mesh):
         self.vertexes      = np.copy(mesh.vertexes)

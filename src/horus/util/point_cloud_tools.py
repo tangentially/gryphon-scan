@@ -807,24 +807,32 @@ def pol2cart(radial):
     y = radial[:,0] * np.sin(radial[:,1])
     return np.array(zip(x, y), dtype=np.float32)
 
+# ----------------------------------
 def mean_n(arr, cnt):
     return np.mean( arr.reshape((-1,cnt)+arr.shape[1:]), axis=1)
 
 def cicrcmean_n(arr, cnt):
     return stats.circmean( arr.reshape((-1,cnt)+arr.shape[1:]), axis=1)
 
+# ----------------- R Mat -------------
 def rmat2d_arr(l):
     # l - array of radians
     c, s = np.cos(l), np.sin(l)
     #return np.matrix([[c, -s], [s, c]])
     return np.array([c,-s,s,c]).T.reshape((-1,2,2))
 
+def rmat3d_arr(l):
+    c,s = np.cos(l), np.sin(l)
+    self.M    = np.array([c,-s,0,s,c,0,0,0,1]).T.reshape((-1,3,3))
+    self.Mrev = np.array([c,s,0,-s,c,0,0,0,1]).T.reshape((-1,3,3))
+
 def apply_mat_arr(mat, arr):
     # mat - array  of matrices N x [2x2]
     # arr - array of vectors N x [2]
     #print "Apply matrix M: {0} to V: {1}".format(mat.shape, arr.shape)
-    assert arr.shape[1] == 2, "N x 2D vectors required"
-    assert mat.shape[1:] == (2,2), "N x [2x2] matrices required"
+    s = arr.shape[1]
+    assert s == 2 or s == 3, "N x 2D or N x 3D vectors required"
+    assert mat.shape[1:] == (s,s), "N x [{0}x{0}] matrices required".format(s)
     assert mat.shape[0] == arr.shape[0], "Number of matrices should match number of vectors"
     return np.einsum('ikj,ij->ik',mat,arr)
 
@@ -840,6 +848,7 @@ def apply_mat_arr(mat, arr):
 # https://algowiki-project.org/ru/%D0%9C%D0%B5%D1%82%D0%BE%D0%B4_%D0%9D%D1%8C%D1%8E%D1%82%D0%BE%D0%BD%D0%B0_%D0%B4%D0%BB%D1%8F_%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC_%D0%BD%D0%B5%D0%BB%D0%B8%D0%BD%D0%B5%D0%B9%D0%BD%D1%8B%D1%85_%D1%83%D1%80%D0%B0%D0%B2%D0%BD%D0%B5%D0%BD%D0%B8%D0%B9
 
 def risiduals_fit_correction(parameters,pA,pB,lAB):
+    # TODO add correction vector rotation
     '''
     rM = (np.linalg.norm( pA[:], axis=1 ) + np.linalg.norm( pB[:], axis=1 ) )/2
     A = pA[:] + parameters
@@ -941,7 +950,7 @@ def risiduals_fit_clouds(V, PA, MAneg, PB, MBneg):
     tB = spatial.KDTree(B)
     #print len(tA.query_pairs(10))
     diff = tA.sparse_distance_matrix(tB, 99999999)
-    res = diff.mean()
+    res = diff.mean() # TODO mean of minimums
     print "\t{0} -> {1}".format(V, res)
     #return [res,res]
     return diff.toarray().sum(axis=0)
@@ -958,9 +967,4 @@ def fit_clouds(PA, MAneg, PB, MBneg, prev = np.array([0.,0.])):
 
     return offset
 
-
-# https://stackoverflow.com/questions/17973507/why-is-converting-a-long-2d-list-to-numpy-array-so-slow
-def longlist2ndarray(longlist):
-    flat = np.fromiter(chain.from_iterable(longlist), np.array(longlist[0][0]).dtype, -1) # Without intermediate list:)
-    return flat.reshape((len(longlist), -1))
 

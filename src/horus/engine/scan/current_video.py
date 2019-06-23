@@ -49,7 +49,7 @@ class CurrentVideo(object):
             if p:
                 lines[p[1].astype(int), np.around(p[0]).astype(int)] = c
 
-        self.images['Line'] = cv2.addWeighted(image,0.5,lines,1.)
+        self.images['Line'] = cv2.addWeighted(image,0.5,lines,1.,0.)
 
     def _combine_images(self, images):
         im = [i for i in images if i is not None]
