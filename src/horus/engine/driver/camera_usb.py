@@ -430,8 +430,14 @@ class Camera_usb(Camera):
                     value = int(round(-math.log(value) / math.log(2)))
                     #value = value / 64 * self._max_exposure
                     self._capture.set(self.CV_CAP_PROP_EXPOSURE, value)
-                else:
+                elif system == 'Linux':
+                    # 5000 is a completely arbitrary upper bound
+                    # on how long to allow exposures to be; could
+                    # reasonably be either higher or lower :shrug:
                     value = int(value) / self._max_exposure * 5000
+                    ret = self._capture.set(self.CV_CAP_PROP_EXPOSURE, value)
+                else:
+                    value = int(value) / self._max_exposure
                     ret = self._capture.set(self.CV_CAP_PROP_EXPOSURE, value)
                 self._updating = False
                 return True
