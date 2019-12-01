@@ -62,6 +62,15 @@ class Camera_usb(Camera):
             self._max_contrast = 255.
             self._max_saturation = 255.
             self._rel_exposure = 10.
+        elif system == 'Linux':
+            self._number_frames_fail = 3
+            # For v4l, these values are scaled from [0, 1) and
+            # should thus match the maximum values shown in the
+            # UI (see util/profile.py)
+            self._max_brightness = 255.0
+            self._max_contrast = 255.0
+            self._max_saturation = 255.0
+            self._max_exposure = 64.0
         else:
             self._number_frames_fail = 3
             self._max_brightness = 255.
@@ -413,7 +422,7 @@ class Camera_usb(Camera):
                     #value = value / 64 * self._max_exposure
                     self._capture.set(self.CV_CAP_PROP_EXPOSURE, value)
                 else:
-                    value = int(value) / self._max_exposure
+                    value = int(value) / self._max_exposure * 5000
                     ret = self._capture.set(self.CV_CAP_PROP_EXPOSURE, value)
                 self._updating = False
                 return True
