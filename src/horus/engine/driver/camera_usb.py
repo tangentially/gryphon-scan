@@ -156,7 +156,14 @@ class Camera_usb(Camera):
 
             # disable Auto Exposure
             if LooseVersion(cv2.__version__) > LooseVersion("3.0.0"):
-                self._capture.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
+                target_value = 0
+                if system == 'Linux':
+                    # I'm not totally sure I understand why, but
+                    # this needs to be set to `1` to disable auto
+                    # exposure on LInux for the C270
+                    target_value = 1
+                if not self._capture.set(self.CV_CAP_PROP_AUTO_EXPOSURE, target_value):
+                    logger.error("Failed to disable auto exposure")
                 self.get_exposure()
 
             if system == 'Darwin' and self.controls is not None:
