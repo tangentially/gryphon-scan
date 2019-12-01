@@ -217,12 +217,12 @@ class Camera_usb(Camera):
             raise InvalidVideo()
 
     def _check_camera(self):
+        """Check correct camera"""
         # skip check for unsupported system
         if system == 'Darwin' and self.controls is None:
             logger.info("  [Skip unsupported]")
             return True
 
-        """Check correct camera"""
         c_exp = False
         c_bri = False
 
@@ -452,7 +452,7 @@ class Camera_usb(Camera):
 
     # ------------- Frame rate control ------------
     def set_frame_rate(self, value, init_phase=False):
-	logger.info("Set Frame rate: {0}".format(value))
+        logger.info("Set Frame rate: {0}".format(value))
         if self._is_connected:
             if not init_phase:
                 if system == 'Windows':
