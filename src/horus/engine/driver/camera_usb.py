@@ -15,7 +15,7 @@ import platform
 import wx
 
 from horus.engine.driver.camera import Camera, WrongCamera, CameraNotConnected, InvalidVideo, \
-    WrongDriver, InputOutputError
+    WrongDriver
 
 from distutils.version import StrictVersion, LooseVersion
 
@@ -340,8 +340,6 @@ class Camera_usb(Camera):
                     #value = int(value) / self._max_brightness
                     value = value * self._max_brightness / 255.
                     ret = self._capture.set(self.CV_CAP_PROP_BRIGHTNESS, value)
-                    if system == 'Linux' and ret:
-                        raise InputOutputError()
                 self._updating = False
                 return True
         return False
@@ -358,8 +356,6 @@ class Camera_usb(Camera):
                 else:
                     value = value * self._max_contrast / 255.
                     ret = self._capture.set(self.CV_CAP_PROP_CONTRAST, value)
-                    if system == 'Linux' and ret:
-                        raise InputOutputError()
                 self._updating = False
                 return True
         return False
@@ -376,8 +372,6 @@ class Camera_usb(Camera):
                 else:
                     value = value * self._max_saturation / 255.
                     ret = self._capture.set(self.CV_CAP_PROP_SATURATION, value)
-                    if system == 'Linux' and ret:
-                        raise InputOutputError()
                     if system == 'Windows' and not ret:
                         print "ERROR Set Exposure {0}".format(value)
                     self._updating = False
@@ -421,8 +415,6 @@ class Camera_usb(Camera):
                 else:
                     value = int(value) / self._max_exposure
                     ret = self._capture.set(self.CV_CAP_PROP_EXPOSURE, value)
-                    if system == 'Linux' and ret:
-                        raise InputOutputError()
                 self._updating = False
                 return True
         return False
