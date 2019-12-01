@@ -122,6 +122,8 @@ class Camera_usb(Camera):
                 self._capture = cv2.VideoCapture(self.camera_id, cv2.CAP_DSHOW)
             else:
                 self._capture = cv2.VideoCapture(self.camera_id)
+        elif system == 'Linux':
+            self._capture = cv2.VideoCapture(self.camera_id, cv2.CAP_V4L2)
         else:
             #self._capture = cv2.VideoCapture(self.camera_id, cv2.CAP_FFMPEG)
             self._capture = cv2.VideoCapture(self.camera_id)
