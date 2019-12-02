@@ -15,7 +15,7 @@ import platform
 import wx
 
 from horus.engine.driver.camera import Camera, WrongCamera, CameraNotConnected, InvalidVideo, \
-    WrongDriver, InputOutputError
+    WrongDriver
 
 from distutils.version import StrictVersion, LooseVersion
 
@@ -62,6 +62,15 @@ class Camera_usb(Camera):
             self._max_contrast = 255.
             self._max_saturation = 255.
             self._rel_exposure = 10.
+        elif system == 'Linux':
+            self._number_frames_fail = 3
+            # For v4l, these values are scaled from [0, 1) and
+            # should thus match the maximum values shown in the
+            # UI (see util/profile.py)
+            self._max_brightness = 255.0
+            self._max_contrast = 255.0
+            self._max_saturation = 255.0
+            self._max_exposure = 64.0
         else:
             self._number_frames_fail = 3
             self._max_brightness = 255.
@@ -113,6 +122,8 @@ class Camera_usb(Camera):
                 self._capture = cv2.VideoCapture(self.camera_id, cv2.CAP_DSHOW)
             else:
                 self._capture = cv2.VideoCapture(self.camera_id)
+        elif system == 'Linux':
+            self._capture = cv2.VideoCapture(self.camera_id, cv2.CAP_V4L2)
         else:
             #self._capture = cv2.VideoCapture(self.camera_id, cv2.CAP_FFMPEG)
             self._capture = cv2.VideoCapture(self.camera_id)
@@ -145,7 +156,14 @@ class Camera_usb(Camera):
 
             # disable Auto Exposure
             if LooseVersion(cv2.__version__) > LooseVersion("3.0.0"):
-                self._capture.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
+                target_value = 0
+                if system == 'Linux':
+                    # I'm not totally sure I understand why, but
+                    # this needs to be set to `1` to disable auto
+                    # exposure on LInux for the C270
+                    target_value = 1
+                if not self._capture.set(self.CV_CAP_PROP_AUTO_EXPOSURE, target_value):
+                    logger.error("Failed to disable auto exposure")
                 self.get_exposure()
 
             if system == 'Darwin' and self.controls is not None:
@@ -199,12 +217,12 @@ class Camera_usb(Camera):
             raise InvalidVideo()
 
     def _check_camera(self):
+        """Check correct camera"""
         # skip check for unsupported system
         if system == 'Darwin' and self.controls is None:
             logger.info("  [Skip unsupported]")
             return True
 
-        """Check correct camera"""
         c_exp = False
         c_bri = False
 
@@ -340,8 +358,6 @@ class Camera_usb(Camera):
                     #value = int(value) / self._max_brightness
                     value = value * self._max_brightness / 255.
                     ret = self._capture.set(self.CV_CAP_PROP_BRIGHTNESS, value)
-                    if system == 'Linux' and ret:
-                        raise InputOutputError()
                 self._updating = False
                 return True
         return False
@@ -358,8 +374,6 @@ class Camera_usb(Camera):
                 else:
                     value = value * self._max_contrast / 255.
                     ret = self._capture.set(self.CV_CAP_PROP_CONTRAST, value)
-                    if system == 'Linux' and ret:
-                        raise InputOutputError()
                 self._updating = False
                 return True
         return False
@@ -376,8 +390,6 @@ class Camera_usb(Camera):
                 else:
                     value = value * self._max_saturation / 255.
                     ret = self._capture.set(self.CV_CAP_PROP_SATURATION, value)
-                    if system == 'Linux' and ret:
-                        raise InputOutputError()
                     if system == 'Windows' and not ret:
                         print "ERROR Set Exposure {0}".format(value)
                     self._updating = False
@@ -418,11 +430,15 @@ class Camera_usb(Camera):
                     value = int(round(-math.log(value) / math.log(2)))
                     #value = value / 64 * self._max_exposure
                     self._capture.set(self.CV_CAP_PROP_EXPOSURE, value)
+                elif system == 'Linux':
+                    # 5000 is a completely arbitrary upper bound
+                    # on how long to allow exposures to be; could
+                    # reasonably be either higher or lower :shrug:
+                    value = int(value) / self._max_exposure * 5000
+                    ret = self._capture.set(self.CV_CAP_PROP_EXPOSURE, value)
                 else:
                     value = int(value) / self._max_exposure
                     ret = self._capture.set(self.CV_CAP_PROP_EXPOSURE, value)
-                    if system == 'Linux' and ret:
-                        raise InputOutputError()
                 self._updating = False
                 return True
         return False
@@ -442,7 +458,7 @@ class Camera_usb(Camera):
 
     # ------------- Frame rate control ------------
     def set_frame_rate(self, value, init_phase=False):
-	logger.info("Set Frame rate: {0}".format(value))
+        logger.info("Set Frame rate: {0}".format(value))
         if self._is_connected:
             if not init_phase:
                 if system == 'Windows':
