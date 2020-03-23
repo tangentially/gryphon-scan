@@ -279,7 +279,15 @@ For 64 bit python you need to rename DLL to `freeglut64.dll`
 ```
 pip install -U pyserial numpy scipy matplotlib==1.4.0
 ```
-  
+
+7. Download and run Gryphon Scan
+Download or clone Gryphon Scan project from GitHub (use green "Clone or Download" button)
+Unzip archive if required
+Open command line and change current dir to project folder.
+Run app with
+```
+python horus
+```
   
 ### MacOS: Setting Python for Gryphon Scan
 I'm new in Mac world so please correct me if i miss something.  
