@@ -1,37 +1,37 @@
 
 # Gryphon Scan
-## This is highly customizible version of Horus 3D Scan software with some advanced features support
+## This is highly customisable version of Horus 3D Scan software with some advanced features support
 
 This project was created to support custom built Ciclop-style 3D scanners with different hardware configurations and some more features like:
 - photo lights control
 - saving photos for photogrammetry
-- enchanced calibration
+- enhanced calibration
 - etc...
 
-Also to enhance the existing functions and to fix bugs.  
+Also, to enhance the existing functions and to fix bugs.  
 
 
 ###### For the people who expect software with the single "Make Cool Scan" button
 Sorry guys. This is DIY project not the finished commercial software. 
-If you are not ready for some manual install and adjustments than please don't waste your time.  
+If you are not ready for some manual installation and adjustments than please don't waste your time.  
 This project need a bit of understanding how things are work. Here can be some bug's. 
 This is platform for learning and experiments.  
 
 I will try to make things work smooth but i can not warranty everything will work out of the box in every environment. 
 Most likely you'll need to spend some time and use brain to make things work.  
 
-Please don't write that shitty comments as you do for Ciclop/Horus. This is not the out of the box solution at the moment.  
+Please don't write that shitty comments as you do for Ciclop/Horus. This is not the out-of-the-box solution at the moment.  
 
 
 ###### Dear Visitors
 I need some feedback for this project including usage (beta testing) experience.
-Also please point me to the right place where Ciclop/Horus based scanners are discussed at the moment as there is completely no activity on the original Ciclop/Horus repositories.
-Is there any 3D scanner project that superseeds Horus?
+Also, please point me to the right place where Ciclop/Horus based scanners are discussed at the moment as there is completely no activity on the original Ciclop/Horus repositories.
+Is there any 3D scanner project that supersedes Horus?
 
 ###### At the moment:
-- customizible camera height/angle/distance
+- customisable camera height/angle/distance
 - support for autofocus cameras in calibration->video panel (camera driver has to support set focus), autodetect camera resolution
-- customizible scan area (turntable) size
+- customisable scan area (turntable) size
 - photo lights control support at laser pins 3 and 4 (be aware that board hardware pins current is limited and you need extra hardware for powerful lights)
 - fixed turntable firmware hello string detection (horus-fw 2.0 support or any custom grbl based firmwares if same G-codes are supported)
 - save frames for Photogrammetry
@@ -55,7 +55,7 @@ Is there any 3D scanner project that superseeds Horus?
 - support for OpenCV 4.x
 
 
-P.S. Project is work in progress so at some moments letest commits can be non functional or contain some debug console output.
+P.S. Project is work in progress so at some moments the latest commits can be non-functional or contain some debug console output.
 
 
 Discussion board:  
@@ -80,7 +80,7 @@ Take a look at README_custom_machine.md
 
 ### General calibration process is:  
 
-- if needed set machine custom parameters (turntable geometry, board init string, etc...) in 'settings.json' file.
+- if needed, set machine custom parameters (turntable geometry, board init string, etc...) in 'settings.json' file.
 It is created automatically after first run with default values. Check README_custom_machine.md  
 - make sure you can turn on/off lasers and move platform in correct direction with toolbar buttons. Use "Control workbench"  
 - check camera resolution and set focus for autofocus cameras at "Calibration"->"Video settings"  
@@ -96,12 +96,14 @@ It is created automatically after first run with default values. Check README_cu
 
 1. Do not oversharp/overtight images in laser capture adjustments. 
 A bit blurry laser line before segmentation filters provide subpixel position information.
-Oversharped image create wobbly "pixel stairs" style artifacts at the 3D scan.
+Over-sharped image create wobbly "pixel stairs" style artifacts at the 3D scan.
 
 2. Using ROI increase overall scan precision by removing noisy surroundings from laser point detection input
 
-3. If you wish to use segmentation equival to Horus 0.1 than set: YCrCb filter, blur and window filters off, refinement off  
+3. If you wish to use segmentation equivalent to Horus 0.1 than set: YCrCb filter, blur and window filters off, refinement off  
 
+4. C270 doesn't have automatic focus. By default, it focuses better on object 2 meters away than 20 cm away. 
+To fix that remove the screws and open camera. Then remove glue around the lens with a box cutter and adjust the zoom.
 
 ### Camera calibration
 To get better scanning results you has to calibrate your camera using "Calibration"->"Camera intrinsics".  
@@ -113,11 +115,11 @@ Gryphon Scan use multistep camera calibration to get better precision. Each next
 For Logitech C270 you can use the default initial values and skip to next step.  
 If your camera is not Logitech C270 it is better to estimate rough focal length using ruler and some linear target. 
 As calibration target you can use another ruler or just something straight. 
-- Measure your target length and fill in "Targrt length" field
-- Put target horosontally and parallel to camera. Move target back/front so it exactly fit in to camera frame.
-Measure distance from camera to target and fill "Target horisontal dist" field
+- Measure your target length and fill in "Target length" field
+- Put target horizontally and parallel to camera. Move target back/front, so it exactly fit in to camera frame.
+Measure distance from camera to target and fill "Target horizontal dist" field
 - Do the same for vertical target and fill "Target vertical dist" field
-- Check the calculated camera matrix and if it look good than apply with "Apply calculated camera data" button.  
+- Check the calculated camera matrix and if it looks good, then apply with "Apply calculated camera data" button.  
 
 2. Using your chessboard pattern calibrate precise camera matrix and distortion.  
 The chessboard pattern has to be flat and rigid as possible.
@@ -125,7 +127,7 @@ Capture 15 frames of calibration data moving pattern all around the camera view.
 Keep patten parallel to camera. To capture frame press \[space\]. 
 Frames are only captured if pattern is detected within frame.  
 
-All captured frames are automatically saved to `camera_intrisics` folder. You can recall them one by one by press [r] button during frames capture. 
+All captured frames are automatically saved to `camera_intrisics` folder. You can recall them one by one pressing [r] button during frames capture. 
 
 ##### Some reading
 The Intrinsic Matrix:  
@@ -155,7 +157,7 @@ This will make calibration more precise by using larger lasers point cloud area.
 ## Point clouds misalignment
 Still investigating. As general workaround try to keep things symmetrical/parallel/perpendicular.  
 
-**NOTE** If cloud misalignment is _very big_ than check your hardware and connections. Check is platform rotation direction correspond the buttons? May be your stepper cable turned upside down or you misconfigure rotation direction flag?  Is there any not well fixed parts? Etc...  
+**NOTE** If cloud misalignment is _very big_ than check your hardware and connections. Check is platform rotation direction correspond the buttons? Maybe your stepper cable turned upside down, or you misconfigured rotation direction flag?  Is there any not well fixed parts? Etc...  
 
 ### Lasers
 For Gryphon Scan laser planes position and tilt does not affect on point cloud misalignment. 
@@ -235,15 +237,15 @@ To enable set `"scan_sync_threads": true` in 'settings.json'
 ------------------------------------------
 
 ## Installation
-At the moment there is no automatic installer so you need to install Python and requred libraries manually then download and run Gryphon Scan.  
+At the moment there is no automatic installer, so you need to install Python and required libraries manually then download and run Gryphon Scan.  
 Yes, there is bundler scripts in Horus but there is a lot of broken download links and old software versions.
-Also i plan to switch to new OpenCV with contrib package (4.1.0 at the moment)  
+Also I plan to switch to new OpenCV with contrib package (4.1.0 at the moment)  
   
   
 ### Windows: Installing Python 2.7 for Gryphon Scan
 This notes can be incomplete. This is my experience for my environment (Win 8.1)
 
-1. Get and install latest Python 2.7  
+1. Get and install the latest Python 2.7  
 https://www.python.org/downloads/release/python-2716/  
 Windows x86-64 MSI installer  
 

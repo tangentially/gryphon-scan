@@ -41,17 +41,17 @@ class CalibrationWorkbench(Workbench):
             'rotating_platform_settings', RotatingPlatform,
             self.on_rotating_platform_settings_selected)
         self.add_panel(
-            'laser_triangulation', LaserTriangulationPanel,
-            self.on_laser_triangulation_selected)
-        self.add_panel(
-            'platform_extrinsics', PlatformExtrinsics,
-            self.on_platform_extrinsics_selected)
-        self.add_panel(
             'video_settings', VideoSettings,
             self.on_video_settings_selected)
         self.add_panel(
             'camera_intrinsics', CameraIntrinsics,
             self.on_camera_intrinsics_selected)
+        self.add_panel(
+            'laser_triangulation', LaserTriangulationPanel,
+            self.on_laser_triangulation_selected)
+        self.add_panel(
+            'platform_extrinsics', PlatformExtrinsics,
+            self.on_platform_extrinsics_selected)
 #        self.add_panel(
 #            'cloud_correction', CloudCorrectionPanel,
 #            self.on_cloud_correction_selected)
