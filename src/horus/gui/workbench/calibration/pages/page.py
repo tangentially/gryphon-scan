@@ -22,7 +22,7 @@ class Page(wx.Panel):
         button_panel = wx.Panel(self)
         title_text = wx.StaticText(self, label=title)
         title_font = title_text.GetFont()
-        title_font.SetWeight(wx.BOLD)
+        title_font.SetWeight(wx.FONTWEIGHT_BOLD)
         title_text.SetFont(title_font)
         if desc != "":
             self.desc_text = wx.StaticText(self, label=desc)

@@ -27,8 +27,8 @@ class ScannerAutocheckPages(wx.Panel):
                                     start_callback=self.on_start,
                                     cancel_callback=self.on_cancel)
 
-	self.video_page.add_info(_("Put the pattern on the platform as shown in the "
-                             "picture and press \"Start\""), "pattern-position.png")
+        self.video_page.add_info(_("Put the pattern on the platform as shown in the "
+                                 "picture and press \"Start\""), "pattern-position.png")
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)

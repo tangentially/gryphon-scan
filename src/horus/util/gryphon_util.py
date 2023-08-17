@@ -6,11 +6,12 @@ __copyright__ = 'Copyright (C) 2018 Night Gryphon'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import cv2
-import numpy as np
+from itertools import chain
 import math
+import numpy as np
+import struct
 from scipy import optimize
 
-from horus.util import profile
 import horus.gui.engine
 
 # ================================================
@@ -43,7 +44,7 @@ def capture_precise_corners(steps = 3):
     image_capture = horus.gui.engine.image_capture
     stream_save = image_capture.stream
     image_capture.stream = False
-    for i in xrange(steps):
+    for i in range(steps):
         print(i)
         image = image_capture.capture_pattern()
         if image is not None:
@@ -65,8 +66,8 @@ def capture_precise_corners(steps = 3):
 
 def decode_color(value, default=(0,0,0)):
     ret = default
-    if isinstance(value, basestring):
-        ret = struct.unpack('BBB', value.decode('hex'))
+    if isinstance(value, str):
+        ret = struct.unpack('BBB', bytes.fromhex(value))
     elif isinstance(value, (tuple,list)) and \
          len(value) == 3 and \
          all(isinstance(x, int) for x in value):
@@ -227,7 +228,7 @@ def rotatePoint2Plane(A,n,d):
 
 def rigid_transform_3D(A, B):
     assert len(A) == len(B)
-    N = A.shape[0]; # total points
+    N = A.shape[0]  # total points
     print("Arr len: "+str(N))
     centroid_A = np.mean(A, axis=0)
     centroid_B = np.mean(B, axis=0)
@@ -247,7 +248,7 @@ def rigid_transform_3D(A, B):
 
     # special reflection case
     if np.linalg.det(R) < 0:
-       print "Reflection detected"
+       print("Reflection detected")
        Vt[2,:] *= -1
        R = np.matmul(Vt.T, U.T)
 
@@ -340,7 +341,7 @@ def residuals_normal(parameters, data_vectors):
 
 def fit_normal_leastsq(data):
     estimate = [-np.pi/2, np.pi/2]  # theta, phi
-    best_fit_values, ier = optimize.leastsq(residuals_normal, estimate, args=(data*1000))
+    best_fit_values = optimize.leastsq(residuals_normal, estimate, args=(data*1000))
     tF, pF = best_fit_values
     v = np.array([np.sin(tF) * np.cos(pF), np.sin(tF) * np.sin(pF), np.cos(tF)])
     return v

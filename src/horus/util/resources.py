@@ -62,15 +62,15 @@ def setup_localization(selected_language=None):
 
     locale_path = os.path.normpath(os.path.join(resource_base_path, 'locale'))
     translation = gettext.translation('horus', locale_path, languages, fallback=True)
-    translation.install(unicode=True)
+    translation.install()
 
 
 def get_language_options():
     return [
-        ['en', u'English'],
-        ['es', u'Español'],
-        ['fr', u'Français'],
-        ['de', u'Deutsch'],
-        ['it', u'Italiano'],
-        ['pt', u'Português'],
+        ['en', 'English'],
+        ['es', 'Español'],
+        ['fr', 'Français'],
+        ['de', 'Deutsch'],
+        ['it', 'Italiano'],
+        ['pt', 'Português'],
     ]

@@ -9,6 +9,7 @@ import gc
 import os
 import time
 import wx._core
+import wx.adv
 import datetime
 import webbrowser
 from collections import OrderedDict
@@ -300,7 +301,6 @@ class MainWindow(wx.Frame):
             with open(log_file, 'w') as _file:
                 with open('horus.log', 'r') as _log:
                     _file.write(_log.read())
-            log_file
         dlg.Destroy()
 
     def on_exit(self, event):
@@ -314,7 +314,7 @@ class MainWindow(wx.Frame):
             driver.board.set_unplug_callback(None)
             driver.camera.set_unplug_callback(None)
             driver.disconnect()
-            for workbench in self.workbench:
+            for key, workbench in self.workbench:
                 workbench.on_disconnect()
         except:
             pass
@@ -326,13 +326,13 @@ class MainWindow(wx.Frame):
             self.toolbar.toolbar_connect.Enable()
             self.toolbar.toolbar_control.Enable()
             self.toolbar.combo.Enable()
-            for i in xrange(self.menu_bar.GetMenuCount()):
+            for i in range(self.menu_bar.GetMenuCount()):
                 self.menu_bar.EnableTop(i, True)
         else:
             self.toolbar.toolbar_connect.Disable()
             self.toolbar.toolbar_control.Disable()
             self.toolbar.combo.Disable()
-            for i in xrange(self.menu_bar.GetMenuCount()):
+            for i in range(self.menu_bar.GetMenuCount()):
                 self.menu_bar.EnableTop(i, False)
 
     def append_last_file(self, last_file):
@@ -347,7 +347,8 @@ class MainWindow(wx.Frame):
     def on_preferences(self, event):
         self.launch_preferences()
 
-    def launch_preferences(self, basic=False):
+    @staticmethod
+    def launch_preferences(basic=False):
         preferences = PreferencesDialog(basic=basic)
         preferences.ShowModal()
 
@@ -469,18 +470,18 @@ class MainWindow(wx.Frame):
         self.wait_cursor = wx.BusyCursor()
         self.toolbar.combo.SetValue(name)
         if sys.is_windows():
-            for key, wb in self.workbench.iteritems():
+            for key, wb in iter(self.workbench.items()):
                 if wb.name == name:
                     wb.Show()
                     profile.settings['workbench'] = key
-            for key, wb in self.workbench.iteritems():
+            for key, wb in iter(self.workbench.items()):
                 if wb.name != name:
                     wb.Hide()
         else:
-            for key, wb in self.workbench.iteritems():
+            for key, wb in iter(self.workbench.items()):
                 if wb.name != name:
                     wb.Hide()
-            for key, wb in self.workbench.iteritems():
+            for key, wb in iter(self.workbench.items()):
                 if wb.name == name:
                     wb.Show()
                     profile.settings['workbench'] = key
@@ -495,19 +496,20 @@ class MainWindow(wx.Frame):
         del self.wait_cursor
         gc.collect()
 
-    def on_about(self, event):
-        info = wx.AboutDialogInfo()
+    @staticmethod
+    def on_about(event):
+        info = wx.adv.AboutDialogInfo()
         icon = wx.Icon(resources.get_path_for_image("horus.ico"), wx.BITMAP_TYPE_ICO)
         info.SetIcon(icon)
-        info.SetName(u'Horus / Gryphon Scan')
+        info.SetName('Horus / Gryphon Scan')
         info.SetVersion(__version__)
         tech_description = _('Gryphon scan is highly customized fork of Horus, an Open Source 3D Scanner manager')
         tech_description += '\nVersion: ' + __version__
         tech_description += '\nDatetime: ' + __datetime__
         tech_description += '\nCommit: ' + __commit__
         info.SetDescription(tech_description)
-        info.SetCopyright(u'(C) 2014-2016 Mundo Reader S.L., (C) 2018-2019 Mikhail Klimushin')
-        info.SetWebSite(u'https://github.com/nightgryphon/gryphon-scan')
+        info.SetCopyright('(C) 2014-2016 Mundo Reader S.L., (C) 2018-2019 Mikhail Klimushin')
+        info.SetWebSite('https://github.com/nightgryphon/gryphon-scan')
         info.SetLicence("Gryphon Scan / Horus is free software; you can redistribute it and/or modify it\n"
                         "under the terms of the GNU General Public License as published by\n"
                         "the Free Software Foundation; either version 2 of the License,\n"
@@ -519,13 +521,13 @@ class MainWindow(wx.Frame):
                         "received a copy of the GNU General Public License along with\n"
                         "File Hunter; if not, write to the Free Software Foundation,\n"
                         "Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA")
-        info.AddDeveloper(u'Mikhail Klimushin, Jesús Arroyo, Irene Sanz, Jorge Robles')
-        info.AddDocWriter(u'Mikhail Klimushin, Jesús Arroyo, Ángel Larrañaga')
-        info.AddArtist(u'Nestor Toribio')
-        info.AddTranslator(u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva, '
+        info.AddDeveloper('Mikhail Klimushin, Jesús Arroyo, Irene Sanz, Jorge Robles')
+        info.AddDocWriter('Mikhail Klimushin, Jesús Arroyo, Ángel Larrañaga')
+        info.AddArtist('Nestor Toribio')
+        info.AddTranslator('Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva, '
                            'Camille Montgolfier, Markus Hoedl, Andrea Fantini, Maria Albuquerque, '
                            'Meike Schirmeister')
-        wx.AboutBox(info)
+        wx.adv.AboutBox(info)
 
     def on_welcome(self, event):
         WelcomeDialog(self)
@@ -568,7 +570,7 @@ class MainWindow(wx.Frame):
         dlg.Destroy()
 
     def update_profile_to_all_controls(self):
-        for _, w in self.workbench.iteritems():
+        for _, w in iter(self.workbench.items()):
             w.update_controls()
         self.workbench[profile.settings['workbench']].update_controls()
 
@@ -612,7 +614,8 @@ class MainWindow(wx.Frame):
                 self.workbench['scanning'].scene_panel.Hide()
                 self.workbench['scanning'].pages_collection['view_page'].Unsplit()
 
-    def initialize_driver(self):
+    @staticmethod
+    def initialize_driver():
         # Serial name
         serial_list = driver.board.get_serial_list()
         current_serial = profile.settings['serial_name']
@@ -624,7 +627,7 @@ class MainWindow(wx.Frame):
         current_video_id = profile.settings['camera_id']
         if len(video_list) > 0:
             if current_video_id not in video_list:
-                profile.settings['camera_id'] = unicode(video_list[0])
+                profile.settings['camera_id'] = str(video_list[0])
 
         if len(profile.settings['camera_id']):
             driver.camera.camera_id = int(profile.settings['camera_id'][-1:])

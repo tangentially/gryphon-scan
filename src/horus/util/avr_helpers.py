@@ -74,8 +74,8 @@ class AvrDude(object):
         flags = ['-C', '%(avrconf)s', '-c', self.protocol, '-p', self.microcontroller,
                  '-P', '%s' % self.port, '-b', str(self.baud_rate), '-D', '-U',
                  'flash:w:%s' % os.path.basename(hex_path)]
+        cwd = os.getcwd()
         try:
-            cwd = os.getcwd()
             os.chdir(os.path.dirname(os.path.abspath(hex_path)))
             out = self._run_command(flags, callback)
             logger.info(' Upload completed')
@@ -83,4 +83,4 @@ class AvrDude(object):
             print(e)
         finally:
             os.chdir(cwd)
-        return out
+            return out

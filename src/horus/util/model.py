@@ -53,7 +53,7 @@ class Model(object):
             vertexes = self._mesh.vertexes
             vmin = vertexes.min(0)
             vmax = vertexes.max(0)
-            for n in xrange(0, 3):
+            for n in range(0, 3):
                 self._min[n] = min(vmin[n], self._min[n])
                 self._max[n] = max(vmax[n], self._max[n])
 
@@ -187,7 +187,7 @@ class Mesh(object):
 
     def _calculate_normals(self):
         # Calculate the normals
-        tris = self.vertexes.reshape(self.vertex_count / 3, 3, 3)
+        tris = self.vertexes.reshape((self.vertex_count / 3, 3, 3))
         normals = np.cross(tris[::, 1] - tris[::, 0], tris[::, 2] - tris[::, 0])
         normals /= np.linalg.norm(normals)
         n = np.concatenate((np.concatenate((normals, normals), axis=1), normals), axis=1)

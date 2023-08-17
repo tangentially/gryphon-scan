@@ -10,10 +10,9 @@ import numpy as np
 
 from horus.util import profile
 
-from horus.gui.engine import calibration_data, cloud_correction, image_capture, image_detection
+from horus.gui.engine import cloud_correction, image_capture, image_detection
 from horus.engine.calibration.cloud_correction import CloudCorrectionError
 
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 
@@ -32,9 +31,9 @@ class CloudCorrectionPages(wx.Panel):
 
         self.video_page = VideoPage(self, title=_('Cloud correction'),
                                     start_callback=self.on_start, cancel_callback=self.on_exit)
-	self.video_page.add_info(_("Estimate point cloud compensation."), "")
-	self.video_page.add_info(_("Put the pattern on the platform as shown in the "
-                             "picture and press \"Start\""), "pattern-position.png")
+        self.video_page.add_info(_("Estimate point cloud compensation."), "")
+        self.video_page.add_info(_("Put the pattern on the platform as shown in the "
+                                 "picture and press \"Start\""), "pattern-position.png")
 
         self.result_page = ResultPage(self, exit_callback=self.on_exit)
 
@@ -202,7 +201,7 @@ class CloudCorrection3DPlot(wx.Panel):
         fig = Figure(facecolor=(0.7490196, 0.7490196, 0.7490196, 1), tight_layout=True)
         self.canvas = FigureCanvasWxAgg(self, -1, fig)
         self.canvas.SetExtraStyle(wx.EXPAND)
-        self.ax = fig.gca(projection='3d', facecolor=(0.7490196, 0.7490196, 0.7490196, 1))
+        self.ax = fig.gca()
 
         self.Bind(wx.EVT_SIZE, self.onSize)
         self.Layout()

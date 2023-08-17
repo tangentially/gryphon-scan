@@ -162,7 +162,8 @@ class PreferencesDialog(wx.Dialog):
         self.save_button.Bind(wx.EVT_BUTTON, self.on_save_button)
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
-    def _add_label_control(self, vbox, label, combo):
+    @staticmethod
+    def _add_label_control(vbox, label, combo):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 10)
         hbox.AddStretchSpacer()
@@ -191,7 +192,8 @@ class PreferencesDialog(wx.Dialog):
             clear_eeprom = self.clear_check_box.GetValue()
             threading.Thread(target=self.load_firmware, args=(baud_rate, clear_eeprom)).start()
 
-    def _get_baud_rate(self, value):
+    @staticmethod
+    def _get_baud_rate(value):
         if value == 'Arduino Uno':
             return 115200
         elif value == 'BT ATmega328':

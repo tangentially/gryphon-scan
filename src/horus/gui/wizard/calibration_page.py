@@ -74,7 +74,8 @@ class CalibrationPage(WizardPage):
             except:
                 pass
 
-    def get_image(self):
+    @staticmethod
+    def get_image():
         if combo_calibration.image is not None:
             image = combo_calibration.image
         else:

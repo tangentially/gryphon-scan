@@ -30,7 +30,7 @@ In this section you can move the motor to an absolute angle, with a specific spe
 
 .. image:: ../_static/workbenches/control-motor.png
 
-Also the motor can be enabled or disabled and the position stored inside the firmware reseted.
+Also the motor can be enabled or disabled and the position stored inside the firmware reset.
 
 Gcode
 -----

@@ -3,12 +3,11 @@ __author__ = 'Mikhail N Klimushin aka Night Gryphon <ngryph@gmail.com>'
 __copyright__ = 'Copyright (C) 2019 Night Gryphon'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-
 import numpy as np
 
 from horus.util import profile
 from horus.util import model
-from horus.gui.engine import ciclop_scan, calibration_data
+from horus.gui.engine import ciclop_scan
 from horus.gui.util.custom_panels import ExpandablePanel, ComboBox, \
      CheckBox, IntTextBox, Button, FloatTextBoxArray
 from horus.gui.util.gryphon_controls import DirPicker, ColorPicker

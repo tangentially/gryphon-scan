@@ -16,11 +16,11 @@ This project has been developed in [Python](https://www.python.org/) language an
 
 ###### Current version: 0.2rc1
 
-| Logo              | Name     | Instructions                        |
-|:-----------------:|:--------:|:-----------------------------------:|
-| ![][ubuntu-logo]  | Ubuntu   | [[en]](http://horus.readthedocs.io/en/release-0.2/source/installation/ubuntu.html)  [[es]](http://horus.readthedocs.io/es/release-0.2/source/installation/ubuntu.html) |
-| ![][windows-logo] | Windows  |  [[en]](http://horus.readthedocs.io/en/release-0.2/source/installation/windows.html)  [[es]](http://horus.readthedocs.io/es/release-0.2/source/installation/windows.html) |
-| ![][macosx-logo]  | Mac OS X |  [[en]](http://horus.readthedocs.io/en/release-0.2/source/installation/macosx.html)  [[es]](http://horus.readthedocs.io/es/release-0.2/source/installation/macosx.html) |
+|       Logo        |   Name   |                                                                               Instructions                                                                               |
+|:-----------------:|:--------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| ![][ubuntu-logo]  |  Ubuntu  |  [[en]](http://horus.readthedocs.io/en/release-0.2/source/installation/ubuntu.html)  [[es]](http://horus.readthedocs.io/es/release-0.2/source/installation/ubuntu.html)  |
+| ![][windows-logo] | Windows  | [[en]](http://horus.readthedocs.io/en/release-0.2/source/installation/windows.html)  [[es]](http://horus.readthedocs.io/es/release-0.2/source/installation/windows.html) |
+| ![][macosx-logo]  | Mac OS X |  [[en]](http://horus.readthedocs.io/en/release-0.2/source/installation/macosx.html)  [[es]](http://horus.readthedocs.io/es/release-0.2/source/installation/macosx.html)  |
 
 #### Experimental
 

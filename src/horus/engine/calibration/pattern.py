@@ -95,7 +95,8 @@ class Pattern(object):
     def set_origin_distance(self, value):
         self.origin_distance = self.to_float(value)
 
-    def to_int(self, value):
+    @staticmethod
+    def to_int(value):
         try:
             value = int(value)
             if value > 0:
@@ -105,7 +106,8 @@ class Pattern(object):
         except:
             return 0
 
-    def to_float(self, value):
+    @staticmethod
+    def to_float(value):
         try:
             value = float(value)
             if value > 0.0:

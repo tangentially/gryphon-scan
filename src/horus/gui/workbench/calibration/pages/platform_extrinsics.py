@@ -10,11 +10,11 @@ import numpy as np
 
 from horus.util import profile
 
-from horus.gui.engine import pattern, calibration_data, platform_extrinsics, image_capture, image_detection, aruco_detection
+from horus.gui.engine import calibration_data, platform_extrinsics, image_capture, image_detection
 from horus.gui.util.pattern_distance_window import PatternDistanceWindow
 from horus.engine.calibration.platform_extrinsics import PlatformExtrinsicsError
+from horus.engine.algorithms.aruco_detection import aruco_detection
 
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 
@@ -34,9 +34,9 @@ class PlatformExtrinsicsPages(wx.Panel):
 
         self.video_page = VideoPage(self, title=_('Platform extrinsics'),
                                     start_callback=self.on_start, cancel_callback=self.on_exit)
-	self.video_page.add_info(_("Estimate platform position."), "")
-	self.video_page.add_info(_("Put the pattern on the platform as shown in the "
-                             "picture and press \"Start\""), "pattern-position.png")
+        self.video_page.add_info(_("Estimate platform position."), "")
+        self.video_page.add_info(_("Put the pattern on the platform as shown in the "
+                                 "picture and press \"Start\""), "pattern-position.png")
 
         self.result_page = ResultPage(self, exit_callback=self.on_exit)
 
@@ -218,7 +218,7 @@ class PlatformExtrinsics3DPlot(wx.Panel):
         fig = Figure(facecolor=(0.7490196, 0.7490196, 0.7490196, 1), tight_layout=True)
         self.canvas = FigureCanvasWxAgg(self, -1, fig)
         self.canvas.SetExtraStyle(wx.EXPAND)
-        self.ax = fig.gca(projection='3d', facecolor=(0.7490196, 0.7490196, 0.7490196, 1))
+        self.ax = fig.gca()
 
         self.Bind(wx.EVT_SIZE, self.on_size)
         self.Layout()

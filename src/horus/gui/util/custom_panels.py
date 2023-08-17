@@ -6,8 +6,6 @@ __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import wx._core
-import types
-import struct
 from collections import OrderedDict
 
 from horus.util import profile, resources, system as sys
@@ -36,7 +34,7 @@ class ExpandableCollection(wx.Panel):
     def init_panels_layout(self):
         values = self.expandable_panels.values()
         if len(values) > 0:
-            self._expand_callback(values[0])
+            self._expand_callback(next(iter(values)))
 
     def _expand_callback(self, selected_panel):
         if sys.is_windows():
@@ -223,7 +221,7 @@ class TitleText(wx.Panel):
         # Elements
         self.title = wx.StaticText(self, label=title)
         title_font = self.title.GetFont()
-        title_font.SetWeight(wx.BOLD)
+        title_font.SetWeight(wx.FONTWEIGHT_BOLD)
         self.title.SetFont(title_font)
         self.line = wx.StaticLine(self)
 
@@ -285,10 +283,10 @@ class ControlCollection(wx.Panel):
             control.reset_profile()
 
     def enable(self, _name):
-        self.items[_name].Enable()
+        self.control_panels[_name].Enable()
 
     def disable(self, _name):
-        self.items[_name].Disable()
+        self.control_panels[_name].Disable()
 
     def update_from_profile(self):
         for control in self.control_panels.values():
@@ -456,7 +454,7 @@ class ComboBox(ControlPanel):
         self.control.Bind(wx.EVT_COMBOBOX, self._on_combo_box_changed)
 
     def SetValue_overwrite(self, value):
-        self.control.SetValue_original(_(str(value)))
+        self.control.SetValue(_(str(value)))
 
     def _on_combo_box_changed(self, event):
         value = self.key_dict[self.control.GetValue()]
@@ -701,13 +699,12 @@ class FloatBoxArray(wx.Panel):
             self.r, self.c = 1, self.value.shape[0]
         elif len(self.value.shape) == 2:
             self.r, self.c = self.value.shape
-        self.texts = [[0 for j in range(self.c)] for i in range(self.r)]
+        self.texts = [[FloatBox(self, size=self.size, style=wx.TE_RIGHT) for j in range(self.c)] for i in range(self.r)]
 
         ibox = wx.BoxSizer(wx.VERTICAL)
         for i in range(self.r):
             jbox = wx.BoxSizer(wx.HORIZONTAL)
             for j in range(self.c):
-                self.texts[i][j] = FloatBox(self, size=self.size, style=wx.TE_RIGHT)
                 if self.r == 1:
                     self.texts[i][j].SetValue(self.value[j])
                 else:
@@ -805,13 +802,12 @@ class FloatStaticArray(wx.Panel):
             self.r, self.c = 1, self.value.shape[0]
         elif len(self.value.shape) == 2:
             self.r, self.c = self.value.shape
-        self.texts = [[0 for j in range(self.c)] for i in range(self.r)]
+        self.texts = [[wx.StaticText(self, size=self.size, style=wx.TE_RIGHT) for j in range(self.c)] for i in range(self.r)]
 
         ibox = wx.BoxSizer(wx.VERTICAL)
         for i in range(self.r):
             jbox = wx.BoxSizer(wx.HORIZONTAL)
             for j in range(self.c):
-                self.texts[i][j] = wx.StaticText(self, size=self.size, style=wx.TE_RIGHT)
                 if self.r == 1:
                     self.texts[i][j].SetLabel(str(round(self.value[j], 4)))
                 else:

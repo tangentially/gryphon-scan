@@ -153,7 +153,7 @@ class MachineSettingsDialog(wx.Dialog):
         self.machineModelField.SetLabel(self._getFileName(self.machineModelPath))
 
     def onMachineShapeComboChanged(self, event):
-        vbox = self.get_sizer()
+        vbox = self.GetSizer()
         machine_shape = self.machineShapes[
             self.translatedMachineShapes.index(self.machineShapeCombo.GetValue())]
         if machine_shape == "Circular":
@@ -177,5 +177,6 @@ class MachineSettingsDialog(wx.Dialog):
             self.machineModelField.SetLabel(dlg.GetFilename())
         dlg.Destroy()
 
-    def _getFileName(self, path):
+    @staticmethod
+    def _getFileName(path):
         return os.path.basename(path)

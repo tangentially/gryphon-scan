@@ -8,10 +8,10 @@
 #############################
 
 ##Select the build target
-BUILD_TARGET=${1:-none}
+#BUILD_TARGET=${1:-none}
 #BUILD_TARGET=win32
 #BUILD_TARGET=debian
-#BUILD_TARGET=darwin
+BUILD_TARGET=darwin
 #BUILD_TARGET=version
 
 EXTRA_ARGS=${2}

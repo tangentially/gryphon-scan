@@ -104,7 +104,8 @@ class CalibrationWorkbench(Workbench):
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_calibration']].on_title_clicked(None)
 
-    def get_image(self):
+    @staticmethod
+    def get_image():
         image = image_capture.capture_pattern()
         return image_detection.detect_pattern(image)
 

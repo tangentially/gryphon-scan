@@ -92,7 +92,8 @@ class HorusApp(wx.App):
             pass
         self._update_log_date()
 
-    def _update_log_date(self):
+    @staticmethod
+    def _update_log_date():
         date_format = '%Y-%m-%d %H:%M:%S'
         current_log_date = datetime.datetime.now()
         profile.settings['last_clear_log_date'] = str(current_log_date.strftime(date_format))
@@ -100,7 +101,8 @@ class HorusApp(wx.App):
     def MacReopenApp(self):
         self.GetTopWindow().Raise()
 
-    def stupid_mac_os_workaround(self):
+    @staticmethod
+    def stupid_mac_os_workaround():
         """
         On MacOS for some magical reason opening new frames does not work
         until you opened a new modal dialog and closed it. If we do this from

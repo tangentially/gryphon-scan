@@ -11,8 +11,10 @@ from horus.util import resources
 import numpy as np
 import cv2
 
-from horus.gui.engine import image_capture, image_detection, aruco_detection, scanner_autocheck, \
+from horus.gui.engine import image_capture, image_detection, scanner_autocheck, \
     laser_triangulation, platform_extrinsics, calibration_data
+
+from horus.engine.algorithms.aruco_detection import aruco_detection
 
 from horus.gui.workbench.calibration.pages.page import Page
 from horus.gui.util.image_view import ImageView
@@ -40,7 +42,7 @@ class VideoPage(Page):
         self.info_panel = wx.Panel(self)
         title_text = wx.StaticText(self.info_panel, label=title)
         title_font = title_text.GetFont()
-        title_font.SetWeight(wx.BOLD)
+        title_font.SetWeight(wx.FONTWEIGHT_BOLD)
         title_text.SetFont(title_font)
 
         # Layout
@@ -85,7 +87,8 @@ class VideoPage(Page):
     def reset(self):
         self.video_view.reset()
 
-    def get_image(self):
+    @staticmethod
+    def get_image():
         if scanner_autocheck.image is not None:
             image = scanner_autocheck.image
         elif laser_triangulation.image is not None:

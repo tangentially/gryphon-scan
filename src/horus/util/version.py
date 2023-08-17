@@ -7,7 +7,7 @@ __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.\
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import json
-import urllib2
+import urllib.request
 import webbrowser
 
 from horus import __version__, __datetime__, __commit__
@@ -46,10 +46,10 @@ URL_DOWNLOAD = 'https://github.com/bqlabs/horus/releases/download/'
 def download_lastest_data():
     global latest_version, latest_commit, latest_datetime
     try:
-        f = urllib2.urlopen(URL_API_RELEASES, timeout=1)
+        f = urllib.request.urlopen(URL_API_RELEASES, timeout=1)
         content = json.loads(f.read())
         tag_name = content['tag_name']
-        f = urllib2.urlopen(URL_DOWNLOAD + tag_name + '/version', timeout=1)
+        f = urllib.request.urlopen(URL_DOWNLOAD + tag_name + '/version', timeout=1)
         content = json.loads(f.read())
         latest_version = Version(content['version'])
         latest_datetime = content['datetime']
@@ -60,14 +60,14 @@ def download_lastest_data():
 
 def check_for_updates():
     return latest_version is not '' and \
-        latest_version.number >= current_version.number and \
-        latest_version.prenumber >= current_version.prenumber and \
+        Version(latest_version).number >= current_version.number and \
+        Version(latest_version).prenumber >= current_version.prenumber and \
         current_datetime is not '' and \
         latest_datetime > current_datetime
 
 
 def _get_executable_url(version):
-    url = None
+    url = ''
     if sys.is_linux():
         import platform
         url = 'https://launchpad.net/~bqlabs/+archive/ubuntu/horus-dev/+files/'

@@ -6,24 +6,13 @@ __copyright__ = 'Copyright (C) 2018 Night Gryphon'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import numpy as np
-import cv2
-import time
-
-import struct
-import math
-from scipy.sparse import linalg as splinalg
-from scipy import sparse, linalg
 import numpy.linalg
 
 from horus import Singleton
-from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
 
-from horus.gui.util.augmented_view import augmented_pattern_mask
 from horus.util.gryphon_util import rotatePoint2Plane, \
-    rigid_transform_3D, PointOntoLine, capture_precise_corners
-
-from horus.util import profile
+    rigid_transform_3D, capture_precise_corners
 
 import logging
 logger = logging.getLogger(__name__)
@@ -74,8 +63,8 @@ class CloudCorrection(MovingCalibration):
         # choose points for calibration. closest to the focal center are less distorted
         print("--- Points selection")
         corner_id = []
-        for y in xrange(self.pattern.rows):
-            for x in xrange(self.pattern.columns):
+        for y in range(self.pattern.rows):
+            for x in range(self.pattern.columns):
                 i = y*self.pattern.columns + x
                 if corners[i][0][0] > self.calibration_data.camera_matrix[0][2]:
                     if i>0:
@@ -109,7 +98,7 @@ class CloudCorrection(MovingCalibration):
 
         # measure actual positions
         #self.clouds = np.empty((len(self.calibration_data.laser_planes),0))
-        for i in xrange(ncaptures):
+        for i in range(ncaptures):
             if not self._is_calibrating:
                 break
 

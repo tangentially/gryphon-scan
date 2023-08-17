@@ -120,7 +120,6 @@ As calibration target you can use another ruler or just something straight.
 Measure distance from camera to target and fill "Target horizontal dist" field
 - Do the same for vertical target and fill "Target vertical dist" field
 - Check the calculated camera matrix and if it looks good, then apply with "Apply calculated camera data" button.  
-
 2. Using your chessboard pattern calibrate precise camera matrix and distortion.  
 The chessboard pattern has to be flat and rigid as possible.
 Capture 15 frames of calibration data moving pattern all around the camera view. 
@@ -303,17 +302,15 @@ sudo pip install tornado   <- this will ask to install developers tools which is
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
 
-3. Install wxPython 3.0 (Yes, the 3.0.x version required)
-Download package from  
-https://wxpython.org/snapshots/  
-Unpack and install with (you can install with command line or turn off Gatekeeper as package have no digital signature)
+3. Install wxPython
 ```
-sudo installer -pkg /path/to/wxPython.pkg -target /
+brew install wxpython
 ```
+
+This will also install numpy
 
 4. Install packages
 ```
-sudo easy_install -U numpy <- i've got a huge bunch of warnings and few errors during compile but it seems OK in the final
 sudo pip install opencv-contrib-python
 sudo pip install pyopengl pyopengl-accelerate
 sudo pip install -U pyserial scipy 
@@ -322,7 +319,7 @@ sudo pip install -U pyserial scipy
 5. Setup matplotlib 1.4.0
 ```
 brew install freetype
-easy_install -U matplotlib==1.4.0
+sudo pip install matplotlib
 ```
 
 6. Download Gryphon Scan

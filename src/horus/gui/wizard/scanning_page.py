@@ -30,8 +30,8 @@ class ScanningPage(WizardPage):
         else:
             value = _("High")
         self.resolution_label = wx.StaticText(self.panel, label=_("Resolution"))
-        self.resolution_label.SetToolTip(wx.ToolTip(_(u"Set the motor step. High (0.45º),"
-                                                      u" Medium (0.9º), Low (1.8º)")))
+        self.resolution_label.SetToolTip(wx.ToolTip(_("Set the motor step. High (0.45º),"
+                                                      " Medium (0.9º), Low (1.8º)")))
         self.resolution_combo_box = wx.ComboBox(self.panel, wx.ID_ANY,
                                                 size=(200, -1),
                                                 value=value,
@@ -91,7 +91,8 @@ class ScanningPage(WizardPage):
             except:
                 pass
 
-    def on_resolution_combo_box_changed(self, event):
+    @staticmethod
+    def on_resolution_combo_box_changed(event):
         value = event.GetEventObject().GetValue()
         if value == _("High"):
             value = 0.45
@@ -119,12 +120,14 @@ class ScanningPage(WizardPage):
         ciclop_scan.set_use_left_laser(use_left)
         ciclop_scan.set_use_right_laser(use_right)
 
-    def on_capture_texture_checkbox_changed(self, event):
+    @staticmethod
+    def on_capture_texture_checkbox_changed(event):
         value = event.GetEventObject().GetValue()
         profile.settings['capture_texture'] = value
         ciclop_scan.set_capture_texture(value)
 
-    def get_image(self):
+    @staticmethod
+    def get_image():
         return image_capture.capture_texture()
 
     def update_status(self, status):

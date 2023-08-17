@@ -31,7 +31,8 @@ class ControlWorkbench(Workbench):
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_control']].on_title_clicked(None)
 
-    def _video_frame(self):
+    @staticmethod
+    def _video_frame():
         return image_capture.capture_image()
 
     def on_open(self):

@@ -28,7 +28,7 @@ Rotating platform
 * **Show center**: shows the center of the platform using the current calibration values.
 * **Step**: is the angle increased in each scan iteration. The smaller the step, the greater radial resolution, and also more scanning time. The default value is 0.45º, that is 800 steps per revolution.
 * **Speed**: is the motor speed in degrees per second. Te default value is 200 º/s.
-* **Acceleration**: is the motor acceleration in degress per secon squared. The default value is 200 º/s².
+* **Acceleration**: is the motor acceleration in degrees per second squared. The default value is 200 º/s².
 
 .. image:: ../_static/workbenches/scanning-motor.png
 
@@ -105,9 +105,9 @@ You can navigate in the 3D scene using the following shortcuts:
      - Ctrl + Mouse wheel
      - Ctrl + Up / Down
    * - Reset vertical shift
-     - Dobule left click
+     - Double left click
      -
-   * - Traslation
+   * - Translation
      - Shift + Left click
      -
    * - Zoom

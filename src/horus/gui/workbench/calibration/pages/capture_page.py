@@ -8,7 +8,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import os
 import wx._core
 import cv2
-from distutils.version import StrictVersion, LooseVersion
+from distutils.version import LooseVersion
 
 from horus.util import resources
 from horus.util.profile import get_base_path
@@ -45,7 +45,7 @@ class CapturePage(Page):
         self.current_grid = 0
         self.image_grid_panel = wx.Panel(self.panel)
         self.grid_sizer = wx.GridSizer(self.rows, self.columns, 3, 3)
-        for panel in xrange(self.rows * self.columns):
+        for panel in range(self.rows * self.columns):
             self.panel_grid.append(ImageView(self.image_grid_panel))
             self.panel_grid[panel].Bind(wx.EVT_KEY_DOWN, self.on_key_press)
             self.grid_sizer.Add(self.panel_grid[panel], 0, wx.ALL | wx.EXPAND)
@@ -69,7 +69,7 @@ class CapturePage(Page):
         self.current_grid = 0
         self.gauge.SetValue(0)
         camera_intrinsics.reset()
-        for panel in xrange(self.rows * self.columns):
+        for panel in range(self.rows * self.columns):
             self.panel_grid[panel].SetBackgroundColour((221, 221, 221))
             self.panel_grid[panel].set_image(wx.Image(resources.get_path_for_image("void.png")))
 
@@ -87,7 +87,8 @@ class CapturePage(Page):
     def reset(self):
         self.video_view.reset()
 
-    def get_image(self):
+    @staticmethod
+    def get_image():
         image = image_capture.capture_pattern()
         chessboard = image_detection.detect_pattern(image)
         return chessboard
@@ -99,7 +100,7 @@ class CapturePage(Page):
             image = camera_intrinsics.capture()
             if image is not None:
                 self.add_frame_to_grid(image)
-                image = self.save_image_file(image, self.current_grid)
+                self.save_image_file(image, self.current_grid)
                 if self.current_grid <= self.rows * self.columns:
                     self.gauge.SetValue(self.current_grid * 100.0 / self.rows / self.columns)
             self.video_view.play()
@@ -124,14 +125,15 @@ class CapturePage(Page):
             if self.button_right_callback is not None:
                 self.button_right_callback()
 
-    def save_image_file(self, image, id):
+    @staticmethod
+    def save_image_file(image, id):
         folder = os.path.join(get_base_path(), 'camera_intrisics')
         if not os.path.exists(folder):
             os.makedirs(folder)
 
         filename = os.path.join(folder, 'frame'+str(id)+'.png')
         #if os.path.exists(filename):
-        if LooseVersion(cv2.__version__) > LooseVersion("3.0.0"):
+        if LooseVersion(cv2.getVersionString()) > LooseVersion("3.0.0"):
             compression_params = [cv2.IMWRITE_PNG_COMPRESSION, 0]
         else:
             compression_params = [cv2.CV_IMWRITE_PNG_COMPRESSION, 0]
@@ -139,7 +141,8 @@ class CapturePage(Page):
         cv2.imwrite(filename, image, compression_params)
 
 
-    def read_image_file(self, id):
+    @staticmethod
+    def read_image_file(id):
         folder = os.path.join(get_base_path(), 'camera_intrisics')
         filename = os.path.join(folder, 'frame'+str(id)+'.png')
         if not os.path.exists(filename):

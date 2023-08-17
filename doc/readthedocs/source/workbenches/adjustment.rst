@@ -15,11 +15,11 @@ Capture
 
 In this section you can adjust the parameters of the capture during the scanning process. These parameters must be adjusted with the object to be scanned.
 
-The *Texture mode* contains the settings used to capture the texture/color of the scanned object. These are: brightness, constrast, saturation and exposure.
+The *Texture mode* contains the settings used to capture the texture/color of the scanned object. These are: brightness, contrast, saturation and exposure.
 
 .. image:: ../_static/workbenches/adjustment-scan-capture-texture.png
 
-The *Laser mode* contains the settings used to capture and detect the laser over the scanned object. These are: brightness, constrast, saturation, exposure and background removal. The *Remove background* option improves the laser detection by consuming twice as long.
+The *Laser mode* contains the settings used to capture and detect the laser over the scanned object. These are: brightness, contrast, saturation, exposure and background removal. The *Remove background* option improves the laser detection by consuming twice as long.
 
 .. image:: ../_static/workbenches/adjustment-scan-capture-laser.png
 
@@ -32,7 +32,7 @@ In this section you can adjust the parameters for the laser stripe segmentation 
 * **Threshold**: remove all pixels which intensity is less that the threshold value.
 * **Blur**: blur with Normalized box filter. Kernel size: 2 * value + 1.
 * **Window**: filter pixels out of 2 * window value around the intensity peak.
-* **Refinement**: apply None or SGF algorithms for line smooth. SGF produces continous surfaces.
+* **Refinement**: apply None or SGF algorithms for line smooth. SGF produces continuous surfaces.
 
 .. image:: ../_static/workbenches/adjustment-scan-segmentation.png
 
@@ -48,11 +48,11 @@ Capture
 
 In this section you can adjust the parameters of the capture during the calibration process. These parameters must be adjusted with the calibration pattern.
 
-The *Pattern mode* contains the settings used to capture the pattern. These are: brightness, constrast, saturation and exposure.
+The *Pattern mode* contains the settings used to capture the pattern. These are: brightness, contrast, saturation and exposure.
 
 .. image:: ../_static/workbenches/adjustment-calibration-capture-pattern.png
 
-The *Laser mode* contains the settings used to capture and detect the laser over the pattern. These are: brightness, constrast, saturation, exposure and background removal. The *Remove background* option improves the laser detection by consuming twice as long.
+The *Laser mode* contains the settings used to capture and detect the laser over the pattern. These are: brightness, contrast, saturation, exposure and background removal. The *Remove background* option improves the laser detection by consuming twice as long.
 
 .. image:: ../_static/workbenches/adjustment-calibration-capture-laser.png
 
@@ -64,6 +64,6 @@ In this section you can adjust the parameters for the laser stripe segmentation 
 * **Threshold**: remove all pixels which intensity is less that the threshold value.
 * **Blur**: blur with Normalized box filter. Kernel size: 2 * value + 1.
 * **Window**: filter pixels out of 2 * window value around the intensity peak.
-* **Refinement**: apply None, SGF, RANSAC algorithms for line smooth. SGF produces continous surfaces. RANSAC produces flat surfaces.
+* **Refinement**: apply None, SGF, RANSAC algorithms for line smooth. SGF produces continuous surfaces. RANSAC produces flat surfaces.
 
 .. image:: ../_static/workbenches/adjustment-calibration-segmentation.png

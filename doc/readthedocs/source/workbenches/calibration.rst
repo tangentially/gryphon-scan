@@ -42,7 +42,7 @@ Finally the result is shown numerically and depicted in 3D. Also, the dispersion
 Platform calibration
 --------------------
 
-In this section, the homogeneous transformation matrix from the rotation center of the turntable with respect to the camera system is calculated. This matrix is composed by a rotation matrix and a traslation vector in mm.
+In this section, the homogeneous transformation matrix from the rotation center of the turntable with respect to the camera system is calculated. This matrix is composed by a rotation matrix and a translation vector in mm.
 
 To begin the calibration, the pattern must be placed perpendicular to the camera, as shown in the picture. At any time you can cancel the calibration and the pattern will return to its initial position.
 

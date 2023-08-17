@@ -80,7 +80,8 @@ class ConnectionPage(WizardPage):
             except:
                 pass
 
-    def get_image(self):
+    @staticmethod
+    def get_image():
         if scanner_autocheck.image is not None:
             image = scanner_autocheck.image
         else:
@@ -104,7 +105,7 @@ class ConnectionPage(WizardPage):
             current_video_id = profile.settings['camera_id']
             if len(video_list) > 0:
                 if current_video_id not in video_list:
-                    profile.settings['camera_id'] = unicode(video_list[0])
+                    profile.settings['camera_id'] = str(video_list[0])
                     driver.camera.camera_id = int(profile.settings['camera_id'][-1:])
 
             driver.set_callbacks(

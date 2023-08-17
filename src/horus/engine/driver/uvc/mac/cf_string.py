@@ -27,7 +27,6 @@ cf.CFDataCreate.restype = c_void_p
 cf.CFNumberCreate.restype = c_void_p
 
 # Core Foundation constants
-kCFStringEncodingUTF8 = 0x08000100
 kCFStringEncodingMacRoman = 0
 kCFStringEncodingWindowsLatin1 = 0x0500
 kCFStringEncodingISOLatin1 = 0x0201
@@ -71,4 +70,4 @@ def release(cfstring):
 
 if __name__ == '__main__':
     cf_pointer = CFSTR("THIS is a Test")
-    print cfstring_to_string(cf_pointer)
+    print(cfstring_to_string(cf_pointer))

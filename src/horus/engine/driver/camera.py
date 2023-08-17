@@ -94,7 +94,8 @@ class Camera(object):
         # n - flush exactly n frames
         raise NotImplementedError
 
-    def save_image(self, filename, image):
+    @staticmethod
+    def save_image(filename, image):
         if image is not None:
             #image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
             cv2.imwrite(filename, image)

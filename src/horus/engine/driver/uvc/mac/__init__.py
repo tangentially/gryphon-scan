@@ -23,7 +23,7 @@ Three classes:
     Control is the actual Control with methods for getting and setting them.
 """
 import sys
-from raw import *
+from horus.engine.driver.uvc.mac.raw import *
 
 #logging
 import logging
@@ -109,6 +109,7 @@ class Control(object):
 class Controls(dict):
     """docstring for Controls"""
     def __init__(self,uId):
+        super().__init__()
         uvccInit()
         self.handle = uvccGetCamWithQTUniqueID(uId)
         assert self.handle is not None, "UVCC could not open camera based on uId %s" %uId
@@ -119,12 +120,12 @@ class Controls(dict):
             self[c] = Control(c,i,self.handle)
 
     def update_from_device(self):
-        for c in self.itervalues():
+        for c in iter(self.values()):
             if c.flags == "active":
                 c.value = c.get_val_from_device()
 
     def load_defaults(self):
-        for c in self.itervalues():
+        for c in iter(self.values()):
             if c.flags == "active" and c.default is not None:
                 c.set_val(c.default)
 
@@ -144,6 +145,7 @@ class Camera_List(list):
     """docstring for uvcc_control"""
 
     def __init__(self):
+        super().__init__()
         if getattr(sys, 'frozen', False):
             #explicit import needed when frozen
             import QTKit

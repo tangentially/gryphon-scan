@@ -99,7 +99,7 @@ class PointCloudGeneration(object):
         assert n.shape == (3,), "n should be (3,) vector!!!" 
 
         # Load calibration values
-	cam = self.calibration_data.camera_matrix
+        cam = self.calibration_data.camera_matrix
         dist = self.calibration_data.distortion_vector
 
         # Compute projection point

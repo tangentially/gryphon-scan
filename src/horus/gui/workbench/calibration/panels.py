@@ -9,11 +9,11 @@ import wx._core
 import numpy as np
 
 from horus.gui.engine import driver, pattern, calibration_data, laser_triangulation, \
-    platform_extrinsics, combo_calibration, image_capture
+    platform_extrinsics, combo_calibration
 from horus.util import profile, system as sys
 from horus.gui.util.custom_panels import ExpandablePanel, Slider, CheckBox, \
     FloatTextBox, FloatTextBoxArray, FloatLabel, FloatLabelArray, Button, \
-    IntLabel, IntTextBox, ComboBox
+    IntTextBox, ComboBox
 from horus.gui.util.gryphon_controls import Header
 
 
@@ -54,28 +54,36 @@ class PatternSettings(ExpandablePanel):
         self.update_callback('pattern_border_t', lambda v: self._update_border_t(v))
         self.update_callback('pattern_border_b', lambda v: self._update_border_b(v))
 
-    def _update_rows(self, value):
+    @staticmethod
+    def _update_rows(value):
         pattern.rows = value
 
-    def _update_columns(self, value):
+    @staticmethod
+    def _update_columns(value):
         pattern.columns = value
 
-    def _update_square_width(self, value):
+    @staticmethod
+    def _update_square_width(value):
         pattern.square_width = value
 
-    def _update_origin_distance(self, value):
+    @staticmethod
+    def _update_origin_distance(value):
         pattern.origin_distance = value
 
-    def _update_border_l(self, value):
+    @staticmethod
+    def _update_border_l(value):
         pattern.border_l = value
 
-    def _update_border_r(self, value):
+    @staticmethod
+    def _update_border_r(value):
         pattern.border_r = value
 
-    def _update_border_t(self, value):
+    @staticmethod
+    def _update_border_t(value):
         pattern.border_t = value
 
-    def _update_border_b(self, value):
+    @staticmethod
+    def _update_border_b(value):
         pattern.border_b = value
 
 
@@ -111,22 +119,26 @@ class RotatingPlatform(ExpandablePanel):
         self.update_callback('motor_acceleration_calibration', self._set_acceleration)
         self.update_callback('after_calibration_position', lambda v: self._set_after_calibration_position(v))
 
-    def _set_step(self, value):
+    @staticmethod
+    def _set_step(value):
         laser_triangulation.motor_step = value
         platform_extrinsics.motor_step = value
         combo_calibration.motor_step = value
 
-    def _set_speed(self, value):
+    @staticmethod
+    def _set_speed(value):
         laser_triangulation.motor_speed = value
         platform_extrinsics.motor_speed = value
         combo_calibration.motor_speed = value
 
-    def _set_acceleration(self, value):
+    @staticmethod
+    def _set_acceleration(value):
         laser_triangulation.motor_acceleration = value
         platform_extrinsics.motor_acceleration = value
         combo_calibration.motor_acceleration = value
 
-    def _set_after_calibration_position(self, value):
+    @staticmethod
+    def _set_after_calibration_position(value):
         laser_triangulation.final_move = value
         platform_extrinsics.final_move = value
         combo_calibration.final_move = value
@@ -270,7 +282,7 @@ class CameraIntrinsics(ExpandablePanel):
         self.add_control('new_camera_distance_v', FloatTextBox, _("Min distance to view whole test target placed vertically"))
         self.add_control('apply_new_camera_button', Button)
 
-    def Enable(self):
+    def Enable(self, enable=True):
         self._update_new_camera_matrix(0)
         ExpandablePanel.Enable(self)
 
@@ -283,10 +295,12 @@ class CameraIntrinsics(ExpandablePanel):
         self.update_callback('new_camera_distance_v', lambda v: self._update_new_camera_matrix(v))
         self.update_callback('apply_new_camera_button', self._apply_new_camera_matrix )
 
-    def _update_camera_matrix(self, value):
+    @staticmethod
+    def _update_camera_matrix(value):
         calibration_data.camera_matrix = value
 
-    def _update_distortion_vector(self, value):
+    @staticmethod
+    def _update_distortion_vector(value):
         calibration_data.distortion_vector = value
 
     def _update_new_camera_matrix(self, value):

@@ -547,7 +547,7 @@ class SceneView(opengl_gui.glGuiPanel):
             else:
                 self._object_shader.bind()
 
-            brightness = 1.0
+            brightness = 1
             glStencilOp(GL_INCR, GL_INCR, GL_INCR)
             glEnable(GL_STENCIL_TEST)
             self._render_object(self._object, brightness)
@@ -648,7 +648,7 @@ class SceneView(opengl_gui.glGuiPanel):
 
             # Draw the sides of the build volume.
             glBegin(GL_QUADS)
-            for n in xrange(0, len(polys[0])):
+            for n in range(0, len(polys[0])):
                 if machine_shape == 'Rectangular':
                     if n % 2 == 0:
                         glColor4ub(5, 171, 231, 96)

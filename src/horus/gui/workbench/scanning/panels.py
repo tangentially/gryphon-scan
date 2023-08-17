@@ -5,15 +5,12 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-
 import wx._core
-import numpy as np
 
 from horus.util import profile
 from horus.gui.engine import driver, ciclop_scan, point_cloud_roi
 from horus.gui.util.custom_panels import ExpandablePanel, Slider, CheckBox, ComboBox, \
     Button, FloatTextBox
-from horus.util import model
 
 
 class ScanParameters(ExpandablePanel):
@@ -29,7 +26,8 @@ class ScanParameters(ExpandablePanel):
     def update_callbacks(self):
         self.update_callback('use_laser', self.set_use_laser)
 
-    def set_use_laser(self, value):
+    @staticmethod
+    def set_use_laser(value):
         ciclop_scan.set_use_left_laser(value == 'Left' or value == 'Both')
         ciclop_scan.set_use_right_laser(value == 'Right' or value == 'Both')
 
@@ -148,7 +146,7 @@ class PointCloudColor(ExpandablePanel):
             data = dialog.GetColourData()
             color = data.GetColour().Get()
             ciclop_scan.color = color
-            profile.settings['point_cloud_color'] = unicode("".join(map(chr, color)).encode('hex'))
+            profile.settings['point_cloud_color'] = str("".join(map(chr, color)).encode('hex'))
         dialog.Destroy()
 
     def on_selected(self):

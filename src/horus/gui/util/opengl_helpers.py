@@ -15,9 +15,8 @@ import OpenGL
 
 OpenGL.ERROR_CHECKING = False
 from OpenGL.GLUT import *
-from OpenGL.GLU import *
 from OpenGL.GL import *
-from OpenGL.GL import shaders
+from OpenGL.GL.shaders import *
 
 import logging
 logger = logging.getLogger(__name__)
@@ -53,8 +52,8 @@ class GLShader(GLReferenceCounter):
         self._vertex_program = vertex_program
         self._fragment_program = fragment_program
         try:
-            vertex_shader = shaders.compileShader(vertex_program, GL_VERTEX_SHADER)
-            fragment_shader = shaders.compileShader(fragment_program, GL_FRAGMENT_SHADER)
+            vertex_shader = compileShader(vertex_program, GL_VERTEX_SHADER)
+            fragment_shader = compileShader(fragment_program, GL_FRAGMENT_SHADER)
 
             # shader.compileProgram tries to return the shader program as a overloaded int.
             # But the return value of a shader does not always fit in a int (needs to be a long).
@@ -73,16 +72,17 @@ class GLShader(GLReferenceCounter):
                 raise RuntimeError("Link failure: %s" % (glGetProgramInfoLog(self._program)))
             glDeleteShader(vertex_shader)
             glDeleteShader(fragment_shader)
-        except RuntimeError, e:
+        except RuntimeError as e:
             logger.error(str(e))
             self._program = None
 
     def bind(self):
         if self._program is not None:
-            shaders.glUseProgram(self._program)
+            glUseProgram(self._program)
 
-    def unbind(self):
-        shaders.glUseProgram(0)
+    @staticmethod
+    def unbind():
+        glUseProgram(0)
 
     def release(self):
         if self._program is not None:
@@ -104,10 +104,10 @@ class GLShader(GLReferenceCounter):
         return self._program is not None
 
     def get_vertex_shader(self):
-        return self._vertex_string
+        return self._vertex_program
 
     def get_fragment_shader(self):
-        return self._fragment_string
+        return self._fragment_program
 
     def __del__(self):
         if self._program is not None and bool(glDeleteProgram):
@@ -123,7 +123,8 @@ class GLFakeShader(GLReferenceCounter):
     def __init__(self):
         super(GLFakeShader, self).__init__()
 
-    def bind(self):
+    @staticmethod
+    def bind():
         glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
         glEnable(GL_COLOR_MATERIAL)
@@ -131,7 +132,8 @@ class GLFakeShader(GLReferenceCounter):
         glLightfv(GL_LIGHT0, GL_AMBIENT, [0, 0, 0, 0])
         glLightfv(GL_LIGHT0, GL_SPECULAR, [0, 0, 0, 0])
 
-    def unbind(self):
+    @staticmethod
+    def unbind():
         glDisable(GL_LIGHTING)
 
     def release(self):
@@ -140,13 +142,16 @@ class GLFakeShader(GLReferenceCounter):
     def set_uniform(self, name, value):
         pass
 
-    def isValid(self):
+    @staticmethod
+    def isValid():
         return True
 
-    def get_vertex_shader(self):
+    @staticmethod
+    def get_vertex_shader():
         return ''
 
-    def get_fragment_shader(self):
+    @staticmethod
+    def get_fragment_shader():
         return ''
 
 
@@ -245,7 +250,7 @@ class GLVBO(GLReferenceCounter):
             batch_size = 996
             extra_start_pos = int(self._size / batch_size) * batch_size  # leftovers.
             extra_count = self._size - extra_start_pos
-            for i in xrange(0, int(self._size / batch_size)):
+            for i in range(0, int(self._size / batch_size)):
                 glDrawArrays(self._render_type, i * batch_size, batch_size)
             glDrawArrays(self._render_type, extra_start_pos, extra_count)
 
@@ -301,13 +306,12 @@ def unproject(winx, winy, winz, model_matrix, proj_matrix, viewport):
     final_matrix = np_model_matrix * np_proj_matrix
     final_matrix = numpy.linalg.inv(final_matrix)
 
-    viewport = map(float, viewport)
     if viewport[2] > 0 and viewport[3] > 0:
         vector = numpy.array([(winx - viewport[0]) / viewport[2] * 2.0 - 1.0,
                               (winy - viewport[1]) / viewport[3] * 2.0 - 1.0,
                               winz * 2.0 - 1.0, 1]).reshape((1, 4))
         vector = (numpy.matrix(vector) * final_matrix).getA().flatten()
-        ret = list(vector)[0:3] / vector[3]
+        ret = vector[0:3] / vector[3]
         return ret
 
 
@@ -326,7 +330,7 @@ def load_gl_texture(filename):
     alpha_data = img.GetAlphaData()
     if alpha_data is not None:
         data = ''
-        for i in xrange(0, len(alpha_data)):
+        for i in range(0, len(alpha_data)):
             data += rgb_data[i * 3:i * 3 + 3] + alpha_data[i]
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.GetWidth(),
                      img.GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, data)

@@ -79,10 +79,11 @@ class MainToolbar(wx.Panel):
             wx.Bitmap(resources.get_path_for_image("baseline_rotate_right_black_24dp.png")), shortHelp=_("Rotate right"))
 
         Laser_On_Bitmap = wx.Bitmap(resources.get_path_for_image("baseline_brightness_7_black_24dp.png"))
-        Laser_Off_Bitmap = wx.Bitmap(resources.get_path_for_image("baseline_brightness_5_black_24dp.png"))
+        ## not used
+        # Laser_Off_Bitmap = wx.Bitmap(resources.get_path_for_image("baseline_brightness_5_black_24dp.png"))
 
-        self.l1_tool = self.toolbar_control.AddCheckTool(wx.NewId(), Laser_On_Bitmap)
-        self.l2_tool = self.toolbar_control.AddCheckTool(wx.NewId(), Laser_On_Bitmap)
+        self.l1_tool = self.toolbar_control.AddCheckTool(wx.NewId(), 'Laser 1', Laser_On_Bitmap)
+        self.l2_tool = self.toolbar_control.AddCheckTool(wx.NewId(), 'Laser 2', Laser_On_Bitmap)
 
         self.toolbar_control.Realize()
 
@@ -102,7 +103,7 @@ class MainToolbar(wx.Panel):
         current_video_id = profile.settings['camera_id']
         if len(video_list) > 0:
             if current_video_id not in video_list:
-                profile.settings['camera_id'] = unicode(video_list[0])
+                profile.settings['camera_id'] = str(video_list[0])
                 driver.camera.camera_id = int(profile.settings['camera_id'][-1:])
 
         driver.set_callbacks(lambda: wx.CallAfter(self.before_connect),
@@ -193,7 +194,8 @@ class MainToolbar(wx.Panel):
         dlg.ShowModal()
         dlg.Destroy()
 
-    def _enable_tool(self, item, enable):
+    @staticmethod
+    def _enable_tool(item, enable):
         item.ToolBar.EnableTool(item.GetId(), enable)
 
     def scanning_mode(self, enable):
@@ -222,7 +224,8 @@ class MainToolbar(wx.Panel):
         driver.board.motor_move(-step, nonblocking=False, callback=lambda v: self._enable_control_tools(True))
 #        self._enable_control_tools(True)
 
-    def on_laser_tool_clicked(self, laser_id, state):
+    @staticmethod
+    def on_laser_tool_clicked(laser_id, state):
         if state:
             driver.board.laser_on(laser_id)
         else:

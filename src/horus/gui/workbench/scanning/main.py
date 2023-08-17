@@ -5,7 +5,6 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-import struct
 import wx._core
 
 from horus.util import resources, profile
@@ -228,7 +227,7 @@ class ScanningWorkbench(Workbench):
                 'rotation_matrix', 'translation_vector']
         for n in meta_names:
             obj._mesh.metadata[n] = profile.settings[n]
-        print "Metadata created: {0}".format(obj._mesh.metadata)
+        print("Metadata created: {0}".format(obj._mesh.metadata))
         self.gauge.SetValue(0)
         self.gauge.Show()
         self.scene_panel.Layout()

@@ -11,9 +11,6 @@ try:
 except ImportError:
     aruco_present = False
 
-
-import numpy as np
-
 from horus import Singleton
 from horus.engine.calibration.calibration_data import calibration_data
 from horus.engine.calibration.pattern import pattern
@@ -23,12 +20,13 @@ class ArucoDetection(object):
 
     def __init__(self):
         if not aruco_present:
-            return None
+            return
 
-        self.aruco_dict = aruco.Dictionary_get(pattern.aruco_dict)
+        self.aruco_dict = aruco.getPredefinedDictionary(pattern.aruco_dict)
         # https://docs.opencv.org/3.4.3/d1/dcd/structcv_1_1aruco_1_1DetectorParameters.html
-        self.aruco_parameters = aruco.DetectorParameters_create()
+        self.aruco_parameters = aruco.DetectorParameters()
         self.aruco_parameters.cornerRefinementMethod = aruco.CORNER_REFINE_APRILTAG # aruco.CORNER_REFINE_SUBPIX
+        self.detector = cv2.aruco.ArucoDetector(self.aruco_dict, self.aruco_parameters)
 
 
     def aruco_detect(self, image):
@@ -39,12 +37,13 @@ class ArucoDetection(object):
             return (None, None)
 
         gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-        corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, self.aruco_dict, parameters=self.aruco_parameters)
+        corners, ids, rejectedImgPoints = self.detector.detectMarkers(gray)
 
         return (corners, ids)
 
 
-    def aruco_pose_from_corners(self, corners):
+    @staticmethod
+    def aruco_pose_from_corners(corners):
         if not aruco_present:
             return (None, None)
 
@@ -67,7 +66,7 @@ class ArucoDetection(object):
             
             rvecs, tvecs = self.aruco_pose_from_corners(corners)
             for idx, aid in enumerate(ids):
-                image = aruco.drawAxis(image, 
+                image = cv2.drawFrameAxes(image,
                          calibration_data.camera_matrix, 
                          calibration_data.distortion_vector, 
                          rvecs[idx], tvecs[idx], 

@@ -64,7 +64,7 @@ class Board(object):
         self._laser_number = 2
         self._light = [0,0]
 
-        self.reset_state();
+        self.reset_state()
 
 
     def reset_state(self):
@@ -82,7 +82,7 @@ class Board(object):
     def connect(self):
         """Open serial port and perform handshake"""
         logger.info("Connecting board {0} {1}".format(self.serial_name, self.baud_rate))
-        self.reset_state();
+        self.reset_state()
         self._is_connected = False
         try:
             self._serial_port = serial.Serial(self.serial_name, self.baud_rate, timeout=2)
@@ -194,11 +194,11 @@ class Board(object):
                 self._send_command("M70T" + str(index + 1))
 
     def lasers_on(self):
-        for i in xrange(self._laser_number):
+        for i in range(self._laser_number):
             self.laser_on(i)
 
     def lasers_off(self):
-        for i in xrange(self._laser_number):
+        for i in range(self._laser_number):
             self.laser_off(i)
 
     def ldr_sensor(self, pin):
@@ -230,7 +230,7 @@ class Board(object):
                         #print(ret)
                         time.sleep(0.01)
                     if ret.lower().rstrip("\r\n") != 'ok':
-                        logger.warn("[ WARN board command ] '{0}' => '{1}'".format(req, ret.rstrip("\r\n")))
+                        logger.warning("[ WARN board command ] '{0}' => '{1}'".format(req, ret.rstrip("\r\n")))
                     self._success()
                 except:
                     if hasattr(self, '_serial_port'):
@@ -269,7 +269,8 @@ class Board(object):
         self._serial_port.write("\x18\r\n")  # Ctrl-x
         self._serial_port.readline()
 
-    def get_serial_list(self):
+    @staticmethod
+    def get_serial_list():
         """Obtain list of serial devices"""
         baselist = []
         if system == 'Windows':
@@ -320,6 +321,6 @@ class Board(object):
         return False
 
     def lights_off(self):
-        for i in xrange(len(self._light)):
+        for i in range(len(self._light)):
             self.set_light(i,0)
 

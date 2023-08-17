@@ -7,7 +7,6 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import cv2
 import numpy as np
-import time
 
 from horus.util import profile
 
@@ -107,9 +106,7 @@ class ImageCapture(object):
         self._updating = False
 
     def initialize(self):
-        self.texture_mode.initialize()
-        self.laser_mode.initialize()
-        self.pattern_mode.initialize()
+        pass
 
     def set_flush_values(self, texture, laser, pattern, mode):
         self._flush_texture = texture
@@ -292,7 +289,8 @@ class ImageCapture(object):
         image = self.driver.camera.capture_image(flush=flush)
         return image
 
-    def remove_background_subtract(self,images):
+    @staticmethod
+    def remove_background_subtract(images):
         background = images[-1]
         if background is not None:
             for image in images[:-1]:

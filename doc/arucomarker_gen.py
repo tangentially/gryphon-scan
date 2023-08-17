@@ -1,4 +1,4 @@
-import cairo,argparse,random
+import cairo, random
 
 # remake of SatoshiRobatoFujimoto/arucomarker.py
 # https://gist.github.com/SatoshiRobatoFujimoto/982a5721ea8842ded202d8a27886d0ea
@@ -19,13 +19,12 @@ import cairo,argparse,random
 # python ./arucomarker_gen.py --first=40 --count=60 --markersize=42 --border --bordersize=4 --spacing=0 --cols=4 --rows=5 --pagemargin=5 --output=./aruco_42.pdf
 #
 
-import string
-import cv2.aruco as aruco
+import cv2
 
-aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_1000) # aruco.DICT_6X6_250
+aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000) # aruco.DICT_6X6_250
 
 def drawMarker(canvas,id,sw,sh,x,y):
-    marker = aruco.drawMarker(aruco_dict, id, aruco_dict.markerSize+2)
+    marker = cv2.drawMarker(aruco_dict, id, aruco_dict.markerSize+2)
 
     sw = sw/(aruco_dict.markerSize+2)
     sh = sh/(aruco_dict.markerSize+2)
@@ -40,9 +39,9 @@ def drawMarker(canvas,id,sw,sh,x,y):
                 ctx.set_source_rgb(1,1,1)
             #ctx.rectangle(w*sw + x,h*sh + y,sw,sh);
             #ctx.stroke();
-            ctx.rectangle(w*sw + x,h*sh + y,sw,sh);
-            ctx.fill();
-            ctx.stroke();
+            ctx.rectangle(w*sw + x,h*sh + y,sw,sh)
+            ctx.fill()
+            ctx.stroke()
 
 
 if __name__ == '__main__':
@@ -90,7 +89,7 @@ if __name__ == '__main__':
     if args.fill:
         args.cols = (page[0]-args.pagemargin*2)/(args.markersize+args.bordersize*2+args.spacing)
         args.rows = (page[1]-args.pagemargin*2)/(args.markersize+args.bordersize*2+args.spacing)
-        print "fill results in rows x cols",args.rows,args.cols
+        print("fill results in rows x cols", args.rows, args.cols)
 
     bid = 0
 

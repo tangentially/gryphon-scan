@@ -7,7 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import cv2
 import numpy as np
-from distutils.version import StrictVersion, LooseVersion
+from distutils.version import LooseVersion
 
 from horus import Singleton
 from horus.engine.calibration.calibration import Calibration
@@ -74,7 +74,7 @@ class CameraIntrinsics(Calibration):
         cmat0 = self.calibration_data.camera_matrix
         dvec0 = self.calibration_data.distortion_vector
         print(cmat0)
-        if LooseVersion(cv2.__version__) > LooseVersion("3.0.0"):
+        if LooseVersion(cv2.getVersionString()) > LooseVersion("3.0.0"):
             flags = cv2.CALIB_USE_INTRINSIC_GUESS
         else:
             flags = cv2.CV_CALIB_USE_INTRINSIC_GUESS
@@ -94,7 +94,7 @@ class CameraIntrinsics(Calibration):
         #                    cameraMatrix, distCoeffs, rvecs, tvecs, newObjPoints,
         #                    flags | CALIB_FIX_K3 | CALIB_USE_LU);
 
-        if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
+        if LooseVersion(cv2.getVersionString()) > LooseVersion("4.0.0"):
             newObjPoints = np.array([], dtype=np.float64)
             '''
             # https://github.com/opencv/opencv/issues/14469
@@ -118,7 +118,7 @@ class CameraIntrinsics(Calibration):
             '''
         if ret:
             # Compute calibration error
-            for i in xrange(len(self.object_points)):
+            for i in range(len(self.object_points)):
                 imgpoints2, _ = cv2.projectPoints(
                     self.object_points[i], rvecs[i], tvecs[i], cmat, dvec)
                 error += cv2.norm(self.image_points[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)

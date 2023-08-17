@@ -6,7 +6,7 @@ __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 
-import md5
+import hashlib
 import cv2
 import numpy as np
 
@@ -133,7 +133,7 @@ class CalibrationData(object):
             self._dist_camera_matrix, self._roi = cv2.getOptimalNewCameraMatrix(
                 self._camera_matrix, self._distortion_vector,
                 (int(self.width), int(self.height)), alpha=1)
-            self._md5_hash = md5.new()
+            self._md5_hash = hashlib.md5()
             self._md5_hash.update(self._camera_matrix)
             self._md5_hash.update(self._distortion_vector)
             self._md5_hash = self._md5_hash.hexdigest()
@@ -165,7 +165,8 @@ class CalibrationData(object):
             self.check_lasers_calibration() and \
             self.check_platform_calibration()
 
-    def _is_zero(self, array):
+    @staticmethod
+    def _is_zero(array):
         return np.all(array == 0.0)
 
     def md5_hash(self):

@@ -18,11 +18,7 @@ class CurrentVideo(object):
     def __init__(self):
         self.mode = 'Texture'
 
-        self.images = {}
-        self.images['Texture'] = None
-        self.images['Laser'] = None
-        self.images['Gray'] = None
-        self.images['Line'] = None
+        self.images = {'Texture': None, 'Laser': None, 'Gray': None, 'Line': None}
 
     def set_texture(self, image):
         self.images['Texture'] = image
@@ -51,14 +47,16 @@ class CurrentVideo(object):
 
         self.images['Line'] = cv2.addWeighted(image,0.5,lines,1.,0.)
 
-    def _combine_images(self, images):
+    @staticmethod
+    def _combine_images(images):
         im = [i for i in images if i is not None]
         if len(im)>0:
             return np.max(im, axis=0)
 
         return None
 
-    def _compute_line_image(self, points, image):
+    @staticmethod
+    def _compute_line_image(points, image):
         if image is None:
             return None
         if points is not None:

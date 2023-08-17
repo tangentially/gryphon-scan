@@ -14,12 +14,12 @@ from horus.util import profile
 
 from horus.gui.engine import camera_intrinsics, pattern
 
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 
 from horus.gui.workbench.calibration.pages.page import Page
 from horus.gui.workbench.calibration.pages.capture_page import CapturePage
+from horus.engine.calibration.camera_intrinsics import CameraIntrinsicsError
 
 
 class CameraIntrinsicsPages(wx.Panel):
@@ -157,7 +157,7 @@ class CameraIntrinsics3DPlot(wx.Panel):
         self.canvas = FigureCanvasWxAgg(self, -1, self.fig)
         self.canvas.SetExtraStyle(wx.EXPAND)
 
-        self.ax = self.fig.gca(projection='3d', facecolor=(0.7490196, 0.7490196, 0.7490196, 1))
+        self.ax = self.fig.gca()
 
         self.print_canvas()
 

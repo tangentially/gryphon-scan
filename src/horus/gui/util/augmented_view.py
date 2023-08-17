@@ -7,10 +7,9 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import cv2
 import numpy as np
-import math
 from horus.util import profile
 from horus.util.gryphon_util import pos2nd, plane_cross, line_cross_sphere
-#from horus.gui.engine import platform_extrinsics, image_detection, pattern
+from horus.gui.engine import platform_extrinsics, pattern
 import horus.gui.engine
 
 
@@ -103,23 +102,23 @@ def augmented_platform_mask(image):
 def augmented_draw_pattern(image, corners):
     if corners is not None:
         cv2.drawChessboardCorners(
-            image, (horus.gui.engine.pattern.columns, horus.gui.engine.pattern.rows), corners, True)
+            image, (pattern.columns, pattern.rows), corners, True)
 
         pose = horus.gui.engine.image_detection.detect_pose_from_corners(corners)
-        l = -horus.gui.engine.pattern.square_width
-        t = -horus.gui.engine.pattern.square_width
-        r = horus.gui.engine.pattern.square_width * horus.gui.engine.pattern.columns
-        b = horus.gui.engine.pattern.square_width * horus.gui.engine.pattern.rows
-        wl = horus.gui.engine.pattern.border_l
-        wr = horus.gui.engine.pattern.border_r
-        wt = horus.gui.engine.pattern.border_t
-        wb = horus.gui.engine.pattern.border_b
+        l = -pattern.square_width
+        t = -pattern.square_width
+        r = pattern.square_width * pattern.columns
+        b = pattern.square_width * pattern.rows
+        wl = pattern.border_l
+        wr = pattern.border_r
+        wt = pattern.border_t
+        wb = pattern.border_b
 
         calibration_data = horus.gui.engine.platform_extrinsics.calibration_data
         points = np.float32( (
             (l,t,0),(r,t,0),(r,b,0),(l,b,0),
             (l-wl,t-wt,0),(r+wr,t-wt,0),(r+wr,b+wb,0),(l-wl,b+wb,0),
-            (l-wl,b-horus.gui.engine.pattern.square_width+horus.gui.engine.pattern.origin_distance,0),(r+wr,b-horus.gui.engine.pattern.square_width+horus.gui.engine.pattern.origin_distance,0),
+            (l-wl,b-pattern.square_width+pattern.origin_distance,0),(r+wr,b-pattern.square_width+pattern.origin_distance,0),
             (l,b,0),(l,b,-50)
             ) )
         p, jac = cv2.projectPoints(points, \
@@ -144,14 +143,14 @@ def augmented_pattern_mask(image, corners):
     mask = np.zeros(image.shape[0:2], dtype = "uint8")
     if corners is not None:
         pose = horus.gui.engine.image_detection.detect_pose_from_corners(corners)
-        l = -horus.gui.engine.pattern.square_width
-        t = -horus.gui.engine.pattern.square_width
-        r = horus.gui.engine.pattern.square_width * horus.gui.engine.pattern.columns
-        b = horus.gui.engine.pattern.square_width * horus.gui.engine.pattern.rows
-        wl = horus.gui.engine.pattern.border_l
-        wr = horus.gui.engine.pattern.border_r
-        wt = horus.gui.engine.pattern.border_t
-        wb = horus.gui.engine.pattern.border_b
+        l = -pattern.square_width
+        t = -pattern.square_width
+        r = pattern.square_width * pattern.columns
+        b = pattern.square_width * pattern.rows
+        wl = pattern.border_l
+        wr = pattern.border_r
+        wt = pattern.border_t
+        wb = pattern.border_b
 
         calibration_data = horus.gui.engine.platform_extrinsics.calibration_data
         points = np.float32( (
@@ -206,7 +205,7 @@ def augmented_draw_lasers_on_pattern(image, pose):
     if calibration.laser_planes is None:
         return
 
-    p = horus.gui.engine.pattern
+    p = pattern
 #    pl = -p.square_width - p.border_l
     pt = -p.square_width - p.border_t
 #    pr = p.square_width * p.columns + p.border_r

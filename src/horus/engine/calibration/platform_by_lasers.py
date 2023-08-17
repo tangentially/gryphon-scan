@@ -10,7 +10,9 @@ import numpy as np
 
 from horus import Singleton
 from horus.engine.calibration.calibration import Calibration
+from horus.util import profile
 from horus.util.gryphon_util import apply_mask
+from horus.engine.calibration import laser_triangulation
 
 class PlatformByLasersError(Exception):
 
@@ -43,7 +45,6 @@ class PlatformByLasers(Calibration):
             # will try to use lasers to enhance turntable calibration
 
             # build work area mask for turntable surface
-            mask = np.zeros(images[0].shape[0:2], dtype = "uint8")
             if profile.settings['use_roi']:
                 bounds = profile.get_roi_size_polygons()
             else:
@@ -54,11 +55,12 @@ class PlatformByLasers(Calibration):
             platform_border = np.float32(platform_border)
 
             # project platform border to mask
-            p, jac = cv2.projectPoints(platform_border, \
-                self.calibration_data.platform_rotation, \
-                self.calibration_data.platform_translation, \
-                self.calibration_data.camera_matrix, \
-                self.calibration_data.distortion_vector)
+            p, jac = cv2.projectPoints(platform_border,
+                                       self.calibration_data.platform_rotation,
+                                       self.calibration_data.platform_translation,
+                                       self.calibration_data.camera_matrix,
+                                       self.calibration_data.distortion_vector)
+            mask = np.zeros(images[0].shape[0:2], dtype = "uint8")
             p = np.int32([p])
             cv2.fillPoly(mask, p, 1)
 
@@ -77,12 +79,12 @@ class PlatformByLasers(Calibration):
                 else:
                     point_cloud = np.concatenate(point_cloud, point_3d.T)
 
-                dist, norm, std = compute_plane(i, point_cloud)
+                dist, norm, std = laser_triangulation.compute_plane(idx, point_cloud)
 
                 if std < 1.0 and norm is not None:
-                response = (True, (dist, norm, std))
-            else:
-                response = (False, PlatformByLasersError())
+                    response = (True, (dist, norm, std))
+                else:
+                    response = (False, PlatformByLasersError())
 
             self._is_calibrating = False
 

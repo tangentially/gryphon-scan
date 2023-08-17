@@ -217,7 +217,8 @@ class ScanCapturePanel(ExpandablePanel):
         self.Layout()
 
 
-    def laser_reset(self):
+    @staticmethod
+    def laser_reset():
         current_video.updating = True
         current_video.sync()
 
@@ -252,7 +253,8 @@ class ScanCapturePanel(ExpandablePanel):
         current_video.updating = False
 
 
-    def laser_bg_enable(self, value):
+    @staticmethod
+    def laser_bg_enable(value):
         current_video.updating = True
         current_video.sync()
 
@@ -526,7 +528,8 @@ class CalibrationCapturePanel(ExpandablePanel):
         self.Layout()
 
 
-    def laser_reset(self):
+    @staticmethod
+    def laser_reset():
         current_video.updating = True
         current_video.sync()
 
@@ -561,7 +564,8 @@ class CalibrationCapturePanel(ExpandablePanel):
         current_video.updating = False
 
 
-    def laser_bg_enable(self, value):
+    @staticmethod
+    def laser_bg_enable(value):
         current_video.updating = True
         current_video.sync()
 

@@ -69,7 +69,8 @@ class PatternDistanceWindow(wx.Dialog):
         except:
             pass
 
-    def set_pattern_distance(self, distance):
+    @staticmethod
+    def set_pattern_distance(distance):
         profile.settings['pattern_origin_distance'] = distance
         pattern.origin_distance = distance
 

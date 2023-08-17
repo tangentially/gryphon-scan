@@ -13,7 +13,7 @@ from horus import Singleton
 from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
 from horus.gui.util.augmented_view import augmented_draw_pattern
-from horus.util.gryphon_util import rigid_transform_3D, PointOntoLine, capture_precise_corners
+from horus.util.gryphon_util import rigid_transform_3D, capture_precise_corners
 #from horus.engine.calibration.calibration_data import calibration_data
 from horus.engine.algorithms.aruco_detection import aruco_detection
 
@@ -26,6 +26,7 @@ class PlatformExtrinsicsError(Exception):
     def __init__(self):
         Exception.__init__(self, "PlatformExtrinsicsError")
 
+estimated_t = [-5, 90, 320]
 
 class MarkerData(object):
 
@@ -72,7 +73,7 @@ class MarkerData(object):
         self.x = np.array(self.x)
         self.y = np.array(self.y)
         self.z = np.array(self.z)
-        points = zip(self.x, self.y, self.z)
+        points = list(zip(self.x, self.y, self.z))
 
         if len(points) > 4:
             # Fitting a plane
@@ -132,7 +133,7 @@ class MarkerData(object):
 
     def getError(self, R, t):
         if len(self.x) > 2:
-            v = zip( self.x, self.y, self.z ) - t
+            v = np.Array( [self.x, self.y, self.z] ) - t
             v = np.dot(R.T, v.T)
             dz = np.mean(np.abs(v[2] - np.mean(v[2])))
             dr = np.linalg.norm(zip(v[0], v[1]), axis=1)
@@ -144,7 +145,7 @@ class MarkerData(object):
     def getDelta(self, R, t, bestIndex=0, radius = None):
         if len(self.x) > 2:
             # v - data points in R,t coords system
-            v = zip( self.x, self.y, self.z ) - t
+            v = np.Array( [self.x, self.y, self.z] ) - t
             v = np.dot(R.T, v.T)
 
             # if not specified set radius to mean distance
@@ -363,7 +364,7 @@ class PlatformExtrinsics(MovingCalibration):
         t_avg_n = 0
 
         # calibrate each data set and calculate average results
-        for i,d in self.data.iteritems():
+        for i,d in iter(self.data.items()):
             d.calibrate()
             if d.n is not None:
                 normal_avg += d.n
@@ -493,7 +494,7 @@ def fit_plane(data):
     estimate = [centroid[0], centroid[1], centroid[2], -np.pi/2, np.pi/2]  
     # you may automize this by using the center of mass data
     # note that the normal vector is given in polar coordinates
-    best_fit_values, ier = optimize.leastsq(residuals_plane, estimate, args=(data))
+    best_fit_values = optimize.leastsq(residuals_plane, estimate, args=(data))
     xF, yF, zF, tF, pF = best_fit_values
 
     #point  = [xF,yF,zF]
@@ -523,7 +524,7 @@ def residuals_normal(parameters, data_vectors):
 
 def fit_normal(data):
     estimate = [-np.pi/2, np.pi/2]  # theta, phi
-    best_fit_values, ier = optimize.leastsq(residuals_normal, estimate, args=(data*1000))
+    best_fit_values = optimize.leastsq(residuals_normal, estimate, args=(data*1000))
     tF, pF = best_fit_values
     v = np.array([np.sin(tF) * np.cos(pF), np.sin(tF) * np.sin(pF), np.cos(tF)])
     return v
@@ -562,7 +563,7 @@ def fit_circle(point, normal, points):
     R = np.array([s, r, normal]).T
 
     estimate_circle = [0, 0, 0]  # px,py,pz and zeta, phi
-    best_circle_fit_values, ier = optimize.leastsq(
+    best_circle_fit_values = optimize.leastsq(
         residuals_circle, estimate_circle, args=(points, s, r, point))
 
     rF, sF, RiF = best_circle_fit_values
@@ -597,7 +598,7 @@ def fit_circle_R(point, normal, points, radius):
     R = np.array([s, r, normal]).T
 
     estimate_circle = [0, 0]  # px,py
-    best_circle_fit_values, ier = optimize.leastsq(
+    best_circle_fit_values = optimize.leastsq(
         residuals_circle_R, estimate_circle, args=(points, s, r, point, radius))
 
     rF, sF = best_circle_fit_values

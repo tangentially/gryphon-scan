@@ -146,7 +146,7 @@ class LaserSegmentation(object):
             mask = mask0+mask1
 
             ret = cv2.split(ret)[2]
-            ret[np.where(mask==0)] = 0
+            ret[np.where(mask)] = 0
 
         elif self.laser_color_detector == 'Cr (YCrCb)':
             ret = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YCR_CB))[1]
@@ -174,7 +174,7 @@ class LaserSegmentation(object):
                 _min = peak - self.window_value
                 _max = peak + self.window_value + 1
                 mask = np.zeros_like(image)
-                for i in xrange(self.calibration_data.height):
+                for i in range(self.calibration_data.height):
                     mask[i, _min[i]:_max[i]] = 255
                 # Apply mask
                 image = cv2.bitwise_and(image, mask)
@@ -182,7 +182,8 @@ class LaserSegmentation(object):
 
     # Segmented gaussian filter
 
-    def _sgf(self, u, s):
+    @staticmethod
+    def _sgf(u, s):
         if len(u) > 1:
             i = 0
             sigma = 2.0
@@ -216,7 +217,8 @@ class LaserSegmentation(object):
         which allows you to have vertical lines.
         '''
 
-        def fit(self, data):
+        @staticmethod
+        def fit(data):
             data_mean = data.mean(axis=0)
             x0, y0 = data_mean
             if data.shape[0] > 2:  # over determined
@@ -229,15 +231,18 @@ class LaserSegmentation(object):
             d = x0 * math.sin(theta) + y0 * math.cos(theta)
             return d, theta
 
-        def residuals(self, model, data):
+        @staticmethod
+        def residuals(model, data):
             d, theta = model
             dfit = data[:, 0] * math.sin(theta) + data[:, 1] * math.cos(theta)
             return np.abs(d - dfit)
 
-        def is_degenerate(self, sample):
+        @staticmethod
+        def is_degenerate(sample):
             return False
 
-    def ransac(self, data, model_class, min_samples, threshold, max_trials=100):
+    @staticmethod
+    def ransac(data, model_class, min_samples, threshold, max_trials=100):
         '''
         Fits a model to data with the RANSAC algorithm.
         :param data: numpy.ndarray
@@ -264,7 +269,7 @@ class LaserSegmentation(object):
         best_inlier_num = 0
         best_inliers = None
         data_idx = np.arange(data.shape[0])
-        for _ in xrange(max_trials):
+        for _ in range(max_trials):
             sample = data[np.random.randint(0, data.shape[0], 2)]
             if model_class.is_degenerate(sample):
                 continue

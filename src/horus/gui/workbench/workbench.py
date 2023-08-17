@@ -38,7 +38,7 @@ class Workbench(wx.Panel):
         vsbox.Add(self.panels_collection, 1, wx.ALL | wx.EXPAND, 0)
         self.scroll_panel.SetSizer(vsbox)
         vsbox.Fit(self.scroll_panel)
-        panel_size = self.scroll_panel.GetSize()[0] + wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        panel_size = self.scroll_panel.GetSize()[0] + wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
         self.scroll_panel.SetMinSize((panel_size, -1))
         self.scroll_panel.Disable()
 
@@ -90,12 +90,12 @@ class Workbench(wx.Panel):
     def on_connect(self):
         if driver.is_connected:
             self.setup_engine()
-            for _, p in self.pages_collection.iteritems():
+            for _, p in iter(self.pages_collection.items()):
                 p.Enable()
             self.on_open()
 
     def on_disconnect(self):
-        for _, p in self.pages_collection.iteritems():
+        for _, p in iter(self.pages_collection.items()):
             p.Disable()
         self.on_close()
         self.disable_content()

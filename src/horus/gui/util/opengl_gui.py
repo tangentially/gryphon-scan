@@ -56,7 +56,8 @@ class glGuiControl(object):
     def get_size(self):
         return self._size
 
-    def get_min_size(self):
+    @staticmethod
+    def get_min_size():
         return 1, 1
 
     def update_layout(self):
@@ -64,23 +65,24 @@ class glGuiControl(object):
 
     def focus_next(self):
         control_list = self._parent._gl_gui_control_list
-        for n in xrange(control_list.index(self) + 1, len(control_list)):
+        for n in range(control_list.index(self) + 1, len(control_list)):
             if self._parent._gl_gui_control_list[n].setFocus():
                 return
-        for n in xrange(0, control_list.index(self)):
+        for n in range(0, control_list.index(self)):
             if self._parent._gl_gui_control_list[n].setFocus():
                 return
 
     def focus_previous(self):
         control_list = self._parent._gl_gui_control_list
-        for n in xrange(control_list.index(self) - 1, -1, -1):
+        for n in range(control_list.index(self) - 1, -1, -1):
             if self._parent._gl_gui_control_list[n].setFocus():
                 return
-        for n in xrange(len(control_list) - 1, control_list.index(self), -1):
+        for n in range(len(control_list) - 1, control_list.index(self), -1):
             if self._parent._gl_gui_control_list[n].setFocus():
                 return
 
-    def set_focus(self):
+    @staticmethod
+    def set_focus():
         return False
 
     def has_focus(self):
@@ -185,15 +187,11 @@ class glGuiPanel(glcanvas.GLCanvas):
         if self._focus is not None:
             self._focus.on_key_up(e.GetKeyCode())
             self.Refresh()
-        else:
-            self.on_key_up(e.GetKeyCode())
 
     def _on_gui_key_down(self, e):
         if self._focus is not None:
             self._focus.on_key_down(e.GetKeyCode())
             self.Refresh()
-        else:
-            self.on_key_down(e.GetKeyCode())
 
     def _on_focus_lost(self, e):
         self._focus = None
@@ -235,7 +233,7 @@ class glGuiPanel(glcanvas.GLCanvas):
             errStr = _("An error occurred during the 3D view drawing.")
             tb = traceback.extract_tb(sys.exc_info()[2])
             errStr += "\n%s: '%s'" % (str(sys.exc_info()[0].__name__), str(sys.exc_info()[1]))
-            for n in xrange(len(tb) - 1, -1, -1):
+            for n in range(len(tb) - 1, -1, -1):
                 locationInfo = tb[n]
                 errStr += "\n @ %s:%s:%d" % (
                     os.path.basename(locationInfo[0]), locationInfo[2], locationInfo[1])

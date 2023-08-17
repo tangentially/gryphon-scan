@@ -96,7 +96,7 @@ class ComboCalibration(MovingCalibration):
 
         # Laser triangulation
         # Save point clouds
-        for i in xrange(2):
+        for i in range(2):
             laser_triangulation.save_point_cloud('PC' + str(i) + '.ply', self._point_cloud[i])
 
         self.distance = [None, None]
@@ -104,7 +104,7 @@ class ComboCalibration(MovingCalibration):
         self.std = [None, None]
 
         # Compute planes
-        for i in xrange(2):
+        for i in range(2):
             if self._is_calibrating:
                 plane = laser_triangulation.compute_plane(i, self._point_cloud[i])
                 self.distance[i], self.normal[i], self.std[i] = plane
@@ -114,7 +114,7 @@ class ComboCalibration(MovingCalibration):
         self.x = np.array(self.x)
         self.y = np.array(self.y)
         self.z = np.array(self.z)
-        points = zip(self.x, self.y, self.z)
+        points = list(zip(self.x, self.y, self.z))
 
         if len(points) > 4:
             # Fitting a plane
@@ -161,7 +161,7 @@ class ComboCalibration(MovingCalibration):
         return response
 
     def accept(self):
-        for i in xrange(2):
+        for i in range(2):
             self.calibration_data.laser_planes[i].distance = self.distance[i]
             self.calibration_data.laser_planes[i].normal = self.normal[i]
         self.calibration_data.platform_rotation = self.R

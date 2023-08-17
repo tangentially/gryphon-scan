@@ -19,7 +19,7 @@ try:
     import scipy
     import matplotlib
 except ImportError as e:
-    print(e.message)
+    print(str(e))
     exit(1)
 
 # Try first the sources

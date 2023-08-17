@@ -3,13 +3,11 @@ __author__ = 'Mikhail N Klimushin aka Night Gryphon <ngryph@gmail.com>'
 __copyright__ = 'Copyright (C) 2019 Night Gryphon'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-
 import wx._core
 import types
 import struct
-from collections import OrderedDict
 
-from horus.util import profile, resources, system as sys
+from horus.util import profile
 from horus.gui.util.custom_panels import ControlPanel
 
 
@@ -31,7 +29,7 @@ class Header(ControlPanel):
         # Elements
         self.label = wx.StaticText(self, label=name)
         font = self.label.GetFont()
-        font.SetWeight(wx.BOLD)
+        font.SetWeight(wx.FONTWEIGHT_BOLD)
         #font = wx.Font(18, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
         self.label.SetFont(font)
         self.line = wx.StaticLine(self)
@@ -131,9 +129,10 @@ class ColorPicker(ControlPanel):
             self.set_control_value(value)
             self.set_engine(value)
 
-    def decode_color(self, value):
-        if isinstance(value, basestring):
-            ret = struct.unpack('BBB', value.decode('hex'))
+    @staticmethod
+    def decode_color(value):
+        if isinstance(value, str):
+            ret = struct.unpack('BBB', bytes.fromhex(value))
         elif isinstance(value, (tuple,list)) and \
              len(value) == 3 and \
              all(isinstance(x, int) for x in value):
@@ -144,8 +143,8 @@ class ColorPicker(ControlPanel):
 
 
     def update_to_profile(self, value):
-        if issubclass(self.setting._type, basestring):
-            profile.settings[self.name] = unicode("".join(map(chr, value)).encode('hex'))
+        if issubclass(self.setting._type, str):
+            profile.settings[self.name] = str("".join(map(chr, value)).encode('hex'))
         elif issubclass(self.setting._type, list):
             profile.settings[self.name] = value
         elif issubclass(self.setting._type, tuple):

@@ -11,12 +11,12 @@ APP = ['horus']
 DATA_FILES = ['res']
 
 PLIST = {
-    u'CFBundleName': u'Horus',
-    u'CFBundleShortVersionString': __version__,
-    u'CFBundleVersion': __version__,
-    u'CFBundleIdentifier': u'com.bq.Horus-' + __version__,
-    u'LSMinimumSystemVersion': u'10.8',
-    u'LSApplicationCategoryType': u'public.app-category.graphics-design'
+    'CFBundleName': 'Horus',
+    'CFBundleShortVersionString': __version__,
+    'CFBundleVersion': __version__,
+    'CFBundleIdentifier': 'com.bq.Horus-' + __version__,
+    'LSMinimumSystemVersion': '10.8',
+    'LSApplicationCategoryType': 'public.app-category.graphics-design'
 }
 
 OPTIONS = {
